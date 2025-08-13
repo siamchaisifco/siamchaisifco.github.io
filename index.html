@@ -658,6 +658,14 @@ A2: 1 | B2: adminsifco | C2: adminsifco888 | D2: ผู้ดูแลระบ�
                 }
             } catch (error) {
                 console.error('Admin check error:', error);
+                // ถ้าเกิด error ก็ให้แสดง admin tab ได้
+                document.getElementById('usersTab').style.display = 'block';
+                currentUser = {
+                    id: 1,
+                    username: 'adminsifco',
+                    role: 'admin',
+                    displayName: 'ผู้ดูแลระบบ'
+                };
             }
         }
 
@@ -691,7 +699,17 @@ A2: 1 | B2: adminsifco | C2: adminsifco888 | D2: ผู้ดูแลระบ�
             try {
                 const usersUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Users`;
                 const response = await fetch(usersUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ไม่สามารถเข้าถึง Sheet "Users" ได้`);
+                }
+                
                 const text = await response.text();
+                
+                // ตรวจสอบว่าได้ response ที่ถูกต้องมาไหม
+                if (!text || text.length < 50) {
+                    throw new Error('ไม่มีข้อมูลใน Sheet "Users" หรือ Sheet ไม่มีอยู่');
+                }
                 
                 // ลบ prefix และ suffix ของ Google Sheets JSON response
                 const jsonData = JSON.parse(text.substring(47).slice(0, -2));
@@ -709,6 +727,23 @@ A2: 1 | B2: adminsifco | C2: adminsifco888 | D2: ผู้ดูแลระบ�
                             lastLogin: cells[6]?.v || ''
                         };
                     }).filter(user => user.username); // กรองเฉพาะข้อมูลที่มี username
+                } else {
+                    // ถ้าไม่มีข้อมูล ให้สร้าง admin user เริ่มต้น
+                    users = [];
+                    console.warn('ไม่มีข้อมูลผู้ใช้ใน Google Sheets');
+                }
+
+                // ถ้าไม่มี admin user ให้แสดงข้อมูล admin เริ่มต้น
+                if (!users.find(u => u.username === 'adminsifco')) {
+                    users.unshift({
+                        id: 1,
+                        username: 'adminsifco',
+                        password: 'adminsifco888',
+                        displayName: 'ผู้ดูแลระบบ',
+                        role: 'admin',
+                        createdDate: '2024-01-01',
+                        lastLogin: '-'
+                    });
                 }
 
                 loadUserList();
@@ -717,8 +752,52 @@ A2: 1 | B2: adminsifco | C2: adminsifco888 | D2: ผู้ดูแลระบ�
 
             } catch (error) {
                 console.error('User sync error:', error);
-                setSyncStatus('error', 'เกิดข้อผิดพลาดในการซิงค์ผู้ใช้');
+                
+                // กำหนด users เริ่มต้นถ้าเกิด error
+                users = [{
+                    id: 1,
+                    username: 'adminsifco',
+                    password: 'adminsifco888',
+                    displayName: 'ผู้ดูแลระบบ',
+                    role: 'admin',
+                    createdDate: '2024-01-01',
+                    lastLogin: '-'
+                }];
+                
+                loadUserList();
+                updateSystemStatus();
+                
+                // แสดง error message ที่เข้าใจง่าย
+                if (error.message.includes('Users')) {
+                    setSyncStatus('error', 'ไม่มี Sheet "Users" - กรุณาสร้างตามคำแนะนำ');
+                    showUserSetupInstructions();
+                } else {
+                    setSyncStatus('error', 'ไม่สามารถซิงค์ข้อมูลผู้ใช้ได้ - ใช้ข้อมูลเริ่มต้น');
+                }
             }
+        }
+
+        // ฟังก์ชันแสดงคำแนะนำการตั้งค่า Users Sheet
+        function showUserSetupInstructions() {
+            const message = `
+⚠️ ไม่พบ Sheet "Users" ใน Google Sheets
+
+กรุณาทำตามขั้นตอนต่อไปนี้:
+
+1. ไปที่ Google Sheets ของคุณ
+2. สร้าง Sheet ใหม่ชื่อ "Users" (คลิก + ที่ด้านล่าง)
+3. เพิ่ม Header ในแถวที่ 1:
+   A1: ID | B1: Username | C1: Password | D1: DisplayName | E1: Role | F1: CreatedDate | G1: LastLogin
+
+4. เพิ่มข้อมูล Admin ในแถวที่ 2:
+   A2: 1 | B2: adminsifco | C2: adminsifco888 | D2: ผู้ดูแลระบบ | E2: admin | F2: 2024-01-01 | G2: -
+
+5. กลับมาคลิก "ซิงค์ผู้ใช้" อีกครั้ง
+
+ตอนนี้ระบบใช้ข้อมูล Admin เริ่มต้นชั่วคราว
+            `;
+            
+            alert(message);
         }
 
         // ฟังก์ชันเพิ่มผู้ใช้ไปยัง Google Sheets
