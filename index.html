@@ -364,6 +364,7 @@ A2: 1 | B2: adminsifco | C2: adminsifco888 | D2: ผู้ดูแลระบ�
             <button class="nav-tab active" onclick="showTab('customers')">📋 ลูกค้า Prospects</button>
             <button class="nav-tab" onclick="showTab('add')">➕ เพิ่มลูกค้าใหม่</button>
             <button class="nav-tab" onclick="showTab('reports')">📊 รายงาน</button>
+            <button class="nav-tab" onclick="showTab('users')" id="usersTab" style="display: none;">👥 จัดการผู้ใช้</button>
             <button class="nav-tab" onclick="showTab('settings')">⚙️ ตั้งค่า</button>
         </div>
 
@@ -457,6 +458,49 @@ A2: 1 | B2: adminsifco | C2: adminsifco888 | D2: ผู้ดูแลระบ�
                 </form>
             </div>
 
+            <!-- Tab: User Management (Admin Only) -->
+            <div id="users" class="tab-content">
+                <h2 style="margin-bottom: 25px;">👥 จัดการผู้ใช้งาน (Admin Only)</h2>
+                
+                <button class="btn btn-success" onclick="syncUsersFromSheets()" style="margin-bottom: 20px;">🔄 ดึงข้อมูลผู้ใช้ล่าสุด</button>
+
+                <div class="setup-steps">
+                    <h3 style="margin-bottom: 15px;">➕ เพิ่มผู้ใช้ใหม่</h3>
+                    <form id="userForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="newUsername">* ชื่อผู้ใช้:</label>
+                                <input type="text" id="newUsername" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="newPassword">* รหัสผ่าน:</label>
+                                <input type="password" id="newPassword" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="newDisplayName">ชื่อที่แสดง:</label>
+                                <input type="text" id="newDisplayName">
+                            </div>
+                            <div class="form-group">
+                                <label for="newRole">* บทบาท:</label>
+                                <select id="newRole" required>
+                                    <option value="">เลือกบทบาท</option>
+                                    <option value="admin">ผู้ดูแลระบบ</option>
+                                    <option value="user">ผู้ใช้งานทั่วไป</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success">➕ เพิ่มผู้ใช้ไปยัง Google Sheets</button>
+                    </form>
+                </div>
+
+                <div class="setup-steps">
+                    <h3 style="margin-bottom: 15px;">📋 รายการผู้ใช้งาน</h3>
+                    <div id="userList">
+                        <!-- รายการผู้ใช้จะแสดงที่นี่ -->
+                    </div>
+                </div>
+            </div>
+
             <!-- Tab: Reports -->
             <div id="reports" class="tab-content">
                 <h2 style="margin-bottom: 25px;">📊 รายงานสรุป</h2>
@@ -473,7 +517,11 @@ A2: 1 | B2: adminsifco | C2: adminsifco888 | D2: ผู้ดูแลระบ�
                 <div class="setup-steps">
                     <h3>🔗 การเชื่อมต่อ Google Sheets</h3>
                     <p><strong>URL ปัจจุบัน:</strong> <span id="currentSheetsUrl">ไม่ได้ตั้งค่า</span></p>
-                    <button class="btn btn-primary" onclick="showSetupScreen()">🔧 เปลี่ยน Google Sheets</button>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button class="btn btn-primary" onclick="showSetupScreen()">🔧 เปลี่ยน Google Sheets</button>
+                        <button class="btn btn-secondary" onclick="testConnection()" style="background: #6c757d; color: white;">🔍 ทดสอบการเชื่อมต่อ</button>
+                        <button class="btn" onclick="resetSystem()" style="background: #e74c3c; color: white;">🗑️ รีเซ็ตระบบ</button>
+                    </div>
                 </div>
 
                 <div class="setup-steps">
@@ -483,13 +531,13 @@ A2: 1 | B2: adminsifco | C2: adminsifco888 | D2: ผู้ดูแลระบ�
                 </div>
 
                 <div class="setup-steps">
-                    <h3>⚠️ ข้อมูลสำคัญ</h3>
-                    <ul>
-                        <li>ข้อมูลทั้งหมดจะเก็บใน Google Sheets ของคุณ</li>
-                        <li>ระบบจะซิงค์ข้อมูลอัตโนมัติเมื่อมีการเปลี่ยนแปลง</li>
-                        <li>หากต้องการแก้ไขข้อมูลในระบบ กรุณาใช้หน้าเว็บนี้</li>
-                        <li>อย่าลบ Header ในแถวแรกของ Google Sheets</li>
-                    </ul>
+                    <h3>ℹ️ สถานะระบบ</h3>
+                    <div id="systemStatus">
+                        <p>📊 <strong>Google Sheets:</strong> <span id="connectionStatus">กำลังตรวจสอบ...</span></p>
+                        <p>👥 <strong>ผู้ใช้ในระบบ:</strong> <span id="userCount">-</span> คน</p>
+                        <p>📋 <strong>ลูกค้า Prospects:</strong> <span id="customerCount">-</span> ราย</p>
+                        <p>🕒 <strong>ซิงค์ล่าสุด:</strong> <span id="lastSync">-</span></p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -503,15 +551,20 @@ A2: 1 | B2: adminsifco | C2: adminsifco888 | D2: ผู้ดูแลระบ�
         let SHEETS_URL = '';
         let SHEET_ID = '';
         let customers = [];
+        let users = [];
         let currentUser = { username: 'user', role: 'user' };
 
         // ตรวจสอบการตั้งค่าเมื่อโหลดหน้า
         document.addEventListener('DOMContentLoaded', function() {
             const savedSheetsUrl = localStorage.getItem('sheetsUrl');
             if (savedSheetsUrl) {
+                // มีการตั้งค่าแล้ว - ไปหน้าหลักเลย
                 SHEETS_URL = savedSheetsUrl;
                 SHEET_ID = extractSheetId(savedSheetsUrl);
                 showMainApp();
+            } else {
+                // ยังไม่มีการตั้งค่า - แสดงหน้า setup
+                showSetupScreen();
             }
         });
 
@@ -585,8 +638,27 @@ A2: 1 | B2: adminsifco | C2: adminsifco888 | D2: ผู้ดูแลระบ�
             document.getElementById('mainApp').style.display = 'block';
             document.getElementById('currentSheetsUrl').textContent = SHEETS_URL;
             
+            // แสดง tab ผู้ใช้สำหรับ admin
+            checkAdminAccess();
+            
             // โหลดข้อมูลเริ่มต้น
             syncFromSheets();
+            syncUsersFromSheets();
+        }
+
+        // ฟังก์ชันตรวจสอบสิทธิ์ admin
+        async function checkAdminAccess() {
+            try {
+                await syncUsersFromSheets();
+                // หา admin user
+                const adminUser = users.find(u => u.username === 'adminsifco' || u.role === 'admin');
+                if (adminUser) {
+                    currentUser = adminUser;
+                    document.getElementById('usersTab').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Admin check error:', error);
+            }
         }
 
         // ฟังก์ชันกลับไปหน้า Setup
@@ -605,10 +677,259 @@ A2: 1 | B2: adminsifco | C2: adminsifco888 | D2: ผู้ดูแลระบ�
 
             if (tabName === 'customers' || tabName === 'reports') {
                 syncFromSheets();
+            } else if (tabName === 'users') {
+                syncUsersFromSheets();
             }
         }
 
-        // ฟังก์ชันซิงค์ข้อมูลจาก Google Sheets
+        // ฟังก์ชันซิงค์ข้อมูลผู้ใช้จาก Google Sheets
+        async function syncUsersFromSheets() {
+            if (!SHEET_ID) return;
+
+            setSyncStatus('syncing', 'กำลังซิงค์ข้อมูลผู้ใช้...');
+
+            try {
+                const usersUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Users`;
+                const response = await fetch(usersUrl);
+                const text = await response.text();
+                
+                // ลบ prefix และ suffix ของ Google Sheets JSON response
+                const jsonData = JSON.parse(text.substring(47).slice(0, -2));
+                
+                if (jsonData.table && jsonData.table.rows) {
+                    users = jsonData.table.rows.map((row, index) => {
+                        const cells = row.c || [];
+                        return {
+                            id: cells[0]?.v || index + 1,
+                            username: cells[1]?.v || '',
+                            password: cells[2]?.v || '',
+                            displayName: cells[3]?.v || '',
+                            role: cells[4]?.v || '',
+                            createdDate: cells[5]?.v || '',
+                            lastLogin: cells[6]?.v || ''
+                        };
+                    }).filter(user => user.username); // กรองเฉพาะข้อมูลที่มี username
+                }
+
+                loadUserList();
+                updateSystemStatus();
+                setSyncStatus('synced', 'ซิงค์ผู้ใช้สำเร็จ');
+
+            } catch (error) {
+                console.error('User sync error:', error);
+                setSyncStatus('error', 'เกิดข้อผิดพลาดในการซิงค์ผู้ใช้');
+            }
+        }
+
+        // ฟังก์ชันเพิ่มผู้ใช้ไปยัง Google Sheets
+        async function addUserToSheets(userData) {
+            if (!SHEET_ID) {
+                alert('❌ ยังไม่ได้เชื่อมต่อ Google Sheets');
+                return false;
+            }
+
+            setSyncStatus('syncing', 'กำลังเพิ่มผู้ใช้...');
+
+            try {
+                // สร้างข้อมูลสำหรับ Google Sheets
+                const sheetData = [
+                    userData.id,
+                    userData.username,
+                    userData.password,
+                    userData.displayName,
+                    userData.role,
+                    userData.createdDate,
+                    userData.lastLogin
+                ];
+
+                // คัดลอกข้อมูลไปยัง clipboard
+                const textToCopy = sheetData.join('\t'); // Tab-separated values
+                
+                try {
+                    await navigator.clipboard.writeText(textToCopy);
+                    alert('✅ ข้อมูลผู้ใช้ถูกคัดลอกแล้ว!\n\nกรุณาไปที่ Google Sheets (Sheet "Users") และวางข้อมูลในแถวใหม่\n\nข้อมูล:\n' + 
+                          `ID: ${userData.id}\n` +
+                          `Username: ${userData.username}\n` +
+                          `Password: ${userData.password}\n` +
+                          `ชื่อแสดง: ${userData.displayName}\n` +
+                          `บทบาท: ${userData.role}\n` +
+                          `วันที่สร้าง: ${userData.createdDate}\n` +
+                          `Login ล่าสุด: ${userData.lastLogin}`);
+                } catch (clipboardError) {
+                    const message = `กรุณาเพิ่มข้อมูลผู้ใช้ต่อไปนี้ใน Google Sheets (Sheet "Users"):\n\n` +
+                        `ID: ${userData.id}\n` +
+                        `Username: ${userData.username}\n` +
+                        `Password: ${userData.password}\n` +
+                        `ชื่อแสดง: ${userData.displayName}\n` +
+                        `บทบาท: ${userData.role}\n` +
+                        `วันที่สร้าง: ${userData.createdDate}\n` +
+                        `Login ล่าสุด: ${userData.lastLogin}`;
+                    alert(message);
+                }
+
+                // เปิด Google Sheets ไปที่ Sheet "Users"
+                const usersSheetUrl = SHEETS_URL.includes('#gid=') 
+                    ? SHEETS_URL.replace(/#gid=\d+/, '#gid=1') 
+                    : SHEETS_URL + '#gid=1';
+                window.open(usersSheetUrl, '_blank');
+                
+                setSyncStatus('synced', 'เพิ่มผู้ใช้สำเร็จ');
+                return true;
+
+            } catch (error) {
+                console.error('Add user error:', error);
+                setSyncStatus('error', 'เกิดข้อผิดพลาดในการเพิ่มผู้ใช้');
+                return false;
+            }
+        }
+
+        // ฟังก์ชันโหลดรายการผู้ใช้
+        function loadUserList() {
+            const userList = document.getElementById('userList');
+
+            if (users.length === 0) {
+                userList.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;">ไม่มีข้อมูลผู้ใช้<br><br>กรุณาตรวจสอบ Google Sheets หรือเพิ่มผู้ใช้ใหม่</div>';
+                return;
+            }
+
+            userList.innerHTML = users.map(user => `
+                <div class="customer-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div style="font-weight: 600; color: #2c3e50; font-size: 18px;">${user.username}</div>
+                        <div style="background: ${user.role === 'admin' ? 'linear-gradient(135deg, #e74c3c, #c0392b)' : 'linear-gradient(135deg, #3498db, #9b59b6)'}; color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                            ${user.role === 'admin' ? 'ผู้ดูแลระบบ' : 'ผู้ใช้งาน'}
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 15px;">
+                        <div>
+                            <div style="font-size: 12px; color: #7f8c8d; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">ชื่อที่แสดง</div>
+                            <div style="color: #2c3e50; font-weight: 500;">${user.displayName || 'ไม่ระบุ'}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: #7f8c8d; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">รหัสผ่าน</div>
+                            <div style="color: #2c3e50; font-weight: 500;">••••••••</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: #7f8c8d; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">วันที่สร้าง</div>
+                            <div style="color: #2c3e50; font-weight: 500;">${user.createdDate || 'ไม่ระบุ'}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: #7f8c8d; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">เข้าสู่ระบบล่าสุด</div>
+                            <div style="color: #2c3e50; font-weight: 500;">${user.lastLogin || 'ยังไม่เคยเข้าสู่ระบบ'}</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
+                        <button class="btn btn-primary" onclick="editUser('${user.username}')" style="padding: 8px 15px; font-size: 14px;">✏️ แก้ไข</button>
+                        ${user.username !== 'adminsifco' ? `<button class="btn" onclick="deleteUser('${user.username}')" style="padding: 8px 15px; font-size: 14px; background: #e74c3c; color: white;">🗑️ ลบ</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ฟังก์ชันเพิ่มผู้ใช้ใหม่
+        document.getElementById('userForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('newUsername').value;
+            const password = document.getElementById('newPassword').value;
+            const displayName = document.getElementById('newDisplayName').value;
+            const role = document.getElementById('newRole').value;
+            
+            // ตรวจสอบว่ามี username ซ้ำไหม
+            if (users.find(u => u.username === username)) {
+                alert('❌ ชื่อผู้ใช้นี้มีอยู่ในระบบแล้ว');
+                return;
+            }
+            
+            const newUser = {
+                id: Date.now(),
+                username: username,
+                password: password,
+                displayName: displayName,
+                role: role,
+                createdDate: new Date().toLocaleDateString('th-TH'),
+                lastLogin: '-'
+            };
+            
+            const success = await addUserToSheets(newUser);
+            if (success) {
+                document.getElementById('userForm').reset();
+                // รอสักครู่แล้วซิงค์ข้อมูลใหม่
+                setTimeout(() => {
+                    syncUsersFromSheets();
+                }, 3000);
+            }
+        });
+
+        // ฟังก์ชันแก้ไขผู้ใช้
+        function editUser(username) {
+            const user = users.find(u => u.username === username);
+            if (!user) return;
+            
+            const newPassword = prompt('รหัสผ่านใหม่ (เว้นว่างถ้าไม่ต้องการเปลี่ยน):', '');
+            if (newPassword === null) return; // ยกเลิก
+            
+            const newDisplayName = prompt('ชื่อที่แสดงใหม่:', user.displayName);
+            if (newDisplayName === null) return; // ยกเลิก
+            
+            const newRole = prompt('บทบาทใหม่ (admin/user):', user.role);
+            if (newRole === null) return; // ยกเลิก
+            
+            if (newRole !== 'admin' && newRole !== 'user') {
+                alert('❌ บทบาทไม่ถูกต้อง กรุณาระบุ admin หรือ user');
+                return;
+            }
+            
+            // ป้องกันการเปลี่ยนบทบาทของ admin หลัก
+            if (user.username === 'adminsifco' && newRole !== 'admin') {
+                alert('❌ ไม่สามารถเปลี่ยนบทบาทของผู้ดูแลระบบหลักได้');
+                return;
+            }
+            
+            let updateMessage = `กรุณาอัพเดทข้อมูลผู้ใช้ "${username}" ใน Google Sheets:\n\n`;
+            updateMessage += `ชื่อแสดง: ${newDisplayName}\n`;
+            updateMessage += `บทบาท: ${newRole}\n`;
+            if (newPassword.trim() !== '') {
+                updateMessage += `รหัสผ่าน: ${newPassword}\n`;
+            }
+            updateMessage += `\nกรุณาหาแถวของผู้ใช้นี้ในชีต "Users" และแก้ไขข้อมูลตามที่ระบุข้างต้น`;
+            
+            alert('📝 ' + updateMessage);
+            
+            // เปิด Google Sheets ไปที่ Sheet "Users"
+            const usersSheetUrl = SHEETS_URL.includes('#gid=') 
+                ? SHEETS_URL.replace(/#gid=\d+/, '#gid=1') 
+                : SHEETS_URL + '#gid=1';
+            window.open(usersSheetUrl, '_blank');
+        }
+
+        // ฟังก์ชันลบผู้ใช้
+        function deleteUser(username) {
+            const user = users.find(u => u.username === username);
+            if (!user) return;
+            
+            // ป้องกันการลบ admin หลัก
+            if (user.username === 'adminsifco') {
+                alert('❌ ไม่สามารถลบผู้ดูแลระบบหลักได้');
+                return;
+            }
+            
+            if (confirm(`คุณแน่ใจหรือไม่ที่จะลบผู้ใช้ "${username}"?\n\nคุณจะต้องลบแถวของผู้ใช้นี้ใน Google Sheets ด้วยตนเอง`)) {
+                alert(`📝 กรุณาลบผู้ใช้ "${username}" จาก Google Sheets:\n\n` +
+                      `1. ไปที่ชีต "Users"\n` +
+                      `2. หาแถวของผู้ใช้ "${username}"\n` +
+                      `3. คลิกขวาที่หมายเลขแถวและเลือก "Delete row"\n\n` +
+                      `ระบบจะเปิด Google Sheets ให้คุณ`);
+                
+                // เปิด Google Sheets ไปที่ Sheet "Users"
+                const usersSheetUrl = SHEETS_URL.includes('#gid=') 
+                    ? SHEETS_URL.replace(/#gid=\d+/, '#gid=1') 
+                    : SHEETS_URL + '#gid=1';
+                window.open(usersSheetUrl, '_blank');
+            }
+        }
         async function syncFromSheets() {
             if (!SHEET_ID) return;
 
