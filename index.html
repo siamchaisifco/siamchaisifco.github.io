@@ -547,11 +547,11 @@ A2: 1 | B2: adminsifco | C2: adminsifco888 | D2: ผู้ดูแลระบ�
                 
                 <div class="setup-steps">
                     <h3>🔗 การเชื่อมต่อ Google Sheets</h3>
-                    <p><strong>URL ปัจจุบัน:</strong> <span id="currentSheetsUrl">ไม่ได้ตั้งค่า</span></p>
+                    <p><strong>URL ที่ใช้งาน:</strong> <span style="word-break: break-all;">https://docs.google.com/spreadsheets/d/10YhEdgbxo25ffMxQ9EsBOqMwh1W0vkzdU8h1TDlBdhs/edit?usp=sharing</span></p>
                     <div style="display: flex; gap: 10px; margin-top: 15px;">
-                        <button class="btn btn-primary" onclick="showSetupScreen()">🔧 เปลี่ยน Google Sheets</button>
+                        <button class="btn btn-success" onclick="openGoogleSheets()" style="background: #27ae60; color: white;">🔗 เปิด Google Sheets</button>
                         <button class="btn btn-secondary" onclick="testConnection()" style="background: #6c757d; color: white;">🔍 ทดสอบการเชื่อมต่อ</button>
-                        <button class="btn" onclick="resetSystem()" style="background: #e74c3c; color: white;">🗑️ รีเซ็ตระบบ</button>
+                        <button class="btn" onclick="showSetupInstructions()" style="background: #3498db; color: white;">📋 ดูคำแนะนำ</button>
                     </div>
                 </div>
 
@@ -579,8 +579,8 @@ A2: 1 | B2: adminsifco | C2: adminsifco888 | D2: ผู้ดูแลระบ�
 
     <script>
         // ตัวแปรส่วนกลาง
-        let SHEETS_URL = '';
-        let SHEET_ID = '';
+        let SHEETS_URL = 'https://docs.google.com/spreadsheets/d/10YhEdgbxo25ffMxQ9EsBOqMwh1W0vkzdU8h1TDlBdhs/edit?usp=sharing';
+        let SHEET_ID = '10YhEdgbxo25ffMxQ9EsBOqMwh1W0vkzdU8h1TDlBdhs';
         let customers = [];
         let users = [];
         let currentUser = null;
@@ -588,27 +588,20 @@ A2: 1 | B2: adminsifco | C2: adminsifco888 | D2: ผู้ดูแลระบ�
 
         // ตรวจสอบการตั้งค่าเมื่อโหลดหน้า
         document.addEventListener('DOMContentLoaded', function() {
+            // ตั้งค่า Google Sheets URL ที่ฝังไว้
+            if (SHEETS_URL && SHEET_ID) {
+                localStorage.setItem('sheetsUrl', SHEETS_URL);
+            }
+
             // ตรวจสอบ login session
             const savedUser = localStorage.getItem('currentUser');
             if (savedUser) {
                 currentUser = JSON.parse(savedUser);
                 isLoggedIn = true;
-            }
-
-            const savedSheetsUrl = localStorage.getItem('sheetsUrl');
-            if (savedSheetsUrl && isLoggedIn) {
-                // มีการตั้งค่าและ login แล้ว - ไปหน้าหลักเลย
-                SHEETS_URL = savedSheetsUrl;
-                SHEET_ID = extractSheetId(savedSheetsUrl);
                 showMainApp();
-            } else if (savedSheetsUrl && !isLoggedIn) {
-                // มีการตั้งค่าแต่ยัง login ไม่ได้ - แสดงหน้า login
-                SHEETS_URL = savedSheetsUrl;
-                SHEET_ID = extractSheetId(savedSheetsUrl);
-                showLoginScreen();
             } else {
-                // ยังไม่มีการตั้งค่า - แสดงหน้า setup
-                showSetupScreen();
+                // แสดงหน้า login เลย เพราะ Google Sheets ตั้งค่าแล้ว
+                showLoginScreen();
             }
         });
 
@@ -896,7 +889,44 @@ A2: 1 | B2: adminsifco | C2: adminsifco888 | D2: ผู้ดูแลระบ�
             }
         }
 
-        // ฟังก์ชันแสดงคำแนะนำการตั้งค่า Users Sheet
+        // ฟังก์ชันแสดงคำแนะนำการตั้งค่า
+        function showSetupInstructions() {
+            const message = `
+📋 คำแนะนำการตั้งค่า Google Sheets:
+
+Google Sheets ที่ใช้งาน:
+https://docs.google.com/spreadsheets/d/10YhEdgbxo25ffMxQ9EsBOqMwh1W0vkzdU8h1TDlBdhs/edit?usp=sharing
+
+🔧 การตั้งค่าที่ต้องทำ:
+
+1. สร้าง Sheet "Customers" (แถวที่ 1):
+   A1: ID | B1: Email | C1: CustomerName | D1: Country | E1: Phone 
+   F1: ProductGroup | G1: RawMaterial | H1: InquiryDetails 
+   I1: ConversationNotes | J1: DateAdded | K1: LastContact | L1: AddedBy
+
+2. สร้าง Sheet "Users" (แถวที่ 1):
+   A1: ID | B1: Username | C1: Password | D1: DisplayName 
+   E1: Role | F1: CreatedDate | G1: LastLogin
+
+3. เพิ่มข้อมูล Admin ใน Sheet "Users" (แถวที่ 2):
+   A2: 1 | B2: adminsifco | C2: adminsifco888 | D2: ผู้ดูแลระบบ 
+   E2: admin | F2: 2024-01-01 | G2: -
+
+4. แชร์ Spreadsheet:
+   - คลิk "Share" มุมขวาบน
+   - เปลี่ยนเป็น "Anyone with the link" + "Editor"
+
+✅ ข้อมูล Login:
+Username: adminsifco
+Password: adminsifco888
+
+คลิก OK เพื่อเปิด Google Sheets
+            `;
+            
+            if (confirm(message)) {
+                openGoogleSheets();
+            }
+        }
         function showUserSetupInstructions() {
             const message = `
 ⚠️ ไม่พบ Sheet "Users" ใน Google Sheets
@@ -1432,11 +1462,7 @@ A2: 1 | B2: adminsifco | C2: adminsifco888 | D2: ผู้ดูแลระบ�
 
         // ฟังก์ชันเปิด Google Sheets
         function openGoogleSheets() {
-            if (SHEETS_URL) {
-                window.open(SHEETS_URL, '_blank');
-            } else {
-                alert('❌ ยังไม่ได้ตั้งค่า Google Sheets');
-            }
+            window.open(SHEETS_URL, '_blank');
         }
     </script>
 </body>
