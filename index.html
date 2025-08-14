@@ -287,6 +287,33 @@
     </style>
 </head>
 <body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="setup-container" style="display: none;">
+        <div class="header">
+            <h1>🐟 เข้าสู่ระบบ</h1>
+            <p>ระบบ CRM อาหารทะเลแช่แข็ง</p>
+        </div>
+        
+        <div class="setup-form">
+            <h2>เข้าสู่ระบบ</h2>
+            <div id="loginError" class="status error" style="display: none;"></div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginUsername">ชื่อผู้ใช้:</label>
+                    <input type="text" id="loginUsername" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="loginPassword">รหัสผ่าน:</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">เข้าสู่ระบบ</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Setup Screen -->
     <div id="setupScreen" class="setup-container">
         <div class="header">
@@ -356,6 +383,10 @@ A2: 1 | B2: adminsifco | C2: adminsifco888 | D2: ผู้ดูแลระบ�
     <!-- Main Application -->
     <div id="mainApp" class="container" style="display: none;">
         <div class="header">
+            <div style="position: absolute; top: 15px; right: 20px; color: white; font-size: 14px; z-index: 2;">
+                <span id="currentUserInfo">ผู้ใช้: -</span>
+                <button onclick="logout()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-left: 10px; font-size: 12px;">ออกจากระบบ</button>
+            </div>
             <h1>🐟 ระบบ CRM อาหารทะเลแช่แข็ง</h1>
             <p>เชื่อมต่อกับ Google Sheets</p>
         </div>
@@ -552,21 +583,109 @@ A2: 1 | B2: adminsifco | C2: adminsifco888 | D2: ผู้ดูแลระบ�
         let SHEET_ID = '';
         let customers = [];
         let users = [];
-        let currentUser = { username: 'user', role: 'user' };
+        let currentUser = null;
+        let isLoggedIn = false;
 
         // ตรวจสอบการตั้งค่าเมื่อโหลดหน้า
         document.addEventListener('DOMContentLoaded', function() {
+            // ตรวจสอบ login session
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                isLoggedIn = true;
+            }
+
             const savedSheetsUrl = localStorage.getItem('sheetsUrl');
-            if (savedSheetsUrl) {
-                // มีการตั้งค่าแล้ว - ไปหน้าหลักเลย
+            if (savedSheetsUrl && isLoggedIn) {
+                // มีการตั้งค่าและ login แล้ว - ไปหน้าหลักเลย
                 SHEETS_URL = savedSheetsUrl;
                 SHEET_ID = extractSheetId(savedSheetsUrl);
                 showMainApp();
+            } else if (savedSheetsUrl && !isLoggedIn) {
+                // มีการตั้งค่าแต่ยัง login ไม่ได้ - แสดงหน้า login
+                SHEETS_URL = savedSheetsUrl;
+                SHEET_ID = extractSheetId(savedSheetsUrl);
+                showLoginScreen();
             } else {
                 // ยังไม่มีการตั้งค่า - แสดงหน้า setup
                 showSetupScreen();
             }
         });
+
+        // ฟังก์ชัน Login
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            // ซิงค์ข้อมูลผู้ใช้ก่อน
+            await syncUsersFromSheets();
+            
+            const user = users.find(u => u.username === username && u.password === password);
+            
+            if (user) {
+                currentUser = user;
+                isLoggedIn = true;
+                
+                // อัพเดท lastLogin
+                user.lastLogin = new Date().toLocaleString('th-TH');
+                
+                // บันทึก session
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                
+                showMainApp();
+                hideLoginError();
+            } else {
+                showLoginError('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+            }
+        });
+
+        // ฟังก์ชัน Logout
+        function logout() {
+            if (confirm('คุณต้องการออกจากระบบใช่หรือไม่?')) {
+                currentUser = null;
+                isLoggedIn = false;
+                localStorage.removeItem('currentUser');
+                
+                // ล้างข้อมูล
+                customers = [];
+                users = [];
+                
+                // ล้างฟอร์ม
+                document.getElementById('loginForm').reset();
+                
+                showLoginScreen();
+            }
+        }
+
+        // ฟังก์ชันแสดง Login Error
+        function showLoginError(message) {
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // ฟังก์ชันซ่อน Login Error
+        function hideLoginError() {
+            document.getElementById('loginError').style.display = 'none';
+        }
+
+        // ฟังก์ชันแสดงหน้า Login
+        function showLoginScreen() {
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('setupScreen').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'none';
+            
+            // Focus ที่ username field
+            setTimeout(() => {
+                document.getElementById('loginUsername').focus();
+            }, 100);
+        }
 
         // ฟังก์ชันเชื่อมต่อ Google Sheets
         async function connectSheets() {
@@ -602,7 +721,7 @@ A2: 1 | B2: adminsifco | C2: adminsifco888 | D2: ผู้ดูแลระบ�
                 showStatus('เชื่อมต่อ Google Sheets สำเร็จ!', 'success');
                 
                 setTimeout(() => {
-                    showMainApp();
+                    showLoginScreen(); // เปลี่ยนไปหน้า login แทน
                 }, 2000);
 
             } catch (error) {
