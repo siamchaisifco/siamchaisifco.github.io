@@ -1270,7 +1270,7 @@ A2: 1 | B2: adminsifco | C2: adminsifco888 | D2: ผู้ดูแลระบ�
                 conversationNotes: document.getElementById('conversationNotes').value,
                 dateAdded: new Date().toLocaleDateString('th-TH'),
                 lastContact: new Date().toLocaleDateString('th-TH'),
-                addedBy: currentUser.username
+                addedBy: currentUser ? currentUser.username : 'system'
             };
 
             const success = await addToSheets(newCustomer);
