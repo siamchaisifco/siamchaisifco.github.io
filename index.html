@@ -478,21 +478,6 @@
                     <input type="password" id="password" class="form-control" placeholder="กรอกรหัสผ่าน">
                 </div>
                 <button onclick="login()" class="btn btn-primary" style="width: 100%;">เข้าสู่ระบบ</button>
-                
-                <!-- Login Instructions -->
-                <div style="margin-top: 30px; padding: 20px; background: rgba(220, 38, 38, 0.1); border-radius: 10px;">
-                    <h4 style="color: #dc2626; margin-bottom: 15px;">ข้อมูลการเข้าสู่ระบบ</h4>
-                    <div style="margin-bottom: 10px;">
-                        <strong>👤 Admin:</strong><br>
-                        Username: <code style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px;">adminsifco</code><br>
-                        Password: <code style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px;">adminsifco888</code>
-                    </div>
-                    <div>
-                        <strong>👥 User:</strong><br>
-                        Username: <code style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px;">mktsifco</code><br>
-                        Password: <code style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px;">mkt888</code>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -548,7 +533,10 @@
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
                         <h3 style="color: #dc2626;">👥 จัดการข้อมูลลูกค้า</h3>
-                        <button onclick="showAddProspectModal()" class="btn btn-primary">เพิ่มลูกค้าใหม่</button>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button onclick="exportToExcel('prospects')" class="btn btn-success">📊 Export Excel</button>
+                            <button onclick="showAddProspectModal()" class="btn btn-primary">เพิ่มลูกค้าใหม่</button>
+                        </div>
                     </div>
                     
                     <input type="text" id="searchProspects" class="search-box" placeholder="🔍 ค้นหาลูกค้า (ชื่อ, อีเมล, ประเทศ, สินค้า, วัตถุดิบ...)">
