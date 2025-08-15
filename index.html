@@ -725,14 +725,126 @@
         let countries = [];
         let productGroups = [];
         let rawMaterials = [];
-        let editingId = null;
+        // Google Sheets configuration
+        const GOOGLE_SHEETS_ID = '10YhEdgbxo25ffMxQ9EsBOqMwh1W0vkzdU8h1TDlBdhs';
+        const GOOGLE_SHEETS_URL = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_ID}/edit#gid=0`;
+        
+        // Google Sheets API endpoints (using public CSV export)
+        const SHEETS_ENDPOINTS = {
+            prospects: `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_ID}/export?format=csv&gid=0`,
+            countries: `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_ID}/export?format=csv&gid=1`,
+            productGroups: `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_ID}/export?format=csv&gid=2`,
+            rawMaterials: `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_ID}/export?format=csv&gid=3`
+        };
 
-        // Data persistence functions
+        let isOnline = true;
+
+        // Data synchronization functions
+        async function loadFromGoogleSheets() {
+            try {
+                showAlert('กำลังโหลดข้อมูลจาก Google Sheets...', 'success');
+                
+                // Load prospects
+                const prospectsData = await fetchCSVData(SHEETS_ENDPOINTS.prospects);
+                if (prospectsData.length > 0) {
+                    prospects = prospectsData.map(row => ({
+                        id: row.id || 'P' + Date.now().toString().slice(-6),
+                        customerName: row.customerName || row['ชื่อลูกค้า'] || '',
+                        customerEmail: row.customerEmail || row['อีเมล'] || '',
+                        customerPhone: row.customerPhone || row['เบอร์โทรศัพท์'] || '',
+                        customerCountry: row.customerCountry || row['ประเทศ'] || '',
+                        productGroup: row.productGroup || row['กลุ่มสินค้า'] || '',
+                        rawMaterial: row.rawMaterial || row['กลุ่มวัตถุดิบ'] || '',
+                        conversationDetails: row.conversationDetails || row['รายละเอียดการสนทนา'] || '',
+                        additionalNotes: row.additionalNotes || row['หมายเหตุ'] || '',
+                        dateAdded: row.dateAdded || row['วันที่บันทึก'] || new Date().toISOString().split('T')[0],
+                        addedBy: row.addedBy || row['บันทึกโดย'] || currentUser.username
+                    }));
+                }
+
+                // Load countries
+                const countriesData = await fetchCSVData(SHEETS_ENDPOINTS.countries);
+                if (countriesData.length > 0) {
+                    countries = countriesData.map(row => row.country || row['ประเทศ'] || '').filter(c => c);
+                }
+
+                // Load product groups
+                const productGroupsData = await fetchCSVData(SHEETS_ENDPOINTS.productGroups);
+                if (productGroupsData.length > 0) {
+                    productGroups = productGroupsData.map(row => row.productGroup || row['กลุ่มสินค้า'] || '').filter(p => p);
+                }
+
+                // Load raw materials
+                const rawMaterialsData = await fetchCSVData(SHEETS_ENDPOINTS.rawMaterials);
+                if (rawMaterialsData.length > 0) {
+                    rawMaterials = rawMaterialsData.map(row => row.rawMaterial || row['กลุ่มวัตถุดิบ'] || '').filter(r => r);
+                }
+
+                // Save to localStorage as backup
+                saveToStorage();
+                isOnline = true;
+                showAlert('โหลดข้อมูลจาก Google Sheets เรียบร้อยแล้ว', 'success');
+                
+            } catch (error) {
+                console.error('Error loading from Google Sheets:', error);
+                isOnline = false;
+                showAlert('ไม่สามารถเชื่อมต่อ Google Sheets ได้ กำลังใช้ข้อมูลที่เก็บไว้ในเครื่อง', 'error');
+                loadFromStorage();
+            }
+        }
+
+        async function fetchCSVData(url) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Network response was not ok');
+                
+                const csvText = await response.text();
+                const lines = csvText.split('\n').filter(line => line.trim());
+                
+                if (lines.length === 0) return [];
+                
+                const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+                const data = [];
+                
+                for (let i = 1; i < lines.length; i++) {
+                    const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+                    const obj = {};
+                    headers.forEach((header, index) => {
+                        obj[header] = values[index] || '';
+                    });
+                    data.push(obj);
+                }
+                
+                return data;
+            } catch (error) {
+                console.error('Error fetching CSV data:', error);
+                throw error;
+            }
+        }
+
+        async function syncToGoogleSheets() {
+            try {
+                showAlert('บันทึกข้อมูลลง Google Sheets...', 'success');
+                
+                // Note: This is a simulation since we can't write to Google Sheets directly from client-side
+                // In real implementation, you would need Google Sheets API with proper authentication
+                
+                // For now, we'll just save to localStorage and show success
+                saveToStorage();
+                
+                showAlert('บันทึกข้อมูลเรียบร้อยแล้ว (โปรดอัพเดต Google Sheets ด้วยตนเอง)', 'success');
+                
+            } catch (error) {
+                console.error('Error syncing to Google Sheets:', error);
+                showAlert('เกิดข้อผิดพลาดในการบันทึกข้อมูล', 'error');
+            }
+        }
         function saveToStorage() {
             localStorage.setItem('sifco_prospects', JSON.stringify(prospects));
             localStorage.setItem('sifco_countries', JSON.stringify(countries));
             localStorage.setItem('sifco_productGroups', JSON.stringify(productGroups));
             localStorage.setItem('sifco_rawMaterials', JSON.stringify(rawMaterials));
+            localStorage.setItem('sifco_lastSync', new Date().toISOString());
         }
 
         function loadFromStorage() {
