@@ -478,6 +478,21 @@
                     <input type="password" id="password" class="form-control" placeholder="กรอกรหัสผ่าน">
                 </div>
                 <button onclick="login()" class="btn btn-primary" style="width: 100%;">เข้าสู่ระบบ</button>
+                
+                <!-- Login Instructions -->
+                <div style="margin-top: 30px; padding: 20px; background: rgba(220, 38, 38, 0.1); border-radius: 10px;">
+                    <h4 style="color: #dc2626; margin-bottom: 15px;">ข้อมูลการเข้าสู่ระบบ</h4>
+                    <div style="margin-bottom: 10px;">
+                        <strong>👤 Admin:</strong><br>
+                        Username: <code style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px;">adminsifco</code><br>
+                        Password: <code style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px;">adminsifco888</code>
+                    </div>
+                    <div>
+                        <strong>👥 User:</strong><br>
+                        Username: <code style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px;">mktsifco</code><br>
+                        Password: <code style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px;">mkt888</code>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -758,9 +773,18 @@
 
         // Authentication functions
         function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
             const errorDiv = document.getElementById('loginError');
+
+            // Clear previous error
+            errorDiv.classList.add('hidden');
+
+            if (!username || !password) {
+                errorDiv.textContent = 'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
 
             if (username === 'adminsifco' && password === 'adminsifco888') {
                 currentUser = { username: 'adminsifco', role: 'admin', name: 'ผู้ดูแลระบบ' };
@@ -1322,6 +1346,19 @@
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
+            // Add Enter key support for login
+            document.getElementById('username').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    login();
+                }
+            });
+            
+            document.getElementById('password').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    login();
+                }
+            });
+
             // Load saved Google Sheets URL
             const savedUrl = localStorage.getItem('googleSheetsUrl');
             if (savedUrl) {
