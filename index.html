@@ -564,7 +564,10 @@
             <!-- Reports Tab -->
             <div id="reportsTab" class="tab-content">
                 <div class="card">
-                    <h3 style="color: #dc2626; margin-bottom: 20px;">📋 รายงานสรุป</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                        <h3 style="color: #dc2626;">📋 รายงานสรุป</h3>
+                        <button onclick="exportToExcel('reports')" class="btn btn-success">📊 Export รายงาน Excel</button>
+                    </div>
                     
                     <div class="nav-tabs">
                         <button class="nav-tab active" onclick="showReportTab('country')">ตามประเทศ</button>
@@ -634,6 +637,13 @@
                             </div>
                             <div id="rawMaterialsList"></div>
                         </div>
+                    </div>
+
+                    <!-- Data Management -->
+                    <div class="card" style="margin-top: 30px; border: 2px dashed #dc2626;">
+                        <h4 style="color: #dc2626; margin-bottom: 15px;">🗑️ จัดการข้อมูล</h4>
+                        <p style="color: #6b7280; margin-bottom: 20px;">การลบข้อมูลทั้งหมดจะไม่สามารถกู้คืนได้</p>
+                        <button onclick="clearAllData()" class="btn btn-danger" style="width: 100%;">ลบข้อมูลทั้งหมด</button>
                     </div>
                 </div>
             </div>
@@ -707,57 +717,53 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         // Global variables
         let currentUser = null;
         let prospects = [];
-        let countries = ['ญี่ปุ่น', 'เกาหลีใต้', 'จีน', 'สิงคโปร์', 'มาเลเซีย', 'สหรัฐอเมริกา', 'แคนาดา', 'ออสเตรเลีย', 'สหราชอาณาจักร', 'เยอรมนี', 'ฝรั่งเศส', 'อิตาลี', 'เนเธอร์แลนด์', 'เบลเยียม', 'สเปน', 'โปรตุเกส'];
-        let productGroups = ['ปลาแซลมอน', 'ปลาทูน่า', 'กุ้ง', 'ปู', 'หอย', 'ปลาหมึก', 'ปลาค็อด', 'ปลาแมคเคอเรล', 'ผลิตภัณฑ์ผสม'];
-        let rawMaterials = ['ปลาแซลมอนสด', 'ปลาทูน่าสด', 'กุ้งสด', 'ปูสด', 'หอยสด', 'ปลาหมึกสด', 'วัตถุดิบแปรรูป', 'วัตถุดิบผสม'];
+        let countries = [];
+        let productGroups = [];
+        let rawMaterials = [];
         let editingId = null;
-        
-        // Sample data for demonstration
-        prospects = [
-            {
-                id: 'P001',
-                customerName: 'Sakura Trading Co.',
-                customerEmail: 'contact@sakura-trading.jp',
-                customerCountry: 'ญี่ปุ่น',
-                customerPhone: '+81-3-1234-5678',
-                productGroup: 'ปลาแซลมอน',
-                rawMaterial: 'ปลาแซลมอนสด',
-                conversationDetails: 'ลูกค้าสนใจปลาแซลมอนแปรรูปแช่แข็ง สำหรับตลาดญี่ปุ่น ต้องการคุณภาพพรีเมียม',
-                additionalNotes: 'มีความต้องการสม่ำเสมอ ปริมาณ 100 ตัน/เดือน',
-                dateAdded: '2024-08-10',
-                addedBy: 'mktsifco'
-            },
-            {
-                id: 'P002',
-                customerName: 'Seoul Fresh Market',
-                customerEmail: 'order@seoulfresh.kr',
-                customerCountry: 'เกาหลีใต้',
-                customerPhone: '+82-2-987-6543',
-                productGroup: 'กุ้ง',
-                rawMaterial: 'กุ้งสด',
-                conversationDetails: 'สนใจกุ้งแช่แข็งขนาดต่างๆ สำหรับร้านอาหารในโซล',
-                additionalNotes: 'ต้องการตัวอย่างสินค้า',
-                dateAdded: '2024-08-12',
-                addedBy: 'mktsifco'
-            },
-            {
-                id: 'P003',
-                customerName: 'Ocean Delight USA',
-                customerEmail: 'procurement@oceandelight.com',
-                customerCountry: 'สหรัฐอเมริกา',
-                customerPhone: '+1-555-123-4567',
-                productGroup: 'ปลาทูน่า',
-                rawMaterial: 'ปลาทูน่าสด',
-                conversationDetails: 'ต้องการปลาทูน่าแช่แข็งสำหรับโรงงานแปรรูป',
-                additionalNotes: 'มีใบรับรอง MSC จำเป็น',
-                dateAdded: '2024-08-14',
-                addedBy: 'mktsifco'
+
+        // Data persistence functions
+        function saveToStorage() {
+            localStorage.setItem('sifco_prospects', JSON.stringify(prospects));
+            localStorage.setItem('sifco_countries', JSON.stringify(countries));
+            localStorage.setItem('sifco_productGroups', JSON.stringify(productGroups));
+            localStorage.setItem('sifco_rawMaterials', JSON.stringify(rawMaterials));
+        }
+
+        function loadFromStorage() {
+            const savedProspects = localStorage.getItem('sifco_prospects');
+            const savedCountries = localStorage.getItem('sifco_countries');
+            const savedProductGroups = localStorage.getItem('sifco_productGroups');
+            const savedRawMaterials = localStorage.getItem('sifco_rawMaterials');
+
+            if (savedProspects) prospects = JSON.parse(savedProspects);
+            if (savedCountries) countries = JSON.parse(savedCountries);
+            if (savedProductGroups) productGroups = JSON.parse(savedProductGroups);
+            if (savedRawMaterials) rawMaterials = JSON.parse(savedRawMaterials);
+        }
+
+        function clearAllData() {
+            if (confirm('คุณแน่ใจหรือไม่ที่จะลบข้อมูลทั้งหมด? การกระทำนี้ไม่สามารถยกเลิกได้')) {
+                prospects = [];
+                countries = [];
+                productGroups = [];
+                rawMaterials = [];
+                saveToStorage();
+                
+                // Refresh current view
+                updateStats();
+                displayProspects(prospects);
+                loadMasterData();
+                loadReports();
+                
+                showAlert('ลบข้อมูลทั้งหมดเรียบร้อยแล้ว', 'success');
             }
-        ];
+        }
 
         // Authentication functions
         function login() {
@@ -812,6 +818,8 @@
                 }
             });
 
+            // Load data from localStorage
+            loadFromStorage();
             loadDashboard();
         }
 
@@ -1029,6 +1037,7 @@
         function deleteProspect(id) {
             if (confirm('คุณแน่ใจหรือไม่ที่จะลบข้อมูลลูกค้านี้?')) {
                 prospects = prospects.filter(p => p.id !== id);
+                saveToStorage();
                 displayProspects(prospects);
                 updateStats();
                 showAlert('ลบข้อมูลลูกค้าเรียบร้อยแล้ว', 'success');
@@ -1077,12 +1086,14 @@
                     const index = prospects.findIndex(p => p.id === editingId);
                     if (index !== -1) {
                         prospects[index] = { ...prospects[index], ...formData };
+                        saveToStorage();
                         showAlert('แก้ไขข้อมูลลูกค้าเรียบร้อยแล้ว', 'success');
                     }
                 } else {
                     // Add new prospect
                     formData.id = 'P' + Date.now().toString().slice(-6);
                     prospects.push(formData);
+                    saveToStorage();
                     showAlert('เพิ่มข้อมูลลูกค้าเรียบร้อยแล้ว', 'success');
                 }
 
@@ -1210,8 +1221,11 @@
             if (newCountry && !countries.includes(newCountry)) {
                 countries.push(newCountry);
                 document.getElementById('newCountry').value = '';
+                saveToStorage();
                 loadMasterData();
                 showAlert('เพิ่มประเทศเรียบร้อยแล้ว', 'success');
+            } else if (countries.includes(newCountry)) {
+                showAlert('ประเทศนี้มีอยู่แล้ว', 'error');
             }
         }
 
@@ -1220,8 +1234,11 @@
             if (newGroup && !productGroups.includes(newGroup)) {
                 productGroups.push(newGroup);
                 document.getElementById('newProductGroup').value = '';
+                saveToStorage();
                 loadMasterData();
                 showAlert('เพิ่มกลุ่มสินค้าเรียบร้อยแล้ว', 'success');
+            } else if (productGroups.includes(newGroup)) {
+                showAlert('กลุ่มสินค้านี้มีอยู่แล้ว', 'error');
             }
         }
 
@@ -1230,14 +1247,18 @@
             if (newMaterial && !rawMaterials.includes(newMaterial)) {
                 rawMaterials.push(newMaterial);
                 document.getElementById('newRawMaterial').value = '';
+                saveToStorage();
                 loadMasterData();
                 showAlert('เพิ่มกลุ่มวัตถุดิบเรียบร้อยแล้ว', 'success');
+            } else if (rawMaterials.includes(newMaterial)) {
+                showAlert('กลุ่มวัตถุดิบนี้มีอยู่แล้ว', 'error');
             }
         }
 
         function deleteCountry(index) {
             if (confirm('คุณแน่ใจหรือไม่ที่จะลบประเทศนี้?')) {
                 countries.splice(index, 1);
+                saveToStorage();
                 loadMasterData();
                 showAlert('ลบประเทศเรียบร้อยแล้ว', 'success');
             }
@@ -1246,6 +1267,7 @@
         function deleteProductGroup(index) {
             if (confirm('คุณแน่ใจหรือไม่ที่จะลบกลุ่มสินค้านี้?')) {
                 productGroups.splice(index, 1);
+                saveToStorage();
                 loadMasterData();
                 showAlert('ลบกลุ่มสินค้าเรียบร้อยแล้ว', 'success');
             }
@@ -1254,12 +1276,163 @@
         function deleteRawMaterial(index) {
             if (confirm('คุณแน่ใจหรือไม่ที่จะลบกลุ่มวัตถุดิบนี้?')) {
                 rawMaterials.splice(index, 1);
+                saveToStorage();
                 loadMasterData();
                 showAlert('ลบกลุ่มวัตถุดิบเรียบร้อยแล้ว', 'success');
             }
         }
 
-        // Google Sheets functions
+        // Export to Excel functions
+        function exportToExcel(type) {
+            if (type === 'prospects') {
+                exportProspectsToExcel();
+            } else if (type === 'reports') {
+                exportReportsToExcel();
+            }
+        }
+
+        function exportProspectsToExcel() {
+            // Prepare data for export
+            const exportData = prospects.map(prospect => ({
+                'รหัสลูกค้า': prospect.id,
+                'ชื่อลูกค้า/บริษัท': prospect.customerName,
+                'อีเมล': prospect.customerEmail,
+                'เบอร์โทรศัพท์': prospect.customerPhone || '',
+                'ประเทศ': prospect.customerCountry,
+                'กลุ่มสินค้าที่สนใจ': prospect.productGroup,
+                'กลุ่มวัตถุดิบ': prospect.rawMaterial,
+                'รายละเอียดการสนทนา': prospect.conversationDetails || '',
+                'หมายเหตุเพิ่มเติม': prospect.additionalNotes || '',
+                'วันที่บันทึก': prospect.dateAdded,
+                'บันทึกโดย': prospect.addedBy
+            }));
+
+            // Create workbook
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "รายการลูกค้า");
+
+            // Style the header
+            const headerCells = ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1'];
+            headerCells.forEach(cell => {
+                if (ws[cell]) {
+                    ws[cell].s = {
+                        fill: { fgColor: { rgb: "DC2626" } },
+                        font: { color: { rgb: "FFFFFF" }, bold: true },
+                        alignment: { horizontal: "center" }
+                    };
+                }
+            });
+
+            // Auto-size columns
+            const colWidths = [
+                { wch: 12 }, // รหัสลูกค้า
+                { wch: 25 }, // ชื่อลูกค้า
+                { wch: 30 }, // อีเมล
+                { wch: 15 }, // เบอร์โทร
+                { wch: 15 }, // ประเทศ
+                { wch: 20 }, // กลุ่มสินค้า
+                { wch: 20 }, // กลุ่มวัตถุดิบ
+                { wch: 40 }, // รายละเอียดการสนทนา
+                { wch: 30 }, // หมายเหตุ
+                { wch: 12 }, // วันที่บันทึก
+                { wch: 12 }  // บันทึกโดย
+            ];
+            ws['!cols'] = colWidths;
+
+            // Generate filename with current date
+            const today = new Date();
+            const dateStr = today.toISOString().split('T')[0];
+            const filename = `Prospect_Products_SIFCO_${dateStr}.xlsx`;
+
+            // Save file
+            XLSX.writeFile(wb, filename);
+            showAlert('Export ข้อมูลลูกค้าเรียบร้อยแล้ว', 'success');
+        }
+
+        function exportReportsToExcel() {
+            const wb = XLSX.utils.book_new();
+
+            // Country Report
+            const countryData = prospects.reduce((acc, prospect) => {
+                acc[prospect.customerCountry] = (acc[prospect.customerCountry] || 0) + 1;
+                return acc;
+            }, {});
+
+            const countryReportData = Object.entries(countryData)
+                .sort((a, b) => b[1] - a[1])
+                .map(([country, count]) => ({
+                    'ประเทศ': country,
+                    'จำนวนลูกค้า': count,
+                    'เปอร์เซ็นต์': Math.round((count / prospects.length) * 100) + '%'
+                }));
+
+            const wsCountry = XLSX.utils.json_to_sheet(countryReportData);
+            XLSX.utils.book_append_sheet(wb, wsCountry, "รายงานตามประเทศ");
+
+            // Product Group Report
+            const productData = prospects.reduce((acc, prospect) => {
+                acc[prospect.productGroup] = (acc[prospect.productGroup] || 0) + 1;
+                return acc;
+            }, {});
+
+            const productReportData = Object.entries(productData)
+                .sort((a, b) => b[1] - a[1])
+                .map(([product, count]) => ({
+                    'กลุ่มสินค้า': product,
+                    'จำนวนลูกค้า': count,
+                    'เปอร์เซ็นต์': Math.round((count / prospects.length) * 100) + '%'
+                }));
+
+            const wsProduct = XLSX.utils.json_to_sheet(productReportData);
+            XLSX.utils.book_append_sheet(wb, wsProduct, "รายงานตามกลุ่มสินค้า");
+
+            // Raw Material Report
+            const materialData = prospects.reduce((acc, prospect) => {
+                acc[prospect.rawMaterial] = (acc[prospect.rawMaterial] || 0) + 1;
+                return acc;
+            }, {});
+
+            const materialReportData = Object.entries(materialData)
+                .sort((a, b) => b[1] - a[1])
+                .map(([material, count]) => ({
+                    'กลุ่มวัตถุดิบ': material,
+                    'จำนวนลูกค้า': count,
+                    'เปอร์เซ็นต์': Math.round((count / prospects.length) * 100) + '%'
+                }));
+
+            const wsMaterial = XLSX.utils.json_to_sheet(materialReportData);
+            XLSX.utils.book_append_sheet(wb, wsMaterial, "รายงานตามวัตถุดิบ");
+
+            // Style all sheets
+            [wsCountry, wsProduct, wsMaterial].forEach(ws => {
+                const headerCells = ['A1', 'B1', 'C1'];
+                headerCells.forEach(cell => {
+                    if (ws[cell]) {
+                        ws[cell].s = {
+                            fill: { fgColor: { rgb: "DC2626" } },
+                            font: { color: { rgb: "FFFFFF" }, bold: true },
+                            alignment: { horizontal: "center" }
+                        };
+                    }
+                });
+
+                ws['!cols'] = [
+                    { wch: 25 },
+                    { wch: 15 },
+                    { wch: 12 }
+                ];
+            });
+
+            // Generate filename with current date
+            const today = new Date();
+            const dateStr = today.toISOString().split('T')[0];
+            const filename = `Prospect_Reports_SIFCO_${dateStr}.xlsx`;
+
+            // Save file
+            XLSX.writeFile(wb, filename);
+            showAlert('Export รายงานเรียบร้อยแล้ว', 'success');
+        }
         function saveConfig() {
             const sheetsUrl = document.getElementById('sheetsUrl').value;
             if (sheetsUrl) {
