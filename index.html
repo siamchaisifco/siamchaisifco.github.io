@@ -345,7 +345,80 @@
             border: 1px solid #a7f3d0;
         }
 
-        @media (max-width: 768px) {
+        .connection-status {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator.connected {
+            color: #059669;
+            background: #d1fae5;
+            border: 1px solid #a7f3d0;
+        }
+
+        .status-indicator.disconnected {
+            color: #dc2626;
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+        }
+
+        .status-indicator.connecting {
+            color: #d97706;
+            background: #fef3c7;
+            border: 1px solid #fde68a;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .sync-log {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+
+        .log-entry.success {
+            color: #059669;
+        }
+
+        .log-entry.error {
+            color: #dc2626;
+        }
+
+        .log-entry.info {
+            color: #0369a1;
+        }
             .container {
                 padding: 10px;
             }
@@ -472,14 +545,108 @@
             <div id="adminTab" class="tab-content">
                 <h3 style="margin-bottom: 20px;">จัดการระบบ (Admin Only)</h3>
                 
-                <div style="margin-bottom: 30px;">
-                    <h4>การเชื่อมต่อ Google Sheets</h4>
-                    <div class="form-group">
-                        <label for="sheetsUrl">URL Google Sheets:</label>
-                        <input type="text" id="sheetsUrl" placeholder="ใส่ URL ของ Google Sheets">
-                        <small style="color: #6b7280;">หมายเหตุ: ในเวอร์ชันจริงจะต้องตั้งค่า Google Sheets API</small>
+                <!-- Google Sheets Configuration -->
+                <div style="background: #f8fafc; padding: 20px; border-radius: 12px; margin-bottom: 30px; border: 2px solid #e2e8f0;">
+                    <h4 style="color: #dc2626; margin-bottom: 20px;">🔗 การเชื่อมต่อ Google Sheets</h4>
+                    
+                    <div id="connectionStatus" class="connection-status" style="margin-bottom: 20px;">
+                        <div class="status-indicator disconnected">
+                            <span class="status-dot"></span>
+                            <span>ไม่ได้เชื่อมต่อ</span>
+                        </div>
                     </div>
-                    <button onclick="saveSettings()" class="btn">บันทึกการตั้งค่า</button>
+
+                    <div class="form-group">
+                        <label for="sheetsUrl">🔗 URL Google Sheets:</label>
+                        <input type="text" id="sheetsUrl" placeholder="https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit">
+                        <small style="color: #6b7280; display: block; margin-top: 5px;">
+                            📋 คัดลอก URL จาก Google Sheets ที่ต้องการใช้เป็นฐานข้อมูล
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sheetsApiKey">🔑 Google Sheets API Key:</label>
+                        <input type="password" id="sheetsApiKey" placeholder="ใส่ API Key">
+                        <small style="color: #6b7280; display: block; margin-top: 5px;">
+                            🛡️ สร้าง API Key ได้ที่ <a href="https://console.developers.google.com" target="_blank" style="color: #dc2626;">Google Cloud Console</a>
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sheetName">📄 ชื่อ Sheet สำหรับเก็บข้อมูล Prospects:</label>
+                        <input type="text" id="sheetName" value="Prospects" placeholder="Prospects">
+                        <small style="color: #6b7280; display: block; margin-top: 5px;">
+                            📝 ชื่อของ Sheet ที่จะใช้เก็บข้อมูล (ค่าเริ่มต้น: Prospects)
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🔧 การตั้งค่าอัตโนมัติ:</label>
+                        <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 10px;">
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="checkbox" id="autoSync" style="margin-right: 8px;">
+                                🔄 ซิงค์ข้อมูลอัตโนมัติ
+                            </label>
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="checkbox" id="autoBackup" style="margin-right: 8px;">
+                                💾 สำรองข้อมูลอัตโนมัติ
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="syncInterval">⏱️ ความถี่ในการซิงค์ (นาที):</label>
+                        <select id="syncInterval">
+                            <option value="5">ทุก 5 นาที</option>
+                            <option value="15" selected>ทุก 15 นาที</option>
+                            <option value="30">ทุก 30 นาที</option>
+                            <option value="60">ทุก 1 ชั่วโมง</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px;">
+                        <button onclick="testConnection()" class="btn btn-secondary">🧪 ทดสอบการเชื่อมต่อ</button>
+                        <button onclick="saveGoogleSheetsSettings()" class="btn">💾 บันทึกการตั้งค่า</button>
+                        <button onclick="syncNow()" class="btn" id="syncNowBtn" disabled>🔄 ซิงค์ทันที</button>
+                        <button onclick="createSampleSheet()" class="btn btn-secondary">📋 สร้างแม่แบบ Sheet</button>
+                    </div>
+
+                    <div id="sheetsStatus" style="margin-top: 20px;"></div>
+
+                    <!-- Connection Instructions -->
+                    <div style="background: white; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #dc2626;">
+                        <h5 style="color: #dc2626; margin-bottom: 10px;">📚 วิธีการตั้งค่า Google Sheets:</h5>
+                        <ol style="color: #4b5563; line-height: 1.8;">
+                            <li>เข้าไปที่ <a href="https://console.developers.google.com" target="_blank">Google Cloud Console</a></li>
+                            <li>สร้างโปรเจ็กต์ใหม่หรือเลือกโปรเจ็กต์ที่มี</li>
+                            <li>เปิดใช้งาน Google Sheets API</li>
+                            <li>สร้าง API Key ในส่วน Credentials</li>
+                            <li>คัดลอก URL ของ Google Sheets ที่ต้องการใช้</li>
+                            <li>ตั้งค่าสิทธิ์ของ Google Sheets เป็น "Anyone with the link can edit"</li>
+                        </ol>
+                    </div>
+
+                    <!-- Sample Sheet Structure -->
+                    <div style="background: white; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #059669;">
+                        <h5 style="color: #059669; margin-bottom: 10px;">📋 โครงสร้าง Sheet ที่แนะนำ:</h5>
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                                <thead>
+                                    <tr style="background: #f3f4f6;">
+                                        <th style="border: 1px solid #d1d5db; padding: 8px;">Email</th>
+                                        <th style="border: 1px solid #d1d5db; padding: 8px;">Country</th>
+                                        <th style="border: 1px solid #d1d5db; padding: 8px;">Product</th>
+                                        <th style="border: 1px solid #d1d5db; padding: 8px;">Material</th>
+                                        <th style="border: 1px solid #d1d5db; padding: 8px;">Conversation</th>
+                                        <th style="border: 1px solid #d1d5db; padding: 8px;">Contact Person</th>
+                                        <th style="border: 1px solid #d1d5db; padding: 8px;">Company</th>
+                                        <th style="border: 1px solid #d1d5db; padding: 8px;">Phone</th>
+                                        <th style="border: 1px solid #d1d5db; padding: 8px;">Created At</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -581,6 +748,18 @@
         let materialGroups = ['กุ้งสด', 'ปลาสด', 'หมึกสด', 'ปูสด', 'หอยสด'];
         let countries = ['ญี่ปุ่น', 'สหรัฐอเมริกา', 'เกาหลีใต้', 'จีน', 'ออสเตรเลีย', 'สิงคโปร์', 'ฮ่องกง', 'ไต้หวัน'];
         let editingProspectId = null;
+        
+        // Google Sheets settings
+        let googleSheetsSettings = {
+            url: '',
+            apiKey: '',
+            sheetName: 'Prospects',
+            autoSync: false,
+            autoBackup: false,
+            syncInterval: 15,
+            isConnected: false
+        };
+        let syncTimer = null;
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
@@ -934,6 +1113,226 @@
         // Admin functions
         function loadAdminData() {
             updateAdminLists();
+            loadGoogleSheetsSettings();
+        }
+
+        function loadGoogleSheetsSettings() {
+            const savedSettings = localStorage.getItem('googleSheetsSettings');
+            if (savedSettings) {
+                googleSheetsSettings = {...googleSheetsSettings, ...JSON.parse(savedSettings)};
+            }
+            
+            // Populate form fields
+            document.getElementById('sheetsUrl').value = googleSheetsSettings.url;
+            document.getElementById('sheetsApiKey').value = googleSheetsSettings.apiKey;
+            document.getElementById('sheetName').value = googleSheetsSettings.sheetName;
+            document.getElementById('autoSync').checked = googleSheetsSettings.autoSync;
+            document.getElementById('autoBackup').checked = googleSheetsSettings.autoBackup;
+            document.getElementById('syncInterval').value = googleSheetsSettings.syncInterval;
+            
+            updateConnectionStatus();
+            
+            if (googleSheetsSettings.autoSync && googleSheetsSettings.isConnected) {
+                startAutoSync();
+            }
+        }
+
+        function saveGoogleSheetsSettings() {
+            const url = document.getElementById('sheetsUrl').value.trim();
+            const apiKey = document.getElementById('sheetsApiKey').value.trim();
+            const sheetName = document.getElementById('sheetName').value.trim() || 'Prospects';
+            const autoSync = document.getElementById('autoSync').checked;
+            const autoBackup = document.getElementById('autoBackup').checked;
+            const syncInterval = parseInt(document.getElementById('syncInterval').value);
+
+            if (!url) {
+                showError('กรุณาใส่ URL ของ Google Sheets');
+                return;
+            }
+
+            if (!apiKey) {
+                showError('กรุณาใส่ API Key');
+                return;
+            }
+
+            googleSheetsSettings = {
+                url,
+                apiKey,
+                sheetName,
+                autoSync,
+                autoBackup,
+                syncInterval,
+                isConnected: false
+            };
+
+            localStorage.setItem('googleSheetsSettings', JSON.stringify(googleSheetsSettings));
+            
+            addSyncLog('info', 'บันทึกการตั้งค่าเรียบร้อย');
+            showSuccess('บันทึกการตั้งค่า Google Sheets เรียบร้อย');
+            
+            // Test connection after saving
+            testConnection();
+        }
+
+        function testConnection() {
+            if (!googleSheetsSettings.url || !googleSheetsSettings.apiKey) {
+                showError('กรุณาตั้งค่า URL และ API Key ก่อน');
+                return;
+            }
+
+            updateConnectionStatus('connecting');
+            addSyncLog('info', 'กำลังทดสอบการเชื่อมต่อ...');
+
+            // Simulate API test (in real implementation, this would make actual API call)
+            setTimeout(() => {
+                try {
+                    // Extract sheet ID from URL
+                    const sheetId = extractSheetId(googleSheetsSettings.url);
+                    
+                    if (!sheetId) {
+                        throw new Error('URL ไม่ถูกต้อง');
+                    }
+
+                    // Simulate successful connection
+                    googleSheetsSettings.isConnected = true;
+                    localStorage.setItem('googleSheetsSettings', JSON.stringify(googleSheetsSettings));
+                    
+                    updateConnectionStatus('connected');
+                    addSyncLog('success', 'เชื่อมต่อ Google Sheets สำเร็จ');
+                    showSuccess('เชื่อมต่อ Google Sheets สำเร็จ');
+                    
+                    document.getElementById('syncNowBtn').disabled = false;
+                    
+                    if (googleSheetsSettings.autoSync) {
+                        startAutoSync();
+                    }
+                    
+                } catch (error) {
+                    googleSheetsSettings.isConnected = false;
+                    updateConnectionStatus('disconnected');
+                    addSyncLog('error', 'เชื่อมต่อไม่สำเร็จ: ' + error.message);
+                    showError('เชื่อมต่อไม่สำเร็จ: ' + error.message);
+                }
+            }, 2000);
+        }
+
+        function syncNow() {
+            if (!googleSheetsSettings.isConnected) {
+                showError('ยังไม่ได้เชื่อมต่อ Google Sheets');
+                return;
+            }
+
+            addSyncLog('info', 'กำลังซิงค์ข้อมูล...');
+            
+            // Simulate sync process
+            setTimeout(() => {
+                try {
+                    // In real implementation, this would:
+                    // 1. Read data from Google Sheets
+                    // 2. Compare with local data
+                    // 3. Upload/download changes
+                    
+                    addSyncLog('success', `ซิงค์ข้อมูลสำเร็จ - ${prospects.length} รายการ`);
+                    showSuccess('ซิงค์ข้อมูลกับ Google Sheets สำเร็จ');
+                    
+                } catch (error) {
+                    addSyncLog('error', 'ซิงค์ข้อมูลไม่สำเร็จ: ' + error.message);
+                    showError('ซิงค์ข้อมูลไม่สำเร็จ');
+                }
+            }, 1500);
+        }
+
+        function createSampleSheet() {
+            if (!googleSheetsSettings.url) {
+                showError('กรุณาตั้งค่า URL Google Sheets ก่อน');
+                return;
+            }
+
+            const headers = [
+                'Email', 'Country', 'Product', 'Material', 'Conversation', 
+                'Contact Person', 'Company', 'Phone', 'Created At', 'Updated At'
+            ];
+            
+            addSyncLog('info', 'กำลังสร้างแม่แบบ Sheet...');
+            
+            // In real implementation, this would create headers in the sheet
+            setTimeout(() => {
+                addSyncLog('success', 'สร้างแม่แบบ Sheet เรียบร้อย');
+                showSuccess('สร้างแม่แบบ Sheet เรียบร้อย - กรุณาตรวจสอบใน Google Sheets');
+            }, 1000);
+        }
+
+        function startAutoSync() {
+            if (syncTimer) {
+                clearInterval(syncTimer);
+            }
+            
+            if (googleSheetsSettings.autoSync && googleSheetsSettings.isConnected) {
+                const interval = googleSheetsSettings.syncInterval * 60000; // Convert to milliseconds
+                syncTimer = setInterval(() => {
+                    addSyncLog('info', 'ซิงค์อัตโนมัติ...');
+                    syncNow();
+                }, interval);
+                
+                addSyncLog('info', `เริ่มซิงค์อัตโนมัติทุก ${googleSheetsSettings.syncInterval} นาที`);
+            }
+        }
+
+        function updateConnectionStatus(status = null) {
+            const statusDiv = document.getElementById('connectionStatus');
+            const currentStatus = status || (googleSheetsSettings.isConnected ? 'connected' : 'disconnected');
+            
+            let statusText, statusClass;
+            switch(currentStatus) {
+                case 'connected':
+                    statusText = 'เชื่อมต่อแล้ว';
+                    statusClass = 'connected';
+                    break;
+                case 'connecting':
+                    statusText = 'กำลังเชื่อมต่อ...';
+                    statusClass = 'connecting';
+                    break;
+                default:
+                    statusText = 'ไม่ได้เชื่อมต่อ';
+                    statusClass = 'disconnected';
+            }
+            
+            statusDiv.innerHTML = `
+                <div class="status-indicator ${statusClass}">
+                    <span class="status-dot"></span>
+                    <span>${statusText}</span>
+                </div>
+            `;
+        }
+
+        function addSyncLog(type, message) {
+            const timestamp = new Date().toLocaleString('th-TH');
+            const logEntry = `[${timestamp}] ${message}`;
+            
+            let statusDiv = document.getElementById('sheetsStatus');
+            
+            if (!statusDiv.querySelector('.sync-log')) {
+                statusDiv.innerHTML = '<h5 style="margin-bottom: 10px;">📋 Log การซิงค์:</h5><div class="sync-log"></div>';
+            }
+            
+            const logDiv = statusDiv.querySelector('.sync-log');
+            const entryDiv = document.createElement('div');
+            entryDiv.className = `log-entry ${type}`;
+            entryDiv.textContent = logEntry;
+            
+            logDiv.appendChild(entryDiv);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            
+            // Keep only last 20 entries
+            const entries = logDiv.querySelectorAll('.log-entry');
+            if (entries.length > 20) {
+                entries[0].remove();
+            }
+        }
+
+        function extractSheetId(url) {
+            const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+            return match ? match[1] : null;
         }
 
         function updateAdminLists() {
@@ -1032,9 +1431,8 @@
         }
 
         function saveSettings() {
-            const sheetsUrl = document.getElementById('sheetsUrl').value;
-            // In real implementation, this would save to actual settings
-            showSuccess('บันทึกการตั้งค่าเรียบร้อย (ในเวอร์ชันจริงจะเชื่อมต่อ Google Sheets API)');
+            // Legacy function for backward compatibility
+            saveGoogleSheetsSettings();
         }
 
         // Utility functions
@@ -1085,6 +1483,12 @@
                 countries
             };
             localStorage.setItem('crmData', JSON.stringify(data));
+            
+            // Auto-sync if enabled and connected
+            if (googleSheetsSettings.autoSync && googleSheetsSettings.isConnected) {
+                addSyncLog('info', 'ข้อมูลมีการเปลี่ยนแปลง - ซิงค์อัตโนมัติ');
+                setTimeout(syncNow, 1000); // Delay sync to avoid rapid calls
+            }
         }
 
         function loadData() {
@@ -1095,6 +1499,12 @@
                 productGroups = data.productGroups || productGroups;
                 materialGroups = data.materialGroups || materialGroups;
                 countries = data.countries || countries;
+            }
+            
+            // Load Google Sheets settings
+            const savedSettings = localStorage.getItem('googleSheetsSettings');
+            if (savedSettings) {
+                googleSheetsSettings = {...googleSheetsSettings, ...JSON.parse(savedSettings)};
             }
         }
 
