@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seafood Export CRM - SIFCO</title>
+    <title>ระบบ CRM - อาหารทะเลแช่แข็ง</title>
     <style>
         * {
             margin: 0;
@@ -13,8 +13,9 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #dc2626, #ffffff);
             min-height: 100vh;
+            line-height: 1.6;
         }
 
         .container {
@@ -23,124 +24,130 @@
             padding: 20px;
         }
 
-        .login-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+        .header {
+            background: #dc2626;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
         }
 
-        .login-form {
-            background: white;
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .login-form h2 {
+        .header h1 {
             text-align: center;
-            margin-bottom: 30px;
-            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            text-align: center;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .login-container, .main-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
         }
 
         .form-group {
             margin-bottom: 20px;
         }
 
-        .form-group label {
+        label {
             display: block;
-            margin-bottom: 5px;
-            color: #555;
-            font-weight: 500;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
         }
 
-        .form-group input, .form-group select, .form-group textarea {
+        input[type="text"], input[type="password"], input[type="email"], 
+        select, textarea {
             width: 100%;
             padding: 12px;
-            border: 2px solid #e1e1e1;
+            border: 2px solid #e5e7eb;
             border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s;
+            font-size: 16px;
+            transition: all 0.3s ease;
         }
 
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+        input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #dc2626;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
         }
 
         .btn {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: #dc2626;
             color: white;
             border: none;
+            padding: 12px 24px;
             border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
-            font-weight: 500;
-            transition: transform 0.3s;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-decoration: none;
+            text-align: center;
+            margin-right: 10px;
+            margin-bottom: 10px;
         }
 
         .btn:hover {
+            background: #b91c1c;
             transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
         }
 
         .btn-secondary {
-            background: #6c757d;
+            background: #6b7280;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
         }
 
         .btn-danger {
-            background: #dc3545;
+            background: #ef4444;
         }
 
-        .btn-success {
-            background: #28a745;
-        }
-
-        .main-content {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #e1e1e1;
-        }
-
-        .header h1 {
-            color: #333;
-        }
-
-        .user-info {
-            color: #666;
+        .btn-danger:hover {
+            background: #dc2626;
         }
 
         .tabs {
             display: flex;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #e1e1e1;
+            margin-bottom: 20px;
+            background: #f3f4f6;
+            border-radius: 10px;
+            padding: 5px;
+            flex-wrap: wrap;
         }
 
         .tab {
-            padding: 15px 25px;
+            background: transparent;
+            border: none;
+            padding: 12px 20px;
             cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 120px;
+            margin: 2px;
         }
 
         .tab.active {
-            border-bottom-color: #667eea;
-            color: #667eea;
-            font-weight: 500;
+            background: #dc2626;
+            color: white;
         }
 
         .tab-content {
@@ -151,74 +158,82 @@
             display: block;
         }
 
-        .search-filters {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-        }
-
-        .data-table {
+        .search-box {
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+            padding: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            background: #f9fafb;
         }
 
-        .data-table th, .data-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #e1e1e1;
+        .prospect-card {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
         }
 
-        .data-table th {
-            background: #f8f9fa;
+        .prospect-card:hover {
+            border-color: #dc2626;
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.1);
+        }
+
+        .prospect-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .prospect-email {
             font-weight: 600;
-            color: #333;
+            color: #dc2626;
+            font-size: 18px;
         }
 
-        .data-table tr:hover {
-            background: #f8f9fa;
-        }
-
-        .action-buttons {
+        .prospect-actions {
             display: flex;
             gap: 10px;
         }
 
-        .action-buttons button {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
+        .prospect-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
         }
 
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-        }
-
-        .modal-content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+        .info-item {
             background: white;
-            padding: 30px;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 600px;
-            max-height: 80vh;
-            overflow-y: auto;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #dc2626;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .conversation-details {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 1px solid #e5e7eb;
         }
 
         .summary-cards {
@@ -229,227 +244,331 @@
         }
 
         .summary-card {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #dc2626, #ef4444);
             color: white;
-            padding: 25px;
+            padding: 20px;
             border-radius: 12px;
             text-align: center;
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.2);
         }
 
         .summary-card h3 {
             margin-bottom: 10px;
-            font-size: 18px;
+            opacity: 0.9;
         }
 
-        .summary-card .number {
-            font-size: 32px;
+        .summary-card .count {
+            font-size: 2.5rem;
             font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .user-info {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
         }
 
         .hidden {
-            display: none;
+            display: none !important;
         }
 
-        .logo {
-            font-size: 24px;
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
             font-weight: bold;
-            color: #667eea;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #dc2626;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .list-item:hover {
+            background: #f3f4f6;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #fecaca;
+        }
+
+        .success-message {
+            background: #d1fae5;
+            color: #059669;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #a7f3d0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .prospect-info {
+                grid-template-columns: 1fr;
+            }
+            
+            .prospect-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .prospect-actions {
+                width: 100%;
+                margin-top: 15px;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                margin-bottom: 5px;
+            }
+            
+            .user-info {
+                flex-direction: column;
+                text-align: center;
+            }
         }
     </style>
 </head>
 <body>
-    <div id="loginScreen" class="login-container">
-        <form class="login-form" onsubmit="login(event)">
-            <div class="logo" style="text-align: center; margin-bottom: 30px;">
-                🐟 SIFCO CRM
-            </div>
-            <h2>เข้าสู่ระบบ</h2>
+    <div class="container">
+        <div class="header">
+            <h1>🦐 ระบบ CRM อาหารทะเลแช่แข็ง</h1>
+            <p>จัดการข้อมูล Prospect และลูกค้าที่สนใจสินค้า</p>
+        </div>
+
+        <!-- Login Section -->
+        <div id="loginSection" class="login-container">
+            <h2 style="text-align: center; margin-bottom: 30px; color: #dc2626;">เข้าสู่ระบบ</h2>
+            <div id="loginError" class="error-message hidden"></div>
             <div class="form-group">
-                <label>ชื่อผู้ใช้:</label>
-                <input type="text" id="username" required>
+                <label for="username">ชื่อผู้ใช้:</label>
+                <input type="text" id="username" placeholder="กรุณาใส่ชื่อผู้ใช้">
             </div>
             <div class="form-group">
-                <label>รหัสผ่าน:</label>
-                <input type="password" id="password" required>
+                <label for="password">รหัสผ่าน:</label>
+                <input type="password" id="password" placeholder="กรุณาใส่รหัสผ่าน">
             </div>
-            <button type="submit" class="btn">เข้าสู่ระบบ</button>
-        </form>
-    </div>
+            <button onclick="login()" class="btn" style="width: 100%;">เข้าสู่ระบบ</button>
+        </div>
 
-    <div id="mainScreen" class="hidden">
-        <div class="container">
-            <div class="main-content">
-                <div class="header">
-                    <h1>🐟 SIFCO - Seafood Export CRM</h1>
-                    <div class="user-info">
-                        <span id="currentUser"></span>
-                        <button onclick="logout()" class="btn btn-secondary" style="margin-left: 15px; width: auto; padding: 8px 16px;">ออกจากระบบ</button>
+        <!-- Main Content -->
+        <div id="mainContent" class="main-content hidden">
+            <div class="user-info">
+                <div>
+                    <strong>ผู้ใช้งาน:</strong> <span id="currentUser"></span>
+                    <span id="userRole" style="background: #dc2626; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; margin-left: 10px;"></span>
+                </div>
+                <button onclick="logout()" class="btn btn-secondary">ออกจากระบบ</button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('dashboard')">📊 แดชบอร์ด</button>
+                <button class="tab" onclick="showTab('prospects')">👥 จัดการ Prospects</button>
+                <button class="tab" onclick="showTab('reports')">📈 รายงาน</button>
+                <button id="adminTab" class="tab hidden" onclick="showTab('admin')">⚙️ จัดการระบบ</button>
+            </div>
+
+            <!-- Dashboard Tab -->
+            <div id="dashboardTab" class="tab-content active">
+                <div class="summary-cards">
+                    <div class="summary-card">
+                        <h3>Prospects ทั้งหมด</h3>
+                        <div class="count" id="totalProspects">0</div>
+                    </div>
+                    <div class="summary-card">
+                        <h3>กลุ่มสินค้า</h3>
+                        <div class="count" id="totalProductGroups">0</div>
+                    </div>
+                    <div class="summary-card">
+                        <h3>ประเทศลูกค้า</h3>
+                        <div class="count" id="totalCountries">0</div>
                     </div>
                 </div>
+                
+                <h3 style="margin-bottom: 20px;">รายการล่าสุด</h3>
+                <div id="recentProspects"></div>
+            </div>
 
-                <div class="tabs">
-                    <div class="tab active" onclick="showTab('dashboard')">แดชบอร์ด</div>
-                    <div class="tab" onclick="showTab('customers')">ลูกค้าที่สอบถาม</div>
-                    <div id="adminTabs" class="hidden">
-                        <div class="tab" onclick="showTab('settings')">ตั้งค่าข้อมูลพื้นฐาน</div>
+            <!-- Prospects Tab -->
+            <div id="prospectsTab" class="tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
+                    <h3>จัดการข้อมูล Prospects</h3>
+                    <button onclick="showProspectModal()" class="btn">➕ เพิ่ม Prospect ใหม่</button>
+                </div>
+                
+                <input type="text" id="searchProspects" placeholder="🔍 ค้นหา Email, ประเทศ, สินค้า, วัตถุดิบ..." class="search-box" onkeyup="filterProspects()">
+                
+                <div id="prospectsList"></div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div id="reportsTab" class="tab-content">
+                <h3 style="margin-bottom: 20px;">รายงานสรุป</h3>
+                
+                <div id="reportFilters" style="display: flex; gap: 15px; margin-bottom: 30px; flex-wrap: wrap;">
+                    <select id="reportType" onchange="generateReport()">
+                        <option value="all">ทั้งหมด</option>
+                        <option value="product">แยกตามกลุ่มสินค้า</option>
+                        <option value="material">แยกตามวัตถุดิบ</option>
+                        <option value="country">แยกตามประเทศ</option>
+                    </select>
+                </div>
+                
+                <div id="reportResults"></div>
+            </div>
+
+            <!-- Admin Tab -->
+            <div id="adminTab" class="tab-content">
+                <h3 style="margin-bottom: 20px;">จัดการระบบ (Admin Only)</h3>
+                
+                <div style="margin-bottom: 30px;">
+                    <h4>การเชื่อมต่อ Google Sheets</h4>
+                    <div class="form-group">
+                        <label for="sheetsUrl">URL Google Sheets:</label>
+                        <input type="text" id="sheetsUrl" placeholder="ใส่ URL ของ Google Sheets">
+                        <small style="color: #6b7280;">หมายเหตุ: ในเวอร์ชันจริงจะต้องตั้งค่า Google Sheets API</small>
                     </div>
+                    <button onclick="saveSettings()" class="btn">บันทึกการตั้งค่า</button>
                 </div>
 
-                <!-- Dashboard Tab -->
-                <div id="dashboard" class="tab-content active">
-                    <div class="summary-cards">
-                        <div class="summary-card">
-                            <h3>ลูกค้าทั้งหมด</h3>
-                            <div class="number" id="totalCustomers">0</div>
-                        </div>
-                        <div class="summary-card">
-                            <h3>กลุ่มสินค้า</h3>
-                            <div class="number" id="totalProducts">0</div>
-                        </div>
-                        <div class="summary-card">
-                            <h3>ประเทศ</h3>
-                            <div class="number" id="totalCountries">0</div>
-                        </div>
+                <div class="form-group">
+                    <label>จัดการกลุ่มสินค้า:</label>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <input type="text" id="newProductGroup" placeholder="เพิ่มกลุ่มสินค้าใหม่">
+                        <button onclick="addProductGroup()" class="btn">เพิ่ม</button>
                     </div>
-
-                    <div class="search-filters">
-                        <div class="form-group">
-                            <label>ค้นหาตามกลุ่มสินค้า:</label>
-                            <select id="filterProduct" onchange="filterDashboard()">
-                                <option value="">ทั้งหมด</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>ค้นหาตามกลุ่มวัตถุดิบ:</label>
-                            <select id="filterMaterial" onchange="filterDashboard()">
-                                <option value="">ทั้งหมด</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>ค้นหาตามประเทศ:</label>
-                            <select id="filterCountry" onchange="filterDashboard()">
-                                <option value="">ทั้งหมด</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>ค้นหาทั่วไป:</label>
-                            <input type="text" id="searchGeneral" oninput="filterDashboard()" placeholder="ค้นหา...">
-                        </div>
-                    </div>
-
-                    <table class="data-table" id="dashboardTable">
-                        <thead>
-                            <tr>
-                                <th>วันที่บันทึก</th>
-                                <th>อีเมล</th>
-                                <th>ประเทศ</th>
-                                <th>กลุ่มสินค้า</th>
-                                <th>กลุ่มวัตถุดิบ</th>
-                                <th>รายละเอียด</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+                    <div id="productGroupsList"></div>
                 </div>
 
-                <!-- Customers Tab -->
-                <div id="customers" class="tab-content">
-                    <div style="margin-bottom: 20px;">
-                        <button onclick="showAddCustomerModal()" class="btn btn-success" style="width: auto; padding: 12px 20px;">+ เพิ่มลูกค้าใหม่</button>
+                <div class="form-group">
+                    <label>จัดการกลุ่มวัตถุดิบ:</label>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <input type="text" id="newMaterialGroup" placeholder="เพิ่มกลุ่มวัตถุดิบใหม่">
+                        <button onclick="addMaterialGroup()" class="btn">เพิ่ม</button>
                     </div>
-
-                    <div class="search-filters">
-                        <div class="form-group">
-                            <label>ค้นหา:</label>
-                            <input type="text" id="customerSearch" oninput="filterCustomers()" placeholder="ค้นหาอีเมล, ประเทศ, สินค้า...">
-                        </div>
-                    </div>
-
-                    <table class="data-table" id="customersTable">
-                        <thead>
-                            <tr>
-                                <th>วันที่บันทึก</th>
-                                <th>อีเมล</th>
-                                <th>ประเทศ</th>
-                                <th>กลุ่มสินค้า</th>
-                                <th>กลุ่มวัตถุดิบ</th>
-                                <th>รายละเอียด</th>
-                                <th>การจัดการ</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+                    <div id="materialGroupsList"></div>
                 </div>
 
-                <!-- Settings Tab (Admin only) -->
-                <div id="settings" class="tab-content">
-                    <div style="margin-bottom: 30px;">
-                        <h3>ตั้งค่าข้อมูลพื้นฐาน</h3>
+                <div class="form-group">
+                    <label>จัดการประเทศ:</label>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <input type="text" id="newCountry" placeholder="เพิ่มประเทศใหม่">
+                        <button onclick="addCountry()" class="btn">เพิ่ม</button>
                     </div>
-
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-                        <div>
-                            <h4>กลุ่มสินค้า</h4>
-                            <div id="productsList"></div>
-                            <input type="text" id="newProduct" placeholder="เพิ่มกลุ่มสินค้าใหม่">
-                            <button onclick="addProduct()" class="btn" style="width: auto; margin-top: 10px;">เพิ่ม</button>
-                        </div>
-
-                        <div>
-                            <h4>กลุ่มวัตถุดิบ</h4>
-                            <div id="materialsList"></div>
-                            <input type="text" id="newMaterial" placeholder="เพิ่มกลุ่มวัตถุดิบใหม่">
-                            <button onclick="addMaterial()" class="btn" style="width: auto; margin-top: 10px;">เพิ่ม</button>
-                        </div>
-
-                        <div>
-                            <h4>ประเทศ</h4>
-                            <div id="countriesList"></div>
-                            <input type="text" id="newCountry" placeholder="เพิ่มประเทศใหม่">
-                            <button onclick="addCountry()" class="btn" style="width: auto; margin-top: 10px;">เพิ่ม</button>
-                        </div>
-                    </div>
+                    <div id="countriesList"></div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Add/Edit Customer Modal -->
-    <div id="customerModal" class="modal">
-        <div class="modal-content">
-            <h3 id="modalTitle">เพิ่มลูกค้าใหม่</h3>
-            <form onsubmit="saveCustomer(event)">
+        <!-- Prospect Modal -->
+        <div id="prospectModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeProspectModal()">&times;</span>
+                <h2 id="modalTitle">เพิ่ม Prospect ใหม่</h2>
+                <div id="modalError" class="error-message hidden"></div>
+                
                 <div class="form-group">
-                    <label>อีเมล: *</label>
-                    <input type="email" id="customerEmail" required>
+                    <label for="prospectEmail">Email: *</label>
+                    <input type="email" id="prospectEmail" required>
                 </div>
+                
                 <div class="form-group">
-                    <label>ประเทศ: *</label>
-                    <select id="customerCountry" required>
+                    <label for="prospectCountry">ประเทศ: *</label>
+                    <select id="prospectCountry" required>
                         <option value="">เลือกประเทศ</option>
                     </select>
                 </div>
+                
                 <div class="form-group">
-                    <label>กลุ่มสินค้า: *</label>
-                    <select id="customerProduct" required>
+                    <label for="prospectProduct">กลุ่มสินค้าที่สนใจ: *</label>
+                    <select id="prospectProduct" required>
                         <option value="">เลือกกลุ่มสินค้า</option>
                     </select>
                 </div>
+                
                 <div class="form-group">
-                    <label>กลุ่มวัตถุดิบ: *</label>
-                    <select id="customerMaterial" required>
+                    <label for="prospectMaterial">กลุ่มวัตถุดิบ: *</label>
+                    <select id="prospectMaterial" required>
                         <option value="">เลือกกลุ่มวัตถุดิบ</option>
                     </select>
                 </div>
+                
                 <div class="form-group">
-                    <label>รายละเอียดการคุย:</label>
-                    <textarea id="customerDetails" rows="4" placeholder="บันทึกรายละเอียดการสนทนา..."></textarea>
+                    <label for="prospectConversation">รายละเอียดการสนทนา:</label>
+                    <textarea id="prospectConversation" placeholder="บันทึกรายละเอียดการสนทนา, ความต้องการ, ข้อกำหนดพิเศษ..."></textarea>
                 </div>
-                <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button type="submit" class="btn">บันทึก</button>
-                    <button type="button" onclick="closeModal()" class="btn btn-secondary">ยกเลิก</button>
+                
+                <div class="form-group">
+                    <label for="prospectContactPerson">ชื่อผู้ติดต่อ:</label>
+                    <input type="text" id="prospectContactPerson" placeholder="ชื่อผู้ติดต่อ">
                 </div>
-            </form>
+                
+                <div class="form-group">
+                    <label for="prospectCompany">ชื่อบริษัท:</label>
+                    <input type="text" id="prospectCompany" placeholder="ชื่อบริษัท">
+                </div>
+                
+                <div class="form-group">
+                    <label for="prospectPhone">เบอร์โทรศัพท์:</label>
+                    <input type="text" id="prospectPhone" placeholder="เบอร์โทรศัพท์">
+                </div>
+                
+                <div style="text-align: right; margin-top: 20px;">
+                    <button onclick="closeProspectModal()" class="btn btn-secondary">ยกเลิก</button>
+                    <button onclick="saveProspect()" class="btn">บันทึก</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -457,436 +576,544 @@
         // Global variables
         let currentUser = null;
         let userRole = null;
-        let customers = [];
-        let products = ['กุ้งขาว', 'กุ้งเสือ', 'ปลาหมึก', 'ปูม้า', 'หอยแครง', 'ปลาดุก', 'ปลาช่อน'];
-        let materials = ['กุ้ง', 'ปลา', 'ปู', 'หอย', 'ปลาหมึก'];
-        let countries = ['จีน', 'ญี่ปุ่น', 'เกาหลีใต้', 'สหรัฐอเมริกา', 'ออสเตรเลีย', 'นิวซีแลนด์', 'สิงคโปร์', 'มาเลเซีย', 'อินโดนีเซีย', 'เวียดนาม'];
-        let editingCustomerId = null;
+        let prospects = [];
+        let productGroups = ['กุ้งแช่แข็ง', 'ปลาแช่แข็ง', 'หมึกแช่แข็ง', 'ปูแช่แข็ง', 'หอยแช่แข็ง'];
+        let materialGroups = ['กุ้งสด', 'ปลาสด', 'หมึกสด', 'ปูสด', 'หอยสด'];
+        let countries = ['ญี่ปุ่น', 'สหรัฐอเมริกา', 'เกาหลีใต้', 'จีน', 'ออสเตรเลีย', 'สิงคโปร์', 'ฮ่องกง', 'ไต้หวัน'];
+        let editingProspectId = null;
 
-        // Login function
-        function login(event) {
-            event.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-
-            if (username === 'adminsifco' && password === 'adminsifco888') {
-                currentUser = 'Admin';
-                userRole = 'admin';
-                showMainScreen();
-            } else if (username === 'mktsifco' && password === 'mkt888') {
-                currentUser = 'Marketing User';
-                userRole = 'user';
-                showMainScreen();
-            } else {
-                alert('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
-            }
-        }
-
-        function logout() {
-            document.getElementById('loginScreen').classList.remove('hidden');
-            document.getElementById('mainScreen').classList.add('hidden');
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-            currentUser = null;
-            userRole = null;
-        }
-
-        function showMainScreen() {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('mainScreen').classList.remove('hidden');
-            document.getElementById('currentUser').textContent = currentUser;
-
-            if (userRole === 'admin') {
-                document.getElementById('adminTabs').classList.remove('hidden');
-            }
-
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
             loadData();
             updateDashboard();
-            populateFilters();
+        });
+
+        // Login function
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('loginError');
+
+            if (!username || !password) {
+                showError('กรุณากรอกชื่อผู้ใช้และรหัสผ่าน', 'loginError');
+                return;
+            }
+
+            if (username === 'adminsifco' && password === 'adminsifco888') {
+                currentUser = 'adminsifco';
+                userRole = 'admin';
+                showMainContent();
+            } else if (username === 'mktsifco' && password === 'mkt888') {
+                currentUser = 'mktsifco';
+                userRole = 'user';
+                showMainContent();
+            } else {
+                showError('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง', 'loginError');
+            }
         }
 
+        // Show main content after login
+        function showMainContent() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
+            document.getElementById('currentUser').textContent = currentUser;
+            document.getElementById('userRole').textContent = userRole === 'admin' ? 'Admin' : 'User';
+            
+            if (userRole === 'admin') {
+                document.getElementById('adminTab').classList.remove('hidden');
+                loadAdminData();
+            }
+            
+            updateDashboard();
+            loadProspects();
+        }
+
+        // Logout function
+        function logout() {
+            currentUser = null;
+            userRole = null;
+            editingProspectId = null;
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('mainContent').classList.add('hidden');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('loginError').classList.add('hidden');
+        }
+
+        // Tab management
         function showTab(tabName) {
-            // Hide all tab contents
-            const tabContents = document.querySelectorAll('.tab-content');
-            tabContents.forEach(content => content.classList.remove('active'));
-
-            // Hide all tabs active state
-            const tabs = document.querySelectorAll('.tab');
+            // Hide all tabs
+            const tabs = document.querySelectorAll('.tab-content');
             tabs.forEach(tab => tab.classList.remove('active'));
-
+            
+            const tabButtons = document.querySelectorAll('.tab');
+            tabButtons.forEach(button => button.classList.remove('active'));
+            
             // Show selected tab
-            document.getElementById(tabName).classList.add('active');
+            document.getElementById(tabName + 'Tab').classList.add('active');
             event.target.classList.add('active');
-
-            if (tabName === 'dashboard') {
+            
+            // Load data for specific tabs
+            if (tabName === 'prospects') {
+                loadProspects();
+            } else if (tabName === 'reports') {
+                generateReport();
+            } else if (tabName === 'dashboard') {
                 updateDashboard();
-            } else if (tabName === 'customers') {
-                loadCustomers();
-            } else if (tabName === 'settings') {
-                loadSettings();
             }
         }
 
-        function loadData() {
-            // Simulate loading data - in real implementation, this would connect to Google Sheets
-            // For demo purposes, we'll use sample data
-            customers = [
-                {
-                    id: 1,
-                    date: '2024-08-15',
-                    email: 'john@example.com',
-                    country: 'สหรัฐอเมริกา',
-                    product: 'กุ้งขาว',
-                    material: 'กุ้ง',
-                    details: 'สอบถามราคากุ้งขาวขนาด 16/20 จำนวน 10 ตัน'
-                },
-                {
-                    id: 2,
-                    date: '2024-08-14',
-                    email: 'tanaka@example.jp',
-                    country: 'ญี่ปุ่น',
-                    product: 'ปลาหมึก',
-                    material: 'ปลาหมึก',
-                    details: 'ต้องการปลาหมึกแปรรูปสำหรับร้านอาหาร'
-                }
-            ];
-        }
-
+        // Dashboard functions
         function updateDashboard() {
-            document.getElementById('totalCustomers').textContent = customers.length;
-            document.getElementById('totalProducts').textContent = products.length;
+            document.getElementById('totalProspects').textContent = prospects.length;
+            document.getElementById('totalProductGroups').textContent = productGroups.length;
             document.getElementById('totalCountries').textContent = countries.length;
-
-            filterDashboard();
-        }
-
-        function populateFilters() {
-            populateSelect('filterProduct', products);
-            populateSelect('filterMaterial', materials);
-            populateSelect('filterCountry', countries);
-        }
-
-        function populateSelect(selectId, options) {
-            const select = document.getElementById(selectId);
-            const currentValue = select.value;
-            select.innerHTML = '<option value="">ทั้งหมด</option>';
-            options.forEach(option => {
-                const optionElement = document.createElement('option');
-                optionElement.value = option;
-                optionElement.textContent = option;
-                select.appendChild(optionElement);
-            });
-            select.value = currentValue;
-        }
-
-        function filterDashboard() {
-            const productFilter = document.getElementById('filterProduct').value;
-            const materialFilter = document.getElementById('filterMaterial').value;
-            const countryFilter = document.getElementById('filterCountry').value;
-            const searchFilter = document.getElementById('searchGeneral').value.toLowerCase();
-
-            const filteredCustomers = customers.filter(customer => {
-                return (!productFilter || customer.product === productFilter) &&
-                       (!materialFilter || customer.material === materialFilter) &&
-                       (!countryFilter || customer.country === countryFilter) &&
-                       (!searchFilter || 
-                        customer.email.toLowerCase().includes(searchFilter) ||
-                        customer.details.toLowerCase().includes(searchFilter) ||
-                        customer.country.toLowerCase().includes(searchFilter));
-            });
-
-            renderTable('dashboardTable', filteredCustomers, false);
-        }
-
-        function loadCustomers() {
-            populateCustomerModal();
-            renderTable('customersTable', customers, userRole === 'user');
-        }
-
-        function populateCustomerModal() {
-            populateSelect('customerCountry', countries);
-            populateSelect('customerProduct', products);
-            populateSelect('customerMaterial', materials);
-        }
-
-        function renderTable(tableId, data, showActions) {
-            const tbody = document.querySelector(`#${tableId} tbody`);
-            tbody.innerHTML = '';
-
-            data.forEach(customer => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${customer.date}</td>
-                    <td>${customer.email}</td>
-                    <td>${customer.country}</td>
-                    <td>${customer.product}</td>
-                    <td>${customer.material}</td>
-                    <td>${customer.details || '-'}</td>
-                    ${showActions ? `
-                        <td>
-                            <div class="action-buttons">
-                                <button onclick="editCustomer(${customer.id})" class="btn btn-secondary">แก้ไข</button>
-                                <button onclick="deleteCustomer(${customer.id})" class="btn btn-danger">ลบ</button>
-                            </div>
-                        </td>
-                    ` : ''}
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        function filterCustomers() {
-            const searchTerm = document.getElementById('customerSearch').value.toLowerCase();
-            const filteredCustomers = customers.filter(customer => 
-                customer.email.toLowerCase().includes(searchTerm) ||
-                customer.country.toLowerCase().includes(searchTerm) ||
-                customer.product.toLowerCase().includes(searchTerm) ||
-                customer.material.toLowerCase().includes(searchTerm) ||
-                (customer.details && customer.details.toLowerCase().includes(searchTerm))
-            );
             
-            renderTable('customersTable', filteredCustomers, userRole === 'user');
-        }
-
-        function showAddCustomerModal() {
-            editingCustomerId = null;
-            document.getElementById('modalTitle').textContent = 'เพิ่มลูกค้าใหม่';
-            document.getElementById('customerEmail').value = '';
-            document.getElementById('customerCountry').value = '';
-            document.getElementById('customerProduct').value = '';
-            document.getElementById('customerMaterial').value = '';
-            document.getElementById('customerDetails').value = '';
-            document.getElementById('customerModal').style.display = 'block';
-        }
-
-        function editCustomer(id) {
-            const customer = customers.find(c => c.id === id);
-            if (customer) {
-                editingCustomerId = id;
-                document.getElementById('modalTitle').textContent = 'แก้ไขข้อมูลลูกค้า';
-                document.getElementById('customerEmail').value = customer.email;
-                document.getElementById('customerCountry').value = customer.country;
-                document.getElementById('customerProduct').value = customer.product;
-                document.getElementById('customerMaterial').value = customer.material;
-                document.getElementById('customerDetails').value = customer.details || '';
-                document.getElementById('customerModal').style.display = 'block';
+            // Show recent prospects
+            const recentDiv = document.getElementById('recentProspects');
+            const recentProspects = prospects.slice(-5).reverse();
+            
+            if (recentProspects.length === 0) {
+                recentDiv.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 40px;">ยังไม่มีข้อมูล Prospects</div>';
+                return;
             }
+            
+            recentDiv.innerHTML = recentProspects.map(prospect => 
+                `<div class="prospect-card">
+                    <div class="prospect-header">
+                        <div class="prospect-email">${prospect.email}</div>
+                    </div>
+                    <div class="prospect-info">
+                        <div class="info-item">
+                            <div class="info-label">ประเทศ</div>
+                            <div class="info-value">${prospect.country}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">กลุ่มสินค้า</div>
+                            <div class="info-value">${prospect.product}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">วัตถุดิบ</div>
+                            <div class="info-value">${prospect.material}</div>
+                        </div>
+                    </div>
+                </div>`
+            ).join('');
         }
 
-        function saveCustomer(event) {
-            event.preventDefault();
+        // Prospects management
+        function loadProspects() {
+            const prospectsDiv = document.getElementById('prospectsList');
             
-            const customerData = {
-                email: document.getElementById('customerEmail').value,
-                country: document.getElementById('customerCountry').value,
-                product: document.getElementById('customerProduct').value,
-                material: document.getElementById('customerMaterial').value,
-                details: document.getElementById('customerDetails').value,
-                date: new Date().toISOString().split('T')[0]
+            if (prospects.length === 0) {
+                prospectsDiv.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 40px;">ยังไม่มีข้อมูล Prospects<br><button onclick="showProspectModal()" class="btn" style="margin-top: 15px;">เพิ่ม Prospect แรก</button></div>';
+                return;
+            }
+            
+            prospectsDiv.innerHTML = prospects.map((prospect, index) => 
+                `<div class="prospect-card" data-index="${index}">
+                    <div class="prospect-header">
+                        <div class="prospect-email">${prospect.email}</div>
+                        <div class="prospect-actions">
+                            <button onclick="editProspect(${index})" class="btn">✏️ แก้ไข</button>
+                            <button onclick="deleteProspect(${index})" class="btn btn-danger">🗑️ ลบ</button>
+                        </div>
+                    </div>
+                    <div class="prospect-info">
+                        <div class="info-item">
+                            <div class="info-label">ประเทศ</div>
+                            <div class="info-value">${prospect.country}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">กลุ่มสินค้า</div>
+                            <div class="info-value">${prospect.product}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">วัตถุดิบ</div>
+                            <div class="info-value">${prospect.material}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">ผู้ติดต่อ</div>
+                            <div class="info-value">${prospect.contactPerson || '-'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">บริษัท</div>
+                            <div class="info-value">${prospect.company || '-'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">โทรศัพท์</div>
+                            <div class="info-value">${prospect.phone || '-'}</div>
+                        </div>
+                    </div>
+                    ${prospect.conversation ? `<div class="conversation-details">
+                        <div class="info-label">รายละเอียดการสนทนา</div>
+                        <div style="margin-top: 8px; line-height: 1.6;">${prospect.conversation}</div>
+                    </div>` : ''}
+                    <div style="margin-top: 15px; font-size: 12px; color: #6b7280;">
+                        บันทึกเมื่อ: ${prospect.createdAt || 'ไม่ระบุ'}
+                    </div>
+                </div>`
+            ).join('');
+        }
+
+        // Search/Filter prospects
+        function filterProspects() {
+            const searchTerm = document.getElementById('searchProspects').value.toLowerCase();
+            const prospectCards = document.querySelectorAll('.prospect-card');
+            
+            prospectCards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Prospect modal functions
+        function showProspectModal(prospectIndex = null) {
+            editingProspectId = prospectIndex;
+            const modal = document.getElementById('prospectModal');
+            const title = document.getElementById('modalTitle');
+            
+            // Populate dropdowns
+            populateDropdowns();
+            
+            if (prospectIndex !== null) {
+                title.textContent = 'แก้ไข Prospect';
+                const prospect = prospects[prospectIndex];
+                document.getElementById('prospectEmail').value = prospect.email;
+                document.getElementById('prospectCountry').value = prospect.country;
+                document.getElementById('prospectProduct').value = prospect.product;
+                document.getElementById('prospectMaterial').value = prospect.material;
+                document.getElementById('prospectConversation').value = prospect.conversation || '';
+                document.getElementById('prospectContactPerson').value = prospect.contactPerson || '';
+                document.getElementById('prospectCompany').value = prospect.company || '';
+                document.getElementById('prospectPhone').value = prospect.phone || '';
+            } else {
+                title.textContent = 'เพิ่ม Prospect ใหม่';
+                clearProspectForm();
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        function closeProspectModal() {
+            document.getElementById('prospectModal').style.display = 'none';
+            document.getElementById('modalError').classList.add('hidden');
+            editingProspectId = null;
+        }
+
+        function clearProspectForm() {
+            document.getElementById('prospectEmail').value = '';
+            document.getElementById('prospectCountry').value = '';
+            document.getElementById('prospectProduct').value = '';
+            document.getElementById('prospectMaterial').value = '';
+            document.getElementById('prospectConversation').value = '';
+            document.getElementById('prospectContactPerson').value = '';
+            document.getElementById('prospectCompany').value = '';
+            document.getElementById('prospectPhone').value = '';
+        }
+
+        function populateDropdowns() {
+            // Populate countries
+            const countrySelect = document.getElementById('prospectCountry');
+            countrySelect.innerHTML = '<option value="">เลือกประเทศ</option>' + 
+                countries.map(country => `<option value="${country}">${country}</option>`).join('');
+            
+            // Populate product groups
+            const productSelect = document.getElementById('prospectProduct');
+            productSelect.innerHTML = '<option value="">เลือกกลุ่มสินค้า</option>' + 
+                productGroups.map(product => `<option value="${product}">${product}</option>`).join('');
+            
+            // Populate material groups
+            const materialSelect = document.getElementById('prospectMaterial');
+            materialSelect.innerHTML = '<option value="">เลือกกลุ่มวัตถุดิบ</option>' + 
+                materialGroups.map(material => `<option value="${material}">${material}</option>`).join('');
+        }
+
+        function saveProspect() {
+            const email = document.getElementById('prospectEmail').value.trim();
+            const country = document.getElementById('prospectCountry').value;
+            const product = document.getElementById('prospectProduct').value;
+            const material = document.getElementById('prospectMaterial').value;
+            const conversation = document.getElementById('prospectConversation').value.trim();
+            const contactPerson = document.getElementById('prospectContactPerson').value.trim();
+            const company = document.getElementById('prospectCompany').value.trim();
+            const phone = document.getElementById('prospectPhone').value.trim();
+
+            // Validation
+            if (!email || !country || !product || !material) {
+                showError('กรุณากรอกข้อมูลที่จำเป็น (Email, ประเทศ, กลุ่มสินค้า, วัตถุดิบ)', 'modalError');
+                return;
+            }
+
+            // Check duplicate email (exclude current editing)
+            const existingIndex = prospects.findIndex(p => p.email.toLowerCase() === email.toLowerCase());
+            if (existingIndex !== -1 && existingIndex !== editingProspectId) {
+                showError('Email นี้มีอยู่ในระบบแล้ว', 'modalError');
+                return;
+            }
+
+            const prospectData = {
+                email,
+                country,
+                product,
+                material,
+                conversation,
+                contactPerson,
+                company,
+                phone,
+                createdAt: editingProspectId !== null ? prospects[editingProspectId].createdAt : new Date().toLocaleString('th-TH'),
+                updatedAt: new Date().toLocaleString('th-TH')
             };
 
-            if (editingCustomerId) {
-                const index = customers.findIndex(c => c.id === editingCustomerId);
-                customers[index] = { ...customerData, id: editingCustomerId };
+            if (editingProspectId !== null) {
+                prospects[editingProspectId] = prospectData;
             } else {
-                customerData.id = customers.length > 0 ? Math.max(...customers.map(c => c.id)) + 1 : 1;
-                customers.push(customerData);
+                prospects.push(prospectData);
             }
 
-            closeModal();
-            loadCustomers();
+            saveData();
+            closeProspectModal();
+            loadProspects();
             updateDashboard();
-            populateFilters();
-
-            // In real implementation, save to Google Sheets here
-            alert('บันทึกข้อมูลเรียบร้อยแล้ว');
+            
+            showSuccess(editingProspectId !== null ? 'แก้ไขข้อมูลเรียบร้อย' : 'เพิ่มข้อมูลเรียบร้อย');
         }
 
-        function deleteCustomer(id) {
-            if (confirm('ต้องการลบข้อมูลลูกค้านี้หรือไม่?')) {
-                customers = customers.filter(c => c.id !== id);
-                loadCustomers();
+        function editProspect(index) {
+            showProspectModal(index);
+        }
+
+        function deleteProspect(index) {
+            if (confirm('คุณต้องการลบข้อมูล Prospect นี้หรือไม่?')) {
+                prospects.splice(index, 1);
+                saveData();
+                loadProspects();
                 updateDashboard();
-                alert('ลบข้อมูลเรียบร้อยแล้ว');
+                showSuccess('ลบข้อมูลเรียบร้อย');
             }
         }
 
-        function closeModal() {
-            document.getElementById('customerModal').style.display = 'none';
+        // Reports
+        function generateReport() {
+            const reportType = document.getElementById('reportType').value;
+            const resultsDiv = document.getElementById('reportResults');
+            
+            let reportData = {};
+            
+            switch(reportType) {
+                case 'product':
+                    reportData = groupBy(prospects, 'product');
+                    break;
+                case 'material':
+                    reportData = groupBy(prospects, 'material');
+                    break;
+                case 'country':
+                    reportData = groupBy(prospects, 'country');
+                    break;
+                default:
+                    reportData = {'ทั้งหมด': prospects};
+            }
+            
+            resultsDiv.innerHTML = Object.keys(reportData).map(key => 
+                `<div class="prospect-card">
+                    <h4 style="color: #dc2626; margin-bottom: 15px;">${key} (${reportData[key].length} รายการ)</h4>
+                    ${reportData[key].map(prospect => 
+                        `<div style="background: white; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #dc2626;">
+                            <strong>${prospect.email}</strong> - ${prospect.country}
+                            <br><small style="color: #6b7280;">สินค้า: ${prospect.product} | วัตถุดิบ: ${prospect.material}</small>
+                        </div>`
+                    ).join('')}
+                </div>`
+            ).join('');
         }
 
-        function loadSettings() {
-            if (userRole !== 'admin') return;
-
-            renderSettingsList('productsList', products, 'products');
-            renderSettingsList('materialsList', materials, 'materials');
-            renderSettingsList('countriesList', countries, 'countries');
+        // Admin functions
+        function loadAdminData() {
+            updateAdminLists();
         }
 
-        function renderSettingsList(containerId, items, type) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = '';
-
-            items.forEach((item, index) => {
-                const div = document.createElement('div');
-                div.style.cssText = 'display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-radius: 5px;';
-                div.innerHTML = `
-                    <input type="text" value="${item}" onchange="updateItem('${type}', ${index}, this.value)" style="flex: 1;">
-                    <button onclick="removeItem('${type}', ${index})" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">ลบ</button>
-                `;
-                container.appendChild(div);
-            });
+        function updateAdminLists() {
+            // Product groups
+            const productDiv = document.getElementById('productGroupsList');
+            productDiv.innerHTML = productGroups.map((group, index) => 
+                `<div class="list-item">
+                    <span>${group}</span>
+                    <button onclick="removeProductGroup(${index})" class="btn btn-danger">ลบ</button>
+                </div>`
+            ).join('');
+            
+            // Material groups
+            const materialDiv = document.getElementById('materialGroupsList');
+            materialDiv.innerHTML = materialGroups.map((group, index) => 
+                `<div class="list-item">
+                    <span>${group}</span>
+                    <button onclick="removeMaterialGroup(${index})" class="btn btn-danger">ลบ</button>
+                </div>`
+            ).join('');
+            
+            // Countries
+            const countriesDiv = document.getElementById('countriesList');
+            countriesDiv.innerHTML = countries.map((country, index) => 
+                `<div class="list-item">
+                    <span>${country}</span>
+                    <button onclick="removeCountry(${index})" class="btn btn-danger">ลบ</button>
+                </div>`
+            ).join('');
         }
 
-        function addProduct() {
-            const newProduct = document.getElementById('newProduct').value.trim();
-            if (newProduct && !products.includes(newProduct)) {
-                products.push(newProduct);
-                document.getElementById('newProduct').value = '';
-                loadSettings();
-                populateFilters();
-                populateCustomerModal();
+        function addProductGroup() {
+            const input = document.getElementById('newProductGroup');
+            const value = input.value.trim();
+            
+            if (value && !productGroups.includes(value)) {
+                productGroups.push(value);
+                input.value = '';
+                updateAdminLists();
+                saveData();
+                showSuccess('เพิ่มกลุ่มสินค้าเรียบร้อย');
             }
         }
 
-        function addMaterial() {
-            const newMaterial = document.getElementById('newMaterial').value.trim();
-            if (newMaterial && !materials.includes(newMaterial)) {
-                materials.push(newMaterial);
-                document.getElementById('newMaterial').value = '';
-                loadSettings();
-                populateFilters();
-                populateCustomerModal();
+        function removeProductGroup(index) {
+            if (confirm('คุณต้องการลบกลุ่มสินค้านี้หรือไม่?')) {
+                productGroups.splice(index, 1);
+                updateAdminLists();
+                saveData();
+                showSuccess('ลบกลุ่มสินค้าเรียบร้อย');
+            }
+        }
+
+        function addMaterialGroup() {
+            const input = document.getElementById('newMaterialGroup');
+            const value = input.value.trim();
+            
+            if (value && !materialGroups.includes(value)) {
+                materialGroups.push(value);
+                input.value = '';
+                updateAdminLists();
+                saveData();
+                showSuccess('เพิ่มกลุ่มวัตถุดิบเรียบร้อย');
+            }
+        }
+
+        function removeMaterialGroup(index) {
+            if (confirm('คุณต้องการลบกลุ่มวัตถุดิบนี้หรือไม่?')) {
+                materialGroups.splice(index, 1);
+                updateAdminLists();
+                saveData();
+                showSuccess('ลบกลุ่มวัตถุดิบเรียบร้อย');
             }
         }
 
         function addCountry() {
-            const newCountry = document.getElementById('newCountry').value.trim();
-            if (newCountry && !countries.includes(newCountry)) {
-                countries.push(newCountry);
-                document.getElementById('newCountry').value = '';
-                loadSettings();
-                populateFilters();
-                populateCustomerModal();
+            const input = document.getElementById('newCountry');
+            const value = input.value.trim();
+            
+            if (value && !countries.includes(value)) {
+                countries.push(value);
+                input.value = '';
+                updateAdminLists();
+                saveData();
+                showSuccess('เพิ่มประเทศเรียบร้อย');
             }
         }
 
-        function updateItem(type, index, newValue) {
-            if (type === 'products') {
-                products[index] = newValue;
-            } else if (type === 'materials') {
-                materials[index] = newValue;
-            } else if (type === 'countries') {
-                countries[index] = newValue;
+        function removeCountry(index) {
+            if (confirm('คุณต้องการลบประเทศนี้หรือไม่?')) {
+                countries.splice(index, 1);
+                updateAdminLists();
+                saveData();
+                showSuccess('ลบประเทศเรียบร้อย');
             }
-            populateFilters();
-            populateCustomerModal();
         }
 
-        function removeItem(type, index) {
-            if (confirm('ต้องการลบรายการนี้หรือไม่?')) {
-                if (type === 'products') {
-                    products.splice(index, 1);
-                } else if (type === 'materials') {
-                    materials.splice(index, 1);
-                } else if (type === 'countries') {
-                    countries.splice(index, 1);
+        function saveSettings() {
+            const sheetsUrl = document.getElementById('sheetsUrl').value;
+            // In real implementation, this would save to actual settings
+            showSuccess('บันทึกการตั้งค่าเรียบร้อย (ในเวอร์ชันจริงจะเชื่อมต่อ Google Sheets API)');
+        }
+
+        // Utility functions
+        function groupBy(array, key) {
+            return array.reduce((groups, item) => {
+                const group = item[key] || 'ไม่ระบุ';
+                groups[group] = groups[group] || [];
+                groups[group].push(item);
+                return groups;
+            }, {});
+        }
+
+        function showError(message, elementId = null) {
+            if (elementId) {
+                const element = document.getElementById(elementId);
+                element.textContent = message;
+                element.classList.remove('hidden');
+                setTimeout(() => element.classList.add('hidden'), 5000);
+            } else {
+                alert(message);
+            }
+        }
+
+        function showSuccess(message) {
+            // Create and show success message
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message';
+            successDiv.textContent = message;
+            successDiv.style.position = 'fixed';
+            successDiv.style.top = '20px';
+            successDiv.style.right = '20px';
+            successDiv.style.zIndex = '1001';
+            successDiv.style.maxWidth = '300px';
+            
+            document.body.appendChild(successDiv);
+            
+            setTimeout(() => {
+                document.body.removeChild(successDiv);
+            }, 3000);
+        }
+
+        // Data persistence (localStorage simulation for Google Sheets)
+        function saveData() {
+            const data = {
+                prospects,
+                productGroups,
+                materialGroups,
+                countries
+            };
+            localStorage.setItem('crmData', JSON.stringify(data));
+        }
+
+        function loadData() {
+            const savedData = localStorage.getItem('crmData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                prospects = data.prospects || [];
+                productGroups = data.productGroups || productGroups;
+                materialGroups = data.materialGroups || materialGroups;
+                countries = data.countries || countries;
+            }
+        }
+
+        // Event listeners
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                if (document.getElementById('loginSection').style.display !== 'none') {
+                    login();
                 }
-                loadSettings();
-                populateFilters();
-                populateCustomerModal();
             }
-        }
+        });
 
         // Close modal when clicking outside
         window.onclick = function(event) {
-            const modal = document.getElementById('customerModal');
+            const modal = document.getElementById('prospectModal');
             if (event.target === modal) {
-                closeModal();
+                closeProspectModal();
             }
         }
-
-        // Google Sheets Integration Functions
-        // Note: ในการใช้งานจริง คุณจะต้องตั้งค่า Google Apps Script Web App
-        // เพื่อเชื่อมต่อกับ Google Sheets
-
-        async function saveToGoogleSheets(data) {
-            // Replace with your Google Apps Script Web App URL
-            const webAppUrl = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL';
-            
-            try {
-                const response = await fetch(webAppUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'addCustomer',
-                        data: data
-                    })
-                });
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    console.log('Data saved to Google Sheets:', result);
-                    return true;
-                } else {
-                    console.error('Error saving to Google Sheets:', response.statusText);
-                    return false;
-                }
-            } catch (error) {
-                console.error('Error connecting to Google Sheets:', error);
-                return false;
-            }
-        }
-
-        async function loadFromGoogleSheets() {
-            // Replace with your Google Apps Script Web App URL
-            const webAppUrl = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL';
-            
-            try {
-                const response = await fetch(webAppUrl + '?action=getCustomers');
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    customers = data.customers || [];
-                    products = data.products || products;
-                    materials = data.materials || materials;
-                    countries = data.countries || countries;
-                    
-                    updateDashboard();
-                    populateFilters();
-                    loadCustomers();
-                    
-                    return true;
-                } else {
-                    console.error('Error loading from Google Sheets:', response.statusText);
-                    return false;
-                }
-            } catch (error) {
-                console.error('Error connecting to Google Sheets:', error);
-                return false;
-            }
-        }
-
-        // Initialize the application
-        document.addEventListener('DOMContentLoaded', function() {
-            // Try to load data from Google Sheets on startup
-            // loadFromGoogleSheets();
-            
-            // For demo purposes, we'll use sample data
-            loadData();
-        });
-
-        // Export functions for potential external use
-        window.CRM = {
-            saveToGoogleSheets,
-            loadFromGoogleSheets,
-            customers,
-            products,
-            materials,
-            countries
-        };
     </script>
 </body>
 </html>
