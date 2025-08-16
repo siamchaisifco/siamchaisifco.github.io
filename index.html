@@ -555,7 +555,7 @@
                 </div>
 
                 <!-- Prospects Tab -->
-                <div id="prospectsTab" class="tab-content">
+                <div id="prospectsTabContent" class="tab-content">
                     <!-- Search and Filter -->
                     <div class="search-container">
                         <input type="text" class="form-input search-input" id="searchInput" placeholder="ค้นหา Email, บริษัท, หรือรายละเอียด...">
@@ -594,7 +594,7 @@
                 </div>
 
                 <!-- Summary Tab -->
-                <div id="summaryTab" class="tab-content hidden">
+                <div id="summaryTabContent" class="tab-content hidden">
                     <div class="dashboard-grid">
                         <div class="card">
                             <h3 class="config-title">สรุปตามประเทศ</h3>
@@ -612,7 +612,7 @@
                 </div>
 
                 <!-- Settings Tab -->
-                <div id="settingsTab" class="tab-content hidden">
+                <div id="settingsTabContent" class="tab-content hidden">
                     <!-- Google Sheets Config -->
                     <div class="config-section">
                         <h3 class="config-title">การเชื่อมต่อ Google Sheets</h3>
@@ -1120,7 +1120,7 @@
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.classList.add('hidden');
             });
-            document.getElementById(`${tabName}Tab`).classList.remove('hidden');
+            document.getElementById(`${tabName}TabContent`).classList.remove('hidden');
         }
 
         function openAddModal() {
