@@ -369,10 +369,10 @@
             color: #065f46;
         }
 
-        .alert-error {
-            background: #fee2e2;
-            border-color: #fecaca;
-            color: #991b1b;
+        .alert-warning {
+            background: #fef3c7;
+            border-color: #fbbf24;
+            color: #92400e;
         }
 
         .hidden {
@@ -645,6 +645,59 @@
                         <div id="testResults" class="test-results hidden"></div>
                     </div>
 
+                    <!-- Apps Script Setup Guide -->
+                    <div class="config-section">
+                        <h3 class="config-title">คำแนะนำการตั้งค่า Apps Script (สำหรับเพิ่ม/ลบข้อมูล)</h3>
+                        <div class="alert alert-warning" style="background: #fef3c7; border-color: #fbbf24; color: #92400e; margin-bottom: 1rem;">
+                            <strong>หมายเหตุ:</strong> การเพิ่ม/ลบข้อมูลต้องตั้งค่า Google Apps Script ก่อน
+                        </div>
+                        <div class="test-results" style="display: block;">
+<strong>ขั้นตอนการตั้งค่า Apps Script:</strong>
+
+1. ไปที่ https://script.google.com
+2. สร้างโปรเจคใหม่
+3. วางโค้ดนี้:
+
+```javascript
+function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    const spreadsheetId = '1Zpmtz6vjMRV6meWy8duKKTTj3ptIf00pggiakMa_Plo';
+    const sheet = SpreadsheetApp.openById(spreadsheetId);
+    
+    if (data.action === 'append') {
+      const targetSheet = sheet.getSheetByName(data.range.split('!')[0]);
+      targetSheet.appendRow(data.values);
+      return ContentService.createTextOutput(JSON.stringify({success: true}));
+    }
+    
+    if (data.action === 'update') {
+      const [sheetName, range] = data.range.split('!');
+      const targetSheet = sheet.getSheetByName(sheetName);
+      const rangeObj = targetSheet.getRange(range);
+      rangeObj.setValues([data.values]);
+      return ContentService.createTextOutput(JSON.stringify({success: true}));
+    }
+    
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({error: error.toString()}));
+  }
+}
+```
+
+4. กด Deploy > New Deployment
+5. เลือก Type: Web app
+6. Execute as: Me
+7. Who has access: Anyone
+8. คัดลอก URL ที่ได้
+
+<strong>✅ Apps Script URL ตั้งค่าเรียบร้อยแล้ว:</strong>
+https://script.google.com/macros/s/AKfycbzPA1-kLJ7gzh07em1IAMMqZ8oOtLyxGdtbt-upWvDkasS580m3fvIpAZqlcoG_JIX5/exec
+
+<strong>สถานะ:</strong> ระบบพร้อมใช้งานเต็มรูปแบบ (อ่าน + เขียนข้อมูล)
+                        </div>
+                    </div>
+
                     <!-- Master Data Management -->
                     <div class="config-section" id="adminSettings">
                         <h3 class="config-title">จัดการข้อมูลหลัก</h3>
@@ -736,7 +789,9 @@
         let userRole = null;
         let googleSheetsConfig = {
             spreadsheetId: '1Zpmtz6vjMRV6meWy8duKKTTj3ptIf00pggiakMa_Plo',
-            apiKey: 'AIzaSyBtkCPgEiTlAS12Q-tPp_6mIPdPkKABcx4'
+            apiKey: 'AIzaSyBtkCPgEiTlAS12Q-tPp_6mIPdPkKABcx4',
+            // Apps Script Web App URL สำหรับการเขียนข้อมูล
+            appsScriptUrl: 'https://script.google.com/macros/s/AKfycbzPA1-kLJ7gzh07em1IAMMqZ8oOtLyxGdtbt-upWvDkasS580m3fvIpAZqlcoG_JIX5/exec'
         };
         let masterData = {
             countries: [],
@@ -962,43 +1017,59 @@
         }
 
         async function appendToGoogleSheet(range, values) {
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${googleSheetsConfig.spreadsheetId}/values/${range}:append?valueInputOption=RAW&key=${googleSheetsConfig.apiKey}`;
-            
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    values: [values]
-                })
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            try {
+                // ใช้ Apps Script สำหรับการเขียนข้อมูล
+                const response = await fetch(googleSheetsConfig.appsScriptUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'append',
+                        range: range,
+                        values: values
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Apps Script error! status: ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Error appending to sheet:', error);
+                // Fallback: แสดงข้อมูลที่ต้องการเพิ่มใน console และแจ้งให้เพิ่มด้วยตนเอง
+                alert(`ไม่สามารถเพิ่มข้อมูลอัตโนมัติได้\nกรุณาเพิ่มข้อมูลนี้ในแผ่นงาน ${range}:\n${values.join(', ')}\n\nหรือตั้งค่า Apps Script ตามคู่มือ`);
+                throw error;
             }
-            
-            return await response.json();
         }
 
         async function updateGoogleSheetRow(range, values) {
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${googleSheetsConfig.spreadsheetId}/values/${range}?valueInputOption=RAW&key=${googleSheetsConfig.apiKey}`;
-            
-            const response = await fetch(url, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    values: [values]
-                })
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            try {
+                // ใช้ Apps Script สำหรับการอัพเดทข้อมูล
+                const response = await fetch(googleSheetsConfig.appsScriptUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'update',
+                        range: range,
+                        values: values
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Apps Script error! status: ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Error updating sheet:', error);
+                // Fallback: แสดงข้อมูลที่ต้องการอัพเดทใน console และแจ้งให้อัพเดทด้วยตนเอง
+                alert(`ไม่สามารถอัพเดทข้อมูลอัตโนมัติได้\nกรุณาอัพเดทข้อมูลในแผ่นงาน ${range}:\n${values.join(', ')}\n\nหรือตั้งค่า Apps Script ตามคู่มือ`);
+                throw error;
             }
-            
-            return await response.json();
         }
 
         function updateFilters() {
