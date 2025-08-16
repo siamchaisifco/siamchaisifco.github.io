@@ -440,17 +440,40 @@
             align-items: center;
             gap: 0.5rem;
             font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
         }
 
         .status-indicator {
-            width: 8px;
-            height: 8px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
             background: #ef4444;
+            animation: pulse 2s infinite;
         }
 
         .status-indicator.connected {
             background: #10b981;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .status-text {
+            color: #ef4444;
+            font-weight: 500;
+        }
+
+        .status-text.connected {
+            color: #10b981;
         }
 
         .config-section {
@@ -491,7 +514,7 @@
                 <div class="user-info">
                     <div class="connection-status" id="connectionStatus">
                         <div class="status-indicator" id="statusIndicator"></div>
-                        <span id="statusText">ไม่ได้เชื่อมต่อ</span>
+                        <span class="status-text" id="statusText">กำลังตรวจสอบ...</span>
                     </div>
                     <div id="userDisplay" class="hidden">
                         <span id="currentUser"></span>
@@ -613,20 +636,11 @@
 
                 <!-- Settings Tab -->
                 <div id="settingsTabContent" class="tab-content hidden">
-                    <!-- Google Sheets Config -->
+                    <!-- Connection Test -->
                     <div class="config-section">
-                        <h3 class="config-title">การเชื่อมต่อ Google Sheets</h3>
-                        <div class="form-group">
-                            <label class="form-label">Spreadsheet ID</label>
-                            <input type="text" class="form-input" id="spreadsheetId" placeholder="ใส่ Spreadsheet ID">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">API Key</label>
-                            <input type="text" class="form-input" id="apiKey" placeholder="ใส่ Google Sheets API Key">
-                        </div>
+                        <h3 class="config-title">ทดสอบการเชื่อมต่อ Google Sheets</h3>
                         <div class="form-row">
-                            <button class="btn" onclick="saveGoogleSheetsConfig()">บันทึกการตั้งค่า</button>
-                            <button class="btn btn-secondary" onclick="testConnection()">ทดสอบการเชื่อมต่อ</button>
+                            <button class="btn" onclick="testConnection()">ทดสอบการเชื่อมต่อ</button>
                         </div>
                         <div id="testResults" class="test-results hidden"></div>
                     </div>
@@ -721,8 +735,8 @@
         let currentUser = null;
         let userRole = null;
         let googleSheetsConfig = {
-            spreadsheetId: '',
-            apiKey: ''
+            spreadsheetId: '1Zpmtz6vjMRV6meWy8duKKTTj3ptIf00pggiakMa_Plo',
+            apiKey: 'AIzaSyBtkCPgEiTlAS12Q-tPp_6mIPdPkKABcx4'
         };
         let masterData = {
             countries: [],
@@ -738,7 +752,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadStoredConfig();
             initializeEventListeners();
-            updateConnectionStatus();
+            // ทดสอบการเชื่อมต่อทันทีเมื่อเปิดโปรแกรม
+            checkConnectionStatus();
         });
 
         function initializeEventListeners() {
@@ -756,14 +771,27 @@
         }
 
         function loadStoredConfig() {
-            const config = JSON.parse(localStorage.getItem('googleSheetsConfig') || '{}');
-            if (config.spreadsheetId) {
-                document.getElementById('spreadsheetId').value = config.spreadsheetId;
-                googleSheetsConfig.spreadsheetId = config.spreadsheetId;
-            }
-            if (config.apiKey) {
-                document.getElementById('apiKey').value = config.apiKey;
-                googleSheetsConfig.apiKey = config.apiKey;
+            // ตั้งค่าเริ่มต้น
+            const defaultConfig = {
+                spreadsheetId: '1Zpmtz6vjMRV6meWy8duKKTTj3ptIf00pggiakMa_Plo',
+                apiKey: 'AIzaSyBtkCPgEiTlAS12Q-tPp_6mIPdPkKABcx4'
+            };
+            
+            // ใช้ค่าเริ่มต้น
+            googleSheetsConfig.spreadsheetId = defaultConfig.spreadsheetId;
+            googleSheetsConfig.apiKey = defaultConfig.apiKey;
+        }
+
+        async function checkConnectionStatus() {
+            updateConnectionStatus(false, 'กำลังตรวจสอบ...');
+            
+            try {
+                // ทดสอบการเชื่อมต่อแบบเงียบๆ
+                await fetchGoogleSheetData('Prospects!A1:A1');
+                updateConnectionStatus(true, 'เชื่อมต่อปกติ');
+            } catch (error) {
+                console.error('Connection check failed:', error);
+                updateConnectionStatus(false, 'เชื่อมต่อมีปัญหา');
             }
         }
 
@@ -837,10 +865,7 @@
         }
 
         async function loadDashboardData() {
-            if (!googleSheetsConfig.spreadsheetId || !googleSheetsConfig.apiKey) {
-                updateConnectionStatus(false);
-                return;
-            }
+            updateConnectionStatus(false, 'กำลังโหลดข้อมูล...');
             
             try {
                 await loadMasterData();
@@ -848,10 +873,10 @@
                 updateFilters();
                 updateStats();
                 updateSummary();
-                updateConnectionStatus(true);
+                updateConnectionStatus(true, 'เชื่อมต่อปกติ');
             } catch (error) {
                 console.error('Error loading dashboard data:', error);
-                updateConnectionStatus(false);
+                updateConnectionStatus(false, 'โหลดข้อมูลไม่สำเร็จ');
             }
         }
 
@@ -1225,21 +1250,8 @@
         }
 
         async function saveGoogleSheetsConfig() {
-            const spreadsheetId = document.getElementById('spreadsheetId').value;
-            const apiKey = document.getElementById('apiKey').value;
-            
-            if (!spreadsheetId || !apiKey) {
-                alert('กรุณากรอก Spreadsheet ID และ API Key');
-                return;
-            }
-            
-            googleSheetsConfig = { spreadsheetId, apiKey };
-            localStorage.setItem('googleSheetsConfig', JSON.stringify(googleSheetsConfig));
-            
-            alert('บันทึกการตั้งค่าเรียบร้อยแล้ว');
-            
-            // Test connection after saving
-            await testConnection();
+            // ฟังก์ชันนี้ไม่ต้องใช้แล้ว เพราะค่าฝังไว้ในโค้ดแล้ว
+            alert('การตั้งค่าถูกฝังไว้ในโปรแกรมแล้ว');
         }
 
         async function testConnection() {
@@ -1247,15 +1259,7 @@
             testResults.classList.remove('hidden');
             testResults.textContent = 'กำลังทดสอบการเชื่อมต่อ...';
             
-            if (!googleSheetsConfig.spreadsheetId || !googleSheetsConfig.apiKey) {
-                testResults.textContent = 'ข้อผิดพลาด: กรุณาตั้งค่า Spreadsheet ID และ API Key ก่อน';
-                updateConnectionStatus(false);
-                return;
-            }
-            
-            // ตรวจสอบความถูกต้องของ input
-            testResults.textContent += '\nSpreadsheet ID: ' + googleSheetsConfig.spreadsheetId;
-            testResults.textContent += '\nAPI Key: ' + googleSheetsConfig.apiKey.substring(0, 10) + '...';
+            updateConnectionStatus(false, 'กำลังทดสอบ...');
             
             try {
                 // Test อ่านข้อมูลจาก sheet หลัก
@@ -1267,28 +1271,28 @@
                 testResults.textContent += '\n\nกำลังทดสอบ sheet อื่นๆ...';
                 
                 try {
-                    const countriesData = await fetchGoogleSheetData('Countries!A1:A1');
+                    await fetchGoogleSheetData('Countries!A1:A1');
                     testResults.textContent += '\n✅ Countries sheet: OK';
                 } catch (e) {
                     testResults.textContent += '\n❌ Countries sheet: ' + e.message;
                 }
                 
                 try {
-                    const categoriesData = await fetchGoogleSheetData('Categories!A1:A1');
+                    await fetchGoogleSheetData('Categories!A1:A1');
                     testResults.textContent += '\n✅ Categories sheet: OK';
                 } catch (e) {
                     testResults.textContent += '\n❌ Categories sheet: ' + e.message;
                 }
                 
                 try {
-                    const materialsData = await fetchGoogleSheetData('Materials!A1:A1');
+                    await fetchGoogleSheetData('Materials!A1:A1');
                     testResults.textContent += '\n✅ Materials sheet: OK';
                 } catch (e) {
                     testResults.textContent += '\n❌ Materials sheet: ' + e.message;
                 }
                 
                 try {
-                    const usersData = await fetchGoogleSheetData('Users!A1:A1');
+                    await fetchGoogleSheetData('Users!A1:A1');
                     testResults.textContent += '\n✅ Users sheet: OK';
                 } catch (e) {
                     testResults.textContent += '\n❌ Users sheet: ' + e.message;
@@ -1303,7 +1307,7 @@
                 testResults.textContent += `\n- กลุ่มวัตถุดิบ: ${masterData.materials.length} รายการ`;
                 testResults.textContent += `\n- ผู้ใช้: ${masterData.users.length} รายการ`;
                 
-                updateConnectionStatus(true);
+                updateConnectionStatus(true, 'เชื่อมต่อปกติ');
                 updateFilters();
                 testResults.textContent += '\n\n🎉 การเชื่อมต่อสำเร็จทั้งหมด!';
                 
@@ -1311,25 +1315,25 @@
                 console.error('Test connection error:', error);
                 testResults.textContent += '\n\n❌ ข้อผิดพลาด: ' + error.message;
                 testResults.textContent += '\n\nวิธีแก้ไข:';
-                testResults.textContent += '\n1. ตรวจสอบ Spreadsheet ID';
-                testResults.textContent += '\n2. ตรวจสอบ API Key';
-                testResults.textContent += '\n3. ตรวจสอบการแชร์ Sheets (ต้องเป็น Public)';
-                testResults.textContent += '\n4. ตรวจสอบชื่อ Sheet ต้องเป็น: Prospects, Countries, Categories, Materials, Users';
-                testResults.textContent += '\n5. ตรวจสอบว่าเปิดใช้ Google Sheets API แล้ว';
-                updateConnectionStatus(false);
+                testResults.textContent += '\n1. ตรวจสอบการแชร์ Google Sheets (ต้องเป็น Public)';
+                testResults.textContent += '\n2. ตรวจสอบชื่อ Sheet ต้องเป็น: Prospects, Countries, Categories, Materials, Users';
+                testResults.textContent += '\n3. ตรวจสอบว่าเปิดใช้ Google Sheets API แล้ว';
+                updateConnectionStatus(false, 'เชื่อมต่อมีปัญหา');
             }
         }
 
-        function updateConnectionStatus(connected = false) {
+        function updateConnectionStatus(connected = false, message = '') {
             const indicator = document.getElementById('statusIndicator');
             const text = document.getElementById('statusText');
             
             if (connected) {
                 indicator.classList.add('connected');
-                text.textContent = 'เชื่อมต่อแล้ว';
+                text.classList.add('connected');
+                text.textContent = message || 'เชื่อมต่อแล้ว';
             } else {
                 indicator.classList.remove('connected');
-                text.textContent = 'ไม่ได้เชื่อมต่อ';
+                text.classList.remove('connected');
+                text.textContent = message || 'ไม่ได้เชื่อมต่อ';
             }
         }
 
