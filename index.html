@@ -857,31 +857,30 @@
 
         async function loadMasterData() {
             try {
-                // Load countries from sheet
-                const countriesData = await fetchGoogleSheetData('Countries!A:A');
+                // Load countries from sheet (เริ่มจากแถวที่ 2)
+                const countriesData = await fetchGoogleSheetData('Countries!A2:A');
                 masterData.countries = countriesData.values ? countriesData.values.flat().filter(v => v) : [];
                 
-                // Load categories from sheet
-                const categoriesData = await fetchGoogleSheetData('Categories!A:A');
+                // Load categories from sheet (เริ่มจากแถวที่ 2)
+                const categoriesData = await fetchGoogleSheetData('Categories!A2:A');
                 masterData.categories = categoriesData.values ? categoriesData.values.flat().filter(v => v) : [];
                 
-                // Load materials from sheet
-                const materialsData = await fetchGoogleSheetData('Materials!A:A');
+                // Load materials from sheet (เริ่มจากแถวที่ 2)
+                const materialsData = await fetchGoogleSheetData('Materials!A2:A');
                 masterData.materials = materialsData.values ? materialsData.values.flat().filter(v => v) : [];
                 
-                // Load users from sheet
-                const usersData = await fetchGoogleSheetData('Users!A:B');
+                // Load users from sheet (เริ่มจากแถวที่ 2)
+                const usersData = await fetchGoogleSheetData('Users!A2:B');
                 masterData.users = [];
                 if (usersData.values) {
-                    for (let i = 1; i < usersData.values.length; i++) { // Skip header
-                        const row = usersData.values[i];
+                    usersData.values.forEach(row => {
                         if (row[0] && row[1]) {
                             masterData.users.push({
                                 username: row[0],
                                 password: row[1]
                             });
                         }
-                    }
+                    });
                 }
             } catch (error) {
                 console.error('Error loading master data:', error);
@@ -891,15 +890,14 @@
 
         async function loadProspects() {
             try {
-                const data = await fetchGoogleSheetData('Prospects!A:I');
+                const data = await fetchGoogleSheetData('Prospects!A2:I');
                 prospects = [];
                 
-                if (data.values && data.values.length > 1) {
-                    for (let i = 1; i < data.values.length; i++) { // Skip header
-                        const row = data.values[i];
+                if (data.values && data.values.length > 0) {
+                    data.values.forEach((row, index) => {
                         if (row[0]) { // If email exists
                             prospects.push({
-                                id: i,
+                                id: index + 2, // +2 เพราะเริ่มจากแถวที่ 2 และ 0-based index
                                 email: row[0] || '',
                                 company: row[1] || '',
                                 contact: row[2] || '',
@@ -911,7 +909,7 @@
                                 createdBy: row[8] || currentUser
                             });
                         }
-                    }
+                    });
                 }
                 
                 filteredProspects = [...prospects];
@@ -1170,8 +1168,8 @@
             
             try {
                 if (id) {
-                    // Update existing
-                    const rowIndex = parseInt(id) + 1; // +1 for header row
+                    // Update existing - ใช้ row number ที่ถูกต้อง
+                    const rowIndex = parseInt(id);
                     await updateGoogleSheetRow(
                         `Prospects!A${rowIndex}:I${rowIndex}`,
                         [prospectData.email, prospectData.company, prospectData.contact, 
@@ -1179,7 +1177,7 @@
                          prospectData.details, prospectData.createdDate, prospectData.createdBy]
                     );
                 } else {
-                    // Add new
+                    // Add new - เพิ่มใหม่ต่อจากแถวสุดท้าย
                     await appendToGoogleSheet(
                         'Prospects!A:I',
                         [prospectData.email, prospectData.company, prospectData.contact, 
@@ -1204,8 +1202,8 @@
             if (!confirm('คุณต้องการลบรายการนี้หรือไม่?')) return;
             
             try {
-                // Clear the row in Google Sheets
-                const rowIndex = parseInt(id) + 1; // +1 for header row
+                // Clear the row in Google Sheets - ใช้ row number ที่ถูกต้อง
+                const rowIndex = parseInt(id);
                 await updateGoogleSheetRow(
                     `Prospects!A${rowIndex}:I${rowIndex}`,
                     ['', '', '', '', '', '', '', '', '']
