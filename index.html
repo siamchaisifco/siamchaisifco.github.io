@@ -924,10 +924,15 @@
 
         async function fetchGoogleSheetData(range) {
             const url = `https://sheets.googleapis.com/v4/spreadsheets/${googleSheetsConfig.spreadsheetId}/values/${range}?key=${googleSheetsConfig.apiKey}`;
+            
+            console.log('Fetching URL:', url);
+            
             const response = await fetch(url);
             
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorText = await response.text();
+                console.error('Error response:', errorText);
+                throw new Error(`HTTP error! status: ${response.status}\nDetails: ${errorText}`);
             }
             
             return await response.json();
@@ -1250,24 +1255,69 @@
                 return;
             }
             
+            // ตรวจสอบความถูกต้องของ input
+            testResults.textContent += '\nSpreadsheet ID: ' + googleSheetsConfig.spreadsheetId;
+            testResults.textContent += '\nAPI Key: ' + googleSheetsConfig.apiKey.substring(0, 10) + '...';
+            
             try {
-                // Test reading data
-                const testData = await fetchGoogleSheetData('A1:A1');
-                testResults.textContent = 'สำเร็จ: เชื่อมต่อ Google Sheets ได้แล้ว\n';
-                testResults.textContent += `ข้อมูลทดสอบ: ${JSON.stringify(testData, null, 2)}`;
+                // Test อ่านข้อมูลจาก sheet หลัก
+                testResults.textContent += '\n\nกำลังทดสอบการอ่าน sheet Prospects...';
+                const testData = await fetchGoogleSheetData('Prospects!A1:A1');
+                testResults.textContent += '\nสำเร็จ: อ่าน sheet Prospects ได้';
                 
-                // Try to load master data to test all sheets
+                // Test อ่าน sheet อื่นๆ
+                testResults.textContent += '\n\nกำลังทดสอบ sheet อื่นๆ...';
+                
+                try {
+                    const countriesData = await fetchGoogleSheetData('Countries!A1:A1');
+                    testResults.textContent += '\n✅ Countries sheet: OK';
+                } catch (e) {
+                    testResults.textContent += '\n❌ Countries sheet: ' + e.message;
+                }
+                
+                try {
+                    const categoriesData = await fetchGoogleSheetData('Categories!A1:A1');
+                    testResults.textContent += '\n✅ Categories sheet: OK';
+                } catch (e) {
+                    testResults.textContent += '\n❌ Categories sheet: ' + e.message;
+                }
+                
+                try {
+                    const materialsData = await fetchGoogleSheetData('Materials!A1:A1');
+                    testResults.textContent += '\n✅ Materials sheet: OK';
+                } catch (e) {
+                    testResults.textContent += '\n❌ Materials sheet: ' + e.message;
+                }
+                
+                try {
+                    const usersData = await fetchGoogleSheetData('Users!A1:A1');
+                    testResults.textContent += '\n✅ Users sheet: OK';
+                } catch (e) {
+                    testResults.textContent += '\n❌ Users sheet: ' + e.message;
+                }
+                
+                // ถ้าผ่านการทดสอบพื้นฐาน ลองโหลดข้อมูลจริง
+                testResults.textContent += '\n\nกำลังโหลดข้อมูลจริง...';
                 await loadMasterData();
-                testResults.textContent += '\n\nโหลดข้อมูลหลักสำเร็จ';
-                testResults.textContent += `\nประเทศ: ${masterData.countries.length} รายการ`;
-                testResults.textContent += `\nกลุ่มสินค้า: ${masterData.categories.length} รายการ`;
-                testResults.textContent += `\nกลุ่มวัตถุดิบ: ${masterData.materials.length} รายการ`;
-                testResults.textContent += `\nผู้ใช้: ${masterData.users.length} รายการ`;
+                testResults.textContent += '\n\nโหลดข้อมูลหลักสำเร็จ:';
+                testResults.textContent += `\n- ประเทศ: ${masterData.countries.length} รายการ`;
+                testResults.textContent += `\n- กลุ่มสินค้า: ${masterData.categories.length} รายการ`;
+                testResults.textContent += `\n- กลุ่มวัตถุดิบ: ${masterData.materials.length} รายการ`;
+                testResults.textContent += `\n- ผู้ใช้: ${masterData.users.length} รายการ`;
                 
                 updateConnectionStatus(true);
                 updateFilters();
+                testResults.textContent += '\n\n🎉 การเชื่อมต่อสำเร็จทั้งหมด!';
+                
             } catch (error) {
-                testResults.textContent = `ข้อผิดพลาด: ${error.message}`;
+                console.error('Test connection error:', error);
+                testResults.textContent += '\n\n❌ ข้อผิดพลาด: ' + error.message;
+                testResults.textContent += '\n\nวิธีแก้ไข:';
+                testResults.textContent += '\n1. ตรวจสอบ Spreadsheet ID';
+                testResults.textContent += '\n2. ตรวจสอบ API Key';
+                testResults.textContent += '\n3. ตรวจสอบการแชร์ Sheets (ต้องเป็น Public)';
+                testResults.textContent += '\n4. ตรวจสอบชื่อ Sheet ต้องเป็น: Prospects, Countries, Categories, Materials, Users';
+                testResults.textContent += '\n5. ตรวจสอบว่าเปิดใช้ Google Sheets API แล้ว';
                 updateConnectionStatus(false);
             }
         }
