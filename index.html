@@ -369,10 +369,10 @@
             color: #065f46;
         }
 
-        .alert-error {
-            background: #fee2e2;
-            border-color: #fecaca;
-            color: #991b1b;
+        .alert-warning {
+            background: #fef3c7;
+            border-color: #fbbf24;
+            color: #92400e;
         }
 
         .hidden {
@@ -440,17 +440,40 @@
             align-items: center;
             gap: 0.5rem;
             font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
         }
 
         .status-indicator {
-            width: 8px;
-            height: 8px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
             background: #ef4444;
+            animation: pulse 2s infinite;
         }
 
         .status-indicator.connected {
             background: #10b981;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .status-text {
+            color: #ef4444;
+            font-weight: 500;
+        }
+
+        .status-text.connected {
+            color: #10b981;
         }
 
         .config-section {
@@ -491,7 +514,7 @@
                 <div class="user-info">
                     <div class="connection-status" id="connectionStatus">
                         <div class="status-indicator" id="statusIndicator"></div>
-                        <span id="statusText">ไม่ได้เชื่อมต่อ</span>
+                        <span class="status-text" id="statusText">กำลังตรวจสอบ...</span>
                     </div>
                     <div id="userDisplay" class="hidden">
                         <span id="currentUser"></span>
@@ -511,15 +534,36 @@
                     <form id="loginForm">
                         <div class="form-group">
                             <label class="form-label">ชื่อผู้ใช้</label>
-                            <input type="text" class="form-input" id="username" required>
+                            <input type="text" class="form-input" id="username" required autocomplete="username">
                         </div>
                         <div class="form-group">
                             <label class="form-label">รหัสผ่าน</label>
-                            <input type="password" class="form-input" id="password" required>
+                            <input type="password" class="form-input" id="password" required autocomplete="current-password">
                         </div>
+                        
+                        <!-- Test Login Credentials -->
+                        <div class="alert" style="background: #e0f2fe; border-color: #0284c7; color: #0c4a6e; margin-bottom: 1rem; font-size: 0.9rem;">
+                            <strong>🔐 ข้อมูลการเข้าสู่ระบบ:</strong><br>
+                            <strong>Admin:</strong> adminsifco / adminsifco888<br>
+                            <strong>User:</strong> ตรวจสอบใน Google Sheets → Users
+                        </div>
+                        
                         <button type="submit" class="btn btn-full">
                             <span id="loginButtonText">เข้าสู่ระบบ</span>
                             <div class="spinner hidden" id="loginSpinner"></div>
+                        </button>
+                        
+                        <!-- Debug Panel -->
+                        <div id="debugPanel" class="test-results" style="margin-top: 1rem; font-size: 0.8rem; display: none;">
+                            <strong>🔍 Debug Information:</strong><br>
+                            <div id="debugInfo"></div>
+                            <button type="button" class="btn btn-secondary" onclick="toggleDebug()" style="margin-top: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.8rem;">
+                                แสดง/ซ่อน Debug
+                            </button>
+                        </div>
+                        
+                        <button type="button" class="btn btn-secondary" onclick="toggleDebug()" style="width: 100%; margin-top: 0.5rem; font-size: 0.8rem;">
+                            🔍 แสดงข้อมูล Debug
                         </button>
                     </form>
                 </div>
@@ -551,11 +595,11 @@
                 <div class="navigation-tabs">
                     <div class="nav-tab active" data-tab="prospects" onclick="switchTab('prospects')">รายการลูกค้า</div>
                     <div class="nav-tab" data-tab="summary" onclick="switchTab('summary')">สรุปข้อมูล</div>
-                    <div class="nav-tab" data-tab="settings" onclick="switchTab('settings')" id="settingsTab">การตั้งค่า</div>
+                    <div class="nav-tab" data-tab="settings" onclick="switchTab('settings')" id="settingsNavTab">การตั้งค่า</div>
                 </div>
 
                 <!-- Prospects Tab -->
-                <div id="prospectsTab" class="tab-content">
+                <div id="prospectsTabContent" class="tab-content">
                     <!-- Search and Filter -->
                     <div class="search-container">
                         <input type="text" class="form-input search-input" id="searchInput" placeholder="ค้นหา Email, บริษัท, หรือรายละเอียด...">
@@ -594,7 +638,7 @@
                 </div>
 
                 <!-- Summary Tab -->
-                <div id="summaryTab" class="tab-content hidden">
+                <div id="summaryTabContent" class="tab-content hidden">
                     <div class="dashboard-grid">
                         <div class="card">
                             <h3 class="config-title">สรุปตามประเทศ</h3>
@@ -612,23 +656,181 @@
                 </div>
 
                 <!-- Settings Tab -->
-                <div id="settingsTab" class="tab-content hidden">
-                    <!-- Google Sheets Config -->
+                <div id="settingsTabContent" class="tab-content hidden">
+                    <!-- Connection Test -->
                     <div class="config-section">
-                        <h3 class="config-title">การเชื่อมต่อ Google Sheets</h3>
-                        <div class="form-group">
-                            <label class="form-label">Spreadsheet ID</label>
-                            <input type="text" class="form-input" id="spreadsheetId" placeholder="ใส่ Spreadsheet ID">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">API Key</label>
-                            <input type="text" class="form-input" id="apiKey" placeholder="ใส่ Google Sheets API Key">
-                        </div>
+                        <h3 class="config-title">ทดสอบการเชื่อมต่อ Google Sheets</h3>
                         <div class="form-row">
-                            <button class="btn" onclick="saveGoogleSheetsConfig()">บันทึกการตั้งค่า</button>
-                            <button class="btn btn-secondary" onclick="testConnection()">ทดสอบการเชื่อมต่อ</button>
+                            <button class="btn" onclick="testConnection()">ทดสอบการเชื่อมต่อ</button>
                         </div>
                         <div id="testResults" class="test-results hidden"></div>
+                    </div>
+
+                    <!-- Apps Script Setup Guide -->
+                    <div class="config-section">
+                        <h3 class="config-title">📋 คำแนะนำการตั้งค่า Apps Script (ขั้นตอนละเอียด)</h3>
+                        
+                        <!-- Test Apps Script Button -->
+                        <div class="form-row" style="margin-bottom: 1rem;">
+                            <button class="btn btn-success" onclick="testAppsScript()">🧪 ทดสอบ Apps Script</button>
+                        </div>
+                        
+                        <div class="alert alert-warning" style="background: #fef3c7; border-color: #fbbf24; color: #92400e; margin-bottom: 1rem;">
+                            <strong>⚠️ ขั้นตอนที่ต้องทำ:</strong> ตั้งค่า Google Apps Script ตามขั้นตอนด้านล่าง
+                        </div>
+                        
+                        <div class="test-results" style="display: block;">
+<strong>🔗 ลิงก์สำคัญ:</strong>
+• Google Apps Script: https://script.google.com
+• Spreadsheet: https://docs.google.com/spreadsheets/d/1Zpmtz6vjMRV6meWy8duKKTTj3ptIf00pggiakMa_Plo
+
+<strong>📝 ขั้นตอนที่ 1: สร้าง Apps Script</strong>
+1. ไปที่ https://script.google.com
+2. กด "+ โปรเจคใหม่" หรือ "New Project"
+3. ลบโค้ดเดิมทั้งหมด แล้ววางโค้ดนี้:
+
+```javascript
+function doPost(e) {
+  try {
+    // Log request สำหรับ debug
+    console.log('📥 Received POST request');
+    console.log('📄 Post data:', e.postData.contents);
+    
+    // Parse JSON data
+    const data = JSON.parse(e.postData.contents);
+    console.log('📊 Parsed data:', JSON.stringify(data));
+    
+    // Open spreadsheet
+    const spreadsheetId = '1Zpmtz6vjMRV6meWy8duKKTTj3ptIf00pggiakMa_Plo';
+    const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+    console.log('📋 Spreadsheet opened successfully');
+    
+    // Handle append action
+    if (data.action === 'append') {
+      const sheetName = data.range.split('!')[0];
+      console.log('📄 Target sheet:', sheetName);
+      
+      const targetSheet = spreadsheet.getSheetByName(sheetName);
+      if (!targetSheet) {
+        throw new Error(`Sheet "${sheetName}" not found`);
+      }
+      
+      console.log('📝 Appending values:', data.values);
+      targetSheet.appendRow(data.values);
+      console.log('✅ Data appended successfully');
+      
+      return ContentService
+        .createTextOutput(JSON.stringify({
+          success: true, 
+          message: `Data appended to ${sheetName}`,
+          timestamp: new Date().toISOString()
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // Handle update action
+    if (data.action === 'update') {
+      const [sheetName, range] = data.range.split('!');
+      console.log('📄 Target sheet:', sheetName, 'Range:', range);
+      
+      const targetSheet = spreadsheet.getSheetByName(sheetName);
+      if (!targetSheet) {
+        throw new Error(`Sheet "${sheetName}" not found`);
+      }
+      
+      console.log('📝 Updating values:', data.values);
+      const rangeObj = targetSheet.getRange(range);
+      rangeObj.setValues([data.values]);
+      console.log('✅ Data updated successfully');
+      
+      return ContentService
+        .createTextOutput(JSON.stringify({
+          success: true, 
+          message: `Data updated in ${sheetName} at ${range}`,
+          timestamp: new Date().toISOString()
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // Handle test action
+    if (data.action === 'test') {
+      console.log('🧪 Test request received');
+      return ContentService
+        .createTextOutput(JSON.stringify({
+          success: true,
+          message: 'Apps Script is working correctly!',
+          timestamp: new Date().toISOString(),
+          spreadsheetId: spreadsheetId
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // Unknown action
+    throw new Error(`Unknown action: ${data.action}`);
+    
+  } catch (error) {
+    console.error('❌ Error in doPost:', error.toString());
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        success: false,
+        error: error.toString(),
+        timestamp: new Date().toISOString()
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// Test function
+function testConnection() {
+  console.log('🧪 Manual test executed');
+  const spreadsheetId = '1Zpmtz6vjMRV6meWy8duKKTTj3ptIf00pggiakMa_Plo';
+  try {
+    const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+    const sheets = spreadsheet.getSheets();
+    console.log('📋 Available sheets:', sheets.map(s => s.getName()));
+    return 'Test successful - ' + sheets.length + ' sheets found';
+  } catch (error) {
+    console.error('❌ Test error:', error);
+    return 'Test failed: ' + error.toString();
+  }
+}
+```
+
+<strong>⚙️ ขั้นตอนที่ 2: Deploy Web App</strong>
+1. กด "💾 บันทึก" (Ctrl+S)
+2. กด "🚀 Deploy" > "New Deployment"
+3. ข้างๆ "Type" กด ⚙️ แล้วเลือก "Web app"
+4. ตั้งค่าดังนี้:
+   • Description: SIFCO Prospect API
+   • Execute as: Me (your email)
+   • Who has access: Anyone
+5. กด "Deploy"
+6. **อนุญาตสิทธิ์** ถ้ามีแจ้ง
+7. **คัดลอก URL** ที่ได้
+
+<strong>🔐 ขั้นตอนที่ 3: อนุญาตสิทธิ์</strong>
+หากมีการแจ้งเตือนเรื่องสิทธิ์:
+1. กด "Review permissions"
+2. เลือกบัญชี Google ของคุณ
+3. กด "Advanced" (ขั้นสูง)
+4. กด "Go to [project name] (unsafe)"
+5. กด "Allow" (อนุญาต)
+
+<strong>🧪 ขั้นตอนที่ 4: ทดสอบ</strong>
+1. คัดลอก URL ที่ได้จาก Deploy
+2. อัพเดทในโค้ด (ถ้าต่างจากที่มี)
+3. กดปุ่ม "🧪 ทดสอบ Apps Script" ด้านบน
+4. ถ้าผ่าน จะแสดง "✅ Apps Script working!"
+
+<strong>📱 URL ปัจจุบัน:</strong>
+https://script.google.com/macros/s/AKfycbzPA1-kLJ7gzh07em1IAMMqZ8oOtLyxGdtbt-upWvDkasS580m3fvIpAZqlcoG_JIX5/exec
+
+<strong>❓ หากยังไม่ได้:</strong>
+1. ตรวจสอบว่า Deploy เป็น "Anyone"
+2. ตรวจสอบสิทธิ์ Spreadsheet
+3. ลองสร้าง URL ใหม่
+4. ดู Console log ในเบราว์เซอร์
+                        </div>
                     </div>
 
                     <!-- Master Data Management -->
@@ -721,8 +923,10 @@
         let currentUser = null;
         let userRole = null;
         let googleSheetsConfig = {
-            spreadsheetId: '',
-            apiKey: ''
+            spreadsheetId: '1Zpmtz6vjMRV6meWy8duKKTTj3ptIf00pggiakMa_Plo',
+            apiKey: 'AIzaSyBtkCPgEiTlAS12Q-tPp_6mIPdPkKABcx4',
+            // Apps Script Web App URL สำหรับการเขียนข้อมูล
+            appsScriptUrl: 'https://script.google.com/macros/s/AKfycbzPA1-kLJ7gzh07em1IAMMqZ8oOtLyxGdtbt-upWvDkasS580m3fvIpAZqlcoG_JIX5/exec'
         };
         let masterData = {
             countries: [],
@@ -738,7 +942,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadStoredConfig();
             initializeEventListeners();
-            updateConnectionStatus();
+            // ทดสอบการเชื่อมต่อทันทีเมื่อเปิดโปรแกรม
+            checkConnectionStatus();
         });
 
         function initializeEventListeners() {
@@ -756,26 +961,43 @@
         }
 
         function loadStoredConfig() {
-            const config = JSON.parse(localStorage.getItem('googleSheetsConfig') || '{}');
-            if (config.spreadsheetId) {
-                document.getElementById('spreadsheetId').value = config.spreadsheetId;
-                googleSheetsConfig.spreadsheetId = config.spreadsheetId;
-            }
-            if (config.apiKey) {
-                document.getElementById('apiKey').value = config.apiKey;
-                googleSheetsConfig.apiKey = config.apiKey;
+            // ตั้งค่าเริ่มต้น
+            const defaultConfig = {
+                spreadsheetId: '1Zpmtz6vjMRV6meWy8duKKTTj3ptIf00pggiakMa_Plo',
+                apiKey: 'AIzaSyBtkCPgEiTlAS12Q-tPp_6mIPdPkKABcx4'
+            };
+            
+            // ใช้ค่าเริ่มต้น
+            googleSheetsConfig.spreadsheetId = defaultConfig.spreadsheetId;
+            googleSheetsConfig.apiKey = defaultConfig.apiKey;
+        }
+
+        async function checkConnectionStatus() {
+            updateConnectionStatus(false, 'กำลังตรวจสอบ...');
+            
+            try {
+                // ทดสอบการเชื่อมต่อแบบเงียบๆ
+                await fetchGoogleSheetData('Prospects!A1:A1');
+                updateConnectionStatus(true, 'เชื่อมต่อปกติ');
+            } catch (error) {
+                console.error('Connection check failed:', error);
+                updateConnectionStatus(false, 'เชื่อมต่อมีปัญหา');
             }
         }
 
         async function handleLogin(e) {
             e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            
+            console.log('🔐 Attempting login with username:', username);
             
             showLoading('loginSpinner', 'loginButtonText', 'กำลังเข้าสู่ระบบ...');
+            clearAlert('loginAlert');
             
-            // Admin login
+            // Admin login - ตรวจสอบแบบ exact match
             if (username === 'adminsifco' && password === 'adminsifco888') {
+                console.log('✅ Admin login successful');
                 currentUser = 'Admin';
                 userRole = 'admin';
                 showDashboard();
@@ -783,25 +1005,54 @@
                 return;
             }
             
-            // User login - check Google Sheets
-            if (googleSheetsConfig.spreadsheetId && googleSheetsConfig.apiKey) {
-                try {
-                    await loadMasterData();
-                    const user = masterData.users.find(u => u.username === username && u.password === password);
-                    if (user) {
-                        currentUser = username;
-                        userRole = 'user';
-                        showDashboard();
-                        hideLoading('loginSpinner', 'loginButtonText', 'เข้าสู่ระบบ');
-                        return;
-                    }
-                } catch (error) {
-                    console.error('Login error:', error);
+            // User login - ตรวจสอบจาก Google Sheets
+            console.log('🔍 Checking user login from Google Sheets...');
+            try {
+                // ตรวจสอบการเชื่อมต่อก่อน
+                await checkConnectionStatus();
+                
+                // โหลดข้อมูลผู้ใช้
+                console.log('📊 Loading user data...');
+                await loadMasterData();
+                
+                console.log('👥 Available users:', masterData.users);
+                
+                // ค้นหาผู้ใช้ที่ตรงกัน
+                const user = masterData.users.find(u => 
+                    u.username === username && u.password === password
+                );
+                
+                if (user) {
+                    console.log('✅ User login successful:', username);
+                    currentUser = username;
+                    userRole = 'user';
+                    showDashboard();
+                    hideLoading('loginSpinner', 'loginButtonText', 'เข้าสู่ระบบ');
+                    return;
+                } else {
+                    console.log('❌ User not found or password incorrect');
+                    console.log('🔍 Searched for:', { username, password });
+                    console.log('📋 In users:', masterData.users);
+                    throw new Error('ไม่พบผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
                 }
+                
+            } catch (error) {
+                console.error('❌ Login error:', error);
+                
+                // แสดงข้อผิดพลาดตามสาเหตุ
+                let errorMessage = 'เข้าสู่ระบบไม่สำเร็จ';
+                
+                if (error.message.includes('HTTP error! status: 400')) {
+                    errorMessage = 'ไม่สามารถเชื่อมต่อ Google Sheets ได้\nกรุณาตรวจสอบการตั้งค่า';
+                } else if (error.message.includes('ไม่พบผู้ใช้')) {
+                    errorMessage = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+                } else {
+                    errorMessage = `เกิดข้อผิดพลาด: ${error.message}`;
+                }
+                
+                showAlert('loginAlert', errorMessage, 'error');
             }
             
-            // Login failed
-            showAlert('loginAlert', 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง', 'error');
             hideLoading('loginSpinner', 'loginButtonText', 'เข้าสู่ระบบ');
         }
 
@@ -813,13 +1064,13 @@
             
             // Show/hide admin settings
             const adminSettings = document.getElementById('adminSettings');
-            const settingsTab = document.getElementById('settingsTab');
+            const settingsNavTab = document.getElementById('settingsNavTab');
             if (userRole === 'admin') {
                 adminSettings.classList.remove('hidden');
-                settingsTab.classList.remove('hidden');
+                settingsNavTab.classList.remove('hidden');
             } else {
                 adminSettings.classList.add('hidden');
-                settingsTab.classList.add('hidden');
+                settingsNavTab.classList.add('hidden');
             }
             
             loadDashboardData();
@@ -837,10 +1088,7 @@
         }
 
         async function loadDashboardData() {
-            if (!googleSheetsConfig.spreadsheetId || !googleSheetsConfig.apiKey) {
-                updateConnectionStatus(false);
-                return;
-            }
+            updateConnectionStatus(false, 'กำลังโหลดข้อมูล...');
             
             try {
                 await loadMasterData();
@@ -848,40 +1096,39 @@
                 updateFilters();
                 updateStats();
                 updateSummary();
-                updateConnectionStatus(true);
+                updateConnectionStatus(true, 'เชื่อมต่อปกติ');
             } catch (error) {
                 console.error('Error loading dashboard data:', error);
-                updateConnectionStatus(false);
+                updateConnectionStatus(false, 'โหลดข้อมูลไม่สำเร็จ');
             }
         }
 
         async function loadMasterData() {
             try {
-                // Load countries from sheet
-                const countriesData = await fetchGoogleSheetData('Countries!A:A');
+                // Load countries from sheet (เริ่มจากแถวที่ 2)
+                const countriesData = await fetchGoogleSheetData('Countries!A2:A');
                 masterData.countries = countriesData.values ? countriesData.values.flat().filter(v => v) : [];
                 
-                // Load categories from sheet
-                const categoriesData = await fetchGoogleSheetData('Categories!A:A');
+                // Load categories from sheet (เริ่มจากแถวที่ 2)
+                const categoriesData = await fetchGoogleSheetData('Categories!A2:A');
                 masterData.categories = categoriesData.values ? categoriesData.values.flat().filter(v => v) : [];
                 
-                // Load materials from sheet
-                const materialsData = await fetchGoogleSheetData('Materials!A:A');
+                // Load materials from sheet (เริ่มจากแถวที่ 2)
+                const materialsData = await fetchGoogleSheetData('Materials!A2:A');
                 masterData.materials = materialsData.values ? materialsData.values.flat().filter(v => v) : [];
                 
-                // Load users from sheet
-                const usersData = await fetchGoogleSheetData('Users!A:B');
+                // Load users from sheet (เริ่มจากแถวที่ 2)
+                const usersData = await fetchGoogleSheetData('Users!A2:B');
                 masterData.users = [];
                 if (usersData.values) {
-                    for (let i = 1; i < usersData.values.length; i++) { // Skip header
-                        const row = usersData.values[i];
+                    usersData.values.forEach(row => {
                         if (row[0] && row[1]) {
                             masterData.users.push({
                                 username: row[0],
                                 password: row[1]
                             });
                         }
-                    }
+                    });
                 }
             } catch (error) {
                 console.error('Error loading master data:', error);
@@ -891,15 +1138,14 @@
 
         async function loadProspects() {
             try {
-                const data = await fetchGoogleSheetData('Prospects!A:I');
+                const data = await fetchGoogleSheetData('Prospects!A2:I');
                 prospects = [];
                 
-                if (data.values && data.values.length > 1) {
-                    for (let i = 1; i < data.values.length; i++) { // Skip header
-                        const row = data.values[i];
+                if (data.values && data.values.length > 0) {
+                    data.values.forEach((row, index) => {
                         if (row[0]) { // If email exists
                             prospects.push({
-                                id: i,
+                                id: index + 2, // +2 เพราะเริ่มจากแถวที่ 2 และ 0-based index
                                 email: row[0] || '',
                                 company: row[1] || '',
                                 contact: row[2] || '',
@@ -911,7 +1157,7 @@
                                 createdBy: row[8] || currentUser
                             });
                         }
-                    }
+                    });
                 }
                 
                 filteredProspects = [...prospects];
@@ -924,53 +1170,114 @@
 
         async function fetchGoogleSheetData(range) {
             const url = `https://sheets.googleapis.com/v4/spreadsheets/${googleSheetsConfig.spreadsheetId}/values/${range}?key=${googleSheetsConfig.apiKey}`;
+            
+            console.log('Fetching URL:', url);
+            
             const response = await fetch(url);
             
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorText = await response.text();
+                console.error('Error response:', errorText);
+                throw new Error(`HTTP error! status: ${response.status}\nDetails: ${errorText}`);
             }
             
             return await response.json();
         }
 
         async function appendToGoogleSheet(range, values) {
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${googleSheetsConfig.spreadsheetId}/values/${range}:append?valueInputOption=RAW&key=${googleSheetsConfig.apiKey}`;
-            
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    values: [values]
-                })
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            try {
+                console.log('Attempting to append:', { range, values });
+                console.log('Apps Script URL:', googleSheetsConfig.appsScriptUrl);
+                
+                const payload = {
+                    action: 'append',
+                    range: range,
+                    values: values
+                };
+                
+                console.log('Sending payload:', payload);
+                
+                // ใช้ Apps Script สำหรับการเขียนข้อมูล
+                const response = await fetch(googleSheetsConfig.appsScriptUrl, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
+                
+                const responseText = await response.text();
+                console.log('Response text:', responseText);
+                
+                if (!response.ok) {
+                    throw new Error(`Apps Script error! status: ${response.status}\nResponse: ${responseText}`);
+                }
+                
+                const result = JSON.parse(responseText);
+                console.log('Parsed result:', result);
+                
+                if (result.error) {
+                    throw new Error(`Apps Script error: ${result.error}`);
+                }
+                
+                return result;
+            } catch (error) {
+                console.error('Error appending to sheet:', error);
+                // Fallback: แสดงข้อมูลที่ต้องการเพิ่มใน console และแจ้งให้เพิ่มด้วยตนเอง
+                alert(`ไม่สามารถเพิ่มข้อมูลอัตโนมัติได้\n\nข้อผิดพลาด: ${error.message}\n\nกรุณาเพิ่มข้อมูลนี้ในแผ่นงาน ${range}:\n${values.join(', ')}\n\nหรือตรวจสอบ Apps Script และ Console สำหรับ debug`);
+                throw error;
             }
-            
-            return await response.json();
         }
 
         async function updateGoogleSheetRow(range, values) {
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${googleSheetsConfig.spreadsheetId}/values/${range}?valueInputOption=RAW&key=${googleSheetsConfig.apiKey}`;
-            
-            const response = await fetch(url, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    values: [values]
-                })
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            try {
+                console.log('Attempting to update:', { range, values });
+                
+                const payload = {
+                    action: 'update',
+                    range: range,
+                    values: values
+                };
+                
+                console.log('Sending payload:', payload);
+                
+                // ใช้ Apps Script สำหรับการอัพเดทข้อมูล
+                const response = await fetch(googleSheetsConfig.appsScriptUrl, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                console.log('Response status:', response.status);
+                
+                const responseText = await response.text();
+                console.log('Response text:', responseText);
+                
+                if (!response.ok) {
+                    throw new Error(`Apps Script error! status: ${response.status}\nResponse: ${responseText}`);
+                }
+                
+                const result = JSON.parse(responseText);
+                console.log('Parsed result:', result);
+                
+                if (result.error) {
+                    throw new Error(`Apps Script error: ${result.error}`);
+                }
+                
+                return result;
+            } catch (error) {
+                console.error('Error updating sheet:', error);
+                // Fallback: แสดงข้อมูลที่ต้องการอัพเดทใน console และแจ้งให้อัพเดทด้วยตนเอง
+                alert(`ไม่สามารถอัพเดทข้อมูลอัตโนมัติได้\n\nข้อผิดพลาด: ${error.message}\n\nกรุณาอัพเดทข้อมูลในแผ่นงาน ${range}:\n${values.join(', ')}\n\nหรือตรวจสอบ Apps Script และ Console สำหรับ debug`);
+                throw error;
             }
-            
-            return await response.json();
         }
 
         function updateFilters() {
@@ -1120,7 +1427,7 @@
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.classList.add('hidden');
             });
-            document.getElementById(`${tabName}Tab`).classList.remove('hidden');
+            document.getElementById(`${tabName}TabContent`).classList.remove('hidden');
         }
 
         function openAddModal() {
@@ -1165,8 +1472,8 @@
             
             try {
                 if (id) {
-                    // Update existing
-                    const rowIndex = parseInt(id) + 1; // +1 for header row
+                    // Update existing - ใช้ row number ที่ถูกต้อง
+                    const rowIndex = parseInt(id);
                     await updateGoogleSheetRow(
                         `Prospects!A${rowIndex}:I${rowIndex}`,
                         [prospectData.email, prospectData.company, prospectData.contact, 
@@ -1174,7 +1481,7 @@
                          prospectData.details, prospectData.createdDate, prospectData.createdBy]
                     );
                 } else {
-                    // Add new
+                    // Add new - เพิ่มใหม่ต่อจากแถวสุดท้าย
                     await appendToGoogleSheet(
                         'Prospects!A:I',
                         [prospectData.email, prospectData.company, prospectData.contact, 
@@ -1199,8 +1506,8 @@
             if (!confirm('คุณต้องการลบรายการนี้หรือไม่?')) return;
             
             try {
-                // Clear the row in Google Sheets
-                const rowIndex = parseInt(id) + 1; // +1 for header row
+                // Clear the row in Google Sheets - ใช้ row number ที่ถูกต้อง
+                const rowIndex = parseInt(id);
                 await updateGoogleSheetRow(
                     `Prospects!A${rowIndex}:I${rowIndex}`,
                     ['', '', '', '', '', '', '', '', '']
@@ -1222,66 +1529,145 @@
         }
 
         async function saveGoogleSheetsConfig() {
-            const spreadsheetId = document.getElementById('spreadsheetId').value;
-            const apiKey = document.getElementById('apiKey').value;
-            
-            if (!spreadsheetId || !apiKey) {
-                alert('กรุณากรอก Spreadsheet ID และ API Key');
-                return;
-            }
-            
-            googleSheetsConfig = { spreadsheetId, apiKey };
-            localStorage.setItem('googleSheetsConfig', JSON.stringify(googleSheetsConfig));
-            
-            alert('บันทึกการตั้งค่าเรียบร้อยแล้ว');
-            
-            // Test connection after saving
-            await testConnection();
+            // ฟังก์ชันนี้ไม่ต้องใช้แล้ว เพราะค่าฝังไว้ในโค้ดแล้ว
+            alert('การตั้งค่าถูกฝังไว้ในโปรแกรมแล้ว');
         }
 
-        async function testConnection() {
+        async function testAppsScript() {
+            const testResults = document.getElementById('testResults');
+            testResults.classList.remove('hidden');
+            testResults.textContent = '🧪 กำลังทดสอบ Apps Script...';
+            
+            try {
+                const response = await fetch(googleSheetsConfig.appsScriptUrl, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'test'
+                    })
+                });
+                
+                console.log('Test response status:', response.status);
+                const responseText = await response.text();
+                console.log('Test response text:', responseText);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${responseText}`);
+                }
+                
+                const result = JSON.parse(responseText);
+                
+                if (result.success) {
+                    testResults.textContent = '✅ Apps Script ทำงานได้ปกติ!\n\n';
+                    testResults.textContent += `📊 ผลการทดสอบ:\n`;
+                    testResults.textContent += `• สถานะ: สำเร็จ\n`;
+                    testResults.textContent += `• ข้อความ: ${result.message}\n`;
+                    testResults.textContent += `• เวลา: ${result.timestamp}\n`;
+                    testResults.textContent += `• Spreadsheet ID: ${result.spreadsheetId}\n\n`;
+                    testResults.textContent += '🎉 ตอนนี้สามารถเพิ่ม/ลบข้อมูลได้แล้ว!';
+                    
+                    updateConnectionStatus(true, 'เชื่อมต่อสมบูรณ์');
+                } else {
+                    throw new Error(result.error || 'Unknown error');
+                }
+                
+            } catch (error) {
+                console.error('Apps Script test failed:', error);
+                testResults.textContent = '❌ ทดสอบ Apps Script ไม่สำเร็จ\n\n';
+                testResults.textContent += `📋 ข้อผิดพลาด: ${error.message}\n\n`;
+                testResults.textContent += '🔧 วิธีแก้ไข:\n';
+                testResults.textContent += '1. ตรวจสอบว่าสร้าง Apps Script แล้ว\n';
+                testResults.textContent += '2. ตรวจสอบว่า Deploy เป็น "Anyone"\n';
+                testResults.textContent += '3. ตรวจสอบว่าอนุญาตสิทธิ์แล้ว\n';
+                testResults.textContent += '4. ตรวจสอบ URL ว่าถูกต้อง\n';
+                testResults.textContent += '5. ลองสร้าง Deployment ใหม่\n\n';
+                testResults.textContent += '📱 URL ปัจจุบัน:\n' + googleSheetsConfig.appsScriptUrl;
+                
+                updateConnectionStatus(false, 'Apps Script ไม่พร้อม');
+            }
+        }
             const testResults = document.getElementById('testResults');
             testResults.classList.remove('hidden');
             testResults.textContent = 'กำลังทดสอบการเชื่อมต่อ...';
             
-            if (!googleSheetsConfig.spreadsheetId || !googleSheetsConfig.apiKey) {
-                testResults.textContent = 'ข้อผิดพลาด: กรุณาตั้งค่า Spreadsheet ID และ API Key ก่อน';
-                updateConnectionStatus(false);
-                return;
-            }
+            updateConnectionStatus(false, 'กำลังทดสอบ...');
             
             try {
-                // Test reading data
-                const testData = await fetchGoogleSheetData('A1:A1');
-                testResults.textContent = 'สำเร็จ: เชื่อมต่อ Google Sheets ได้แล้ว\n';
-                testResults.textContent += `ข้อมูลทดสอบ: ${JSON.stringify(testData, null, 2)}`;
+                // Test อ่านข้อมูลจาก sheet หลัก
+                testResults.textContent += '\n\nกำลังทดสอบการอ่าน sheet Prospects...';
+                const testData = await fetchGoogleSheetData('Prospects!A1:A1');
+                testResults.textContent += '\nสำเร็จ: อ่าน sheet Prospects ได้';
                 
-                // Try to load master data to test all sheets
+                // Test อ่าน sheet อื่นๆ
+                testResults.textContent += '\n\nกำลังทดสอบ sheet อื่นๆ...';
+                
+                try {
+                    await fetchGoogleSheetData('Countries!A1:A1');
+                    testResults.textContent += '\n✅ Countries sheet: OK';
+                } catch (e) {
+                    testResults.textContent += '\n❌ Countries sheet: ' + e.message;
+                }
+                
+                try {
+                    await fetchGoogleSheetData('Categories!A1:A1');
+                    testResults.textContent += '\n✅ Categories sheet: OK';
+                } catch (e) {
+                    testResults.textContent += '\n❌ Categories sheet: ' + e.message;
+                }
+                
+                try {
+                    await fetchGoogleSheetData('Materials!A1:A1');
+                    testResults.textContent += '\n✅ Materials sheet: OK';
+                } catch (e) {
+                    testResults.textContent += '\n❌ Materials sheet: ' + e.message;
+                }
+                
+                try {
+                    await fetchGoogleSheetData('Users!A1:A1');
+                    testResults.textContent += '\n✅ Users sheet: OK';
+                } catch (e) {
+                    testResults.textContent += '\n❌ Users sheet: ' + e.message;
+                }
+                
+                // ถ้าผ่านการทดสอบพื้นฐาน ลองโหลดข้อมูลจริง
+                testResults.textContent += '\n\nกำลังโหลดข้อมูลจริง...';
                 await loadMasterData();
-                testResults.textContent += '\n\nโหลดข้อมูลหลักสำเร็จ';
-                testResults.textContent += `\nประเทศ: ${masterData.countries.length} รายการ`;
-                testResults.textContent += `\nกลุ่มสินค้า: ${masterData.categories.length} รายการ`;
-                testResults.textContent += `\nกลุ่มวัตถุดิบ: ${masterData.materials.length} รายการ`;
-                testResults.textContent += `\nผู้ใช้: ${masterData.users.length} รายการ`;
+                testResults.textContent += '\n\nโหลดข้อมูลหลักสำเร็จ:';
+                testResults.textContent += `\n- ประเทศ: ${masterData.countries.length} รายการ`;
+                testResults.textContent += `\n- กลุ่มสินค้า: ${masterData.categories.length} รายการ`;
+                testResults.textContent += `\n- กลุ่มวัตถุดิบ: ${masterData.materials.length} รายการ`;
+                testResults.textContent += `\n- ผู้ใช้: ${masterData.users.length} รายการ`;
                 
-                updateConnectionStatus(true);
+                updateConnectionStatus(true, 'เชื่อมต่อปกติ');
                 updateFilters();
+                testResults.textContent += '\n\n🎉 การเชื่อมต่อสำเร็จทั้งหมด!';
+                
             } catch (error) {
-                testResults.textContent = `ข้อผิดพลาด: ${error.message}`;
-                updateConnectionStatus(false);
+                console.error('Test connection error:', error);
+                testResults.textContent += '\n\n❌ ข้อผิดพลาด: ' + error.message;
+                testResults.textContent += '\n\nวิธีแก้ไข:';
+                testResults.textContent += '\n1. ตรวจสอบการแชร์ Google Sheets (ต้องเป็น Public)';
+                testResults.textContent += '\n2. ตรวจสอบชื่อ Sheet ต้องเป็น: Prospects, Countries, Categories, Materials, Users';
+                testResults.textContent += '\n3. ตรวจสอบว่าเปิดใช้ Google Sheets API แล้ว';
+                updateConnectionStatus(false, 'เชื่อมต่อมีปัญหา');
             }
         }
 
-        function updateConnectionStatus(connected = false) {
+        function updateConnectionStatus(connected = false, message = '') {
             const indicator = document.getElementById('statusIndicator');
             const text = document.getElementById('statusText');
             
             if (connected) {
                 indicator.classList.add('connected');
-                text.textContent = 'เชื่อมต่อแล้ว';
+                text.classList.add('connected');
+                text.textContent = message || 'เชื่อมต่อแล้ว';
             } else {
                 indicator.classList.remove('connected');
-                text.textContent = 'ไม่ได้เชื่อมต่อ';
+                text.classList.remove('connected');
+                text.textContent = message || 'ไม่ได้เชื่อมต่อ';
             }
         }
 
@@ -1389,6 +1775,18 @@
             }
         }
 
+        function toggleDebug() {
+            const debugPanel = document.getElementById('debugPanel');
+            const debugInfo = document.getElementById('debugInfo');
+            
+            if (debugPanel.style.display === 'none') {
+                debugPanel.style.display = 'block';
+                updateDebugInfo();
+            } else {
+                debugPanel.style.display = 'none';
+            }
+        }
+        
         function closeManageModal() {
             document.getElementById('manageModal').classList.remove('show');
         }
