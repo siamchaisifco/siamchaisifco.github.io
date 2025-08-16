@@ -652,11 +652,10 @@
                             <strong>หมายเหตุ:</strong> การเพิ่ม/ลบข้อมูลต้องตั้งค่า Google Apps Script ก่อน
                         </div>
                         <div class="test-results" style="display: block;">
-<strong>ขั้นตอนการตั้งค่า Apps Script:</strong>
+<strong>🔧 แก้ไขปัญหาการเพิ่ม/ลบข้อมูล:</strong>
 
-1. ไปที่ https://script.google.com
-2. สร้างโปรเจคใหม่
-3. วางโค้ดนี้:
+<strong>1. ตรวจสอบ Apps Script Code:</strong>
+ตรวจสอบว่าโค้ดใน Apps Script ตรงกับนี้:
 
 ```javascript
 function doPost(e) {
@@ -666,7 +665,8 @@ function doPost(e) {
     const sheet = SpreadsheetApp.openById(spreadsheetId);
     
     if (data.action === 'append') {
-      const targetSheet = sheet.getSheetByName(data.range.split('!')[0]);
+      const sheetName = data.range.split('!')[0];
+      const targetSheet = sheet.getSheetByName(sheetName);
       targetSheet.appendRow(data.values);
       return ContentService.createTextOutput(JSON.stringify({success: true}));
     }
@@ -679,22 +679,26 @@ function doPost(e) {
       return ContentService.createTextOutput(JSON.stringify({success: true}));
     }
     
+    return ContentService.createTextOutput(JSON.stringify({error: 'Unknown action'}));
+    
   } catch (error) {
     return ContentService.createTextOutput(JSON.stringify({error: error.toString()}));
   }
 }
 ```
 
-4. กด Deploy > New Deployment
-5. เลือก Type: Web app
-6. Execute as: Me
-7. Who has access: Anyone
-8. คัดลอก URL ที่ได้
+<strong>2. ตรวจสอบ Deployment:</strong>
+- Execute as: Me
+- Who has access: Anyone
+- Type: Web app
+
+<strong>3. หากยังมีปัญหา:</strong>
+ดูข้อผิดพลาดใน Browser Console (F12) และ Apps Script Execution transcript
 
 <strong>✅ URL ปัจจุบัน:</strong> 
 https://script.google.com/macros/s/AKfycbzZe-rIqNymVWQKI5snHHeScooraH2UOT5XIckY_WPDmc_Gs0vkZS_z3KqhSLSgadvD/exec
 
-<strong>สถานะ:</strong> พร้อมใช้งาน - ระบบสามารถเพิ่ม/ลบข้อมูลได้แล้ว!
+<strong>🔍 Debug Mode:</strong> เปิด Console (F12) แล้วลองเพิ่มข้อมูลใหม่เพื่อดู error message
                         </div>
                     </div>
 
@@ -1019,8 +1023,11 @@ https://script.google.com/macros/s/AKfycbzZe-rIqNymVWQKI5snHHeScooraH2UOT5XIckY_
         async function appendToGoogleSheet(range, values) {
             try {
                 // ใช้ Apps Script สำหรับการเขียนข้อมูล
+                console.log('Sending to Apps Script:', { action: 'append', range, values });
+                
                 const response = await fetch(googleSheetsConfig.appsScriptUrl, {
                     method: 'POST',
+                    mode: 'cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -1031,15 +1038,36 @@ https://script.google.com/macros/s/AKfycbzZe-rIqNymVWQKI5snHHeScooraH2UOT5XIckY_
                     })
                 });
                 
+                console.log('Apps Script response status:', response.status);
+                
                 if (!response.ok) {
-                    throw new Error(`Apps Script error! status: ${response.status}`);
+                    const errorText = await response.text();
+                    console.error('Apps Script error response:', errorText);
+                    throw new Error(`Apps Script error! status: ${response.status}\nResponse: ${errorText}`);
                 }
                 
-                return await response.json();
+                const result = await response.text();
+                console.log('Apps Script result:', result);
+                
+                // ลองแปลงเป็น JSON
+                try {
+                    const jsonResult = JSON.parse(result);
+                    if (jsonResult.error) {
+                        throw new Error(`Apps Script error: ${jsonResult.error}`);
+                    }
+                    return jsonResult;
+                } catch (parseError) {
+                    // ถ้าไม่ใช่ JSON ให้ return text ธรรมดา
+                    console.log('Response is not JSON, returning as text');
+                    return { success: true, response: result };
+                }
+                
             } catch (error) {
                 console.error('Error appending to sheet:', error);
-                // Fallback: แสดงข้อมูลที่ต้องการเพิ่มใน console และแจ้งให้เพิ่มด้วยตนเอง
-                alert(`ไม่สามารถเพิ่มข้อมูลอัตโนมัติได้\nกรุณาเพิ่มข้อมูลนี้ในแผ่นงาน ${range}:\n${values.join(', ')}\n\nหรือตั้งค่า Apps Script ตามคู่มือ`);
+                
+                // แสดงข้อมูลที่ต้องการเพิ่มให้ผู้ใช้เพิ่มด้วยตนเอง
+                const sheetName = range.split('!')[0];
+                alert(`ไม่สามารถเพิ่มข้อมูลอัตโนมัติได้\n\nข้อผิดพลาด: ${error.message}\n\nกรุณาเพิ่มข้อมูลนี้ในแผ่นงาน "${sheetName}" ด้วยตนเอง:\n${Array.isArray(values) ? values.join(', ') : values}\n\nหรือตรวจสอบการตั้งค่า Apps Script`);
                 throw error;
             }
         }
@@ -1047,8 +1075,11 @@ https://script.google.com/macros/s/AKfycbzZe-rIqNymVWQKI5snHHeScooraH2UOT5XIckY_
         async function updateGoogleSheetRow(range, values) {
             try {
                 // ใช้ Apps Script สำหรับการอัพเดทข้อมูล
+                console.log('Updating via Apps Script:', { action: 'update', range, values });
+                
                 const response = await fetch(googleSheetsConfig.appsScriptUrl, {
                     method: 'POST',
+                    mode: 'cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -1059,15 +1090,35 @@ https://script.google.com/macros/s/AKfycbzZe-rIqNymVWQKI5snHHeScooraH2UOT5XIckY_
                     })
                 });
                 
+                console.log('Apps Script update response status:', response.status);
+                
                 if (!response.ok) {
-                    throw new Error(`Apps Script error! status: ${response.status}`);
+                    const errorText = await response.text();
+                    console.error('Apps Script update error response:', errorText);
+                    throw new Error(`Apps Script error! status: ${response.status}\nResponse: ${errorText}`);
                 }
                 
-                return await response.json();
+                const result = await response.text();
+                console.log('Apps Script update result:', result);
+                
+                // ลองแปลงเป็น JSON
+                try {
+                    const jsonResult = JSON.parse(result);
+                    if (jsonResult.error) {
+                        throw new Error(`Apps Script error: ${jsonResult.error}`);
+                    }
+                    return jsonResult;
+                } catch (parseError) {
+                    // ถ้าไม่ใช่ JSON ให้ return text ธรรมดา
+                    console.log('Update response is not JSON, returning as text');
+                    return { success: true, response: result };
+                }
+                
             } catch (error) {
                 console.error('Error updating sheet:', error);
-                // Fallback: แสดงข้อมูลที่ต้องการอัพเดทใน console และแจ้งให้อัพเดทด้วยตนเอง
-                alert(`ไม่สามารถอัพเดทข้อมูลอัตโนมัติได้\nกรุณาอัพเดทข้อมูลในแผ่นงาน ${range}:\n${values.join(', ')}\n\nหรือตั้งค่า Apps Script ตามคู่มือ`);
+                
+                // แสดงข้อมูลที่ต้องการอัพเดทให้ผู้ใช้อัพเดทด้วยตนเอง
+                alert(`ไม่สามารถอัพเดทข้อมูลอัตโนมัติได้\n\nข้อผิดพลาด: ${error.message}\n\nกรุณาอัพเดทข้อมูลในแผ่นงาน "${range}":\n${Array.isArray(values) ? values.join(', ') : values}\n\nหรือตรวจสอบการตั้งค่า Apps Script`);
                 throw error;
             }
         }
@@ -1474,17 +1525,23 @@ https://script.google.com/macros/s/AKfycbzZe-rIqNymVWQKI5snHHeScooraH2UOT5XIckY_
             const input = document.getElementById('newItemInput');
             const value = input.value.trim();
             
-            if (!value) return;
+            if (!value) {
+                alert('กรุณากรอกข้อมูล');
+                return;
+            }
             
             try {
+                console.log('Adding new item:', currentManageType, value);
+                
                 if (currentManageType === 'users') {
-                    const [username, password] = value.split(',').map(s => s.trim());
-                    if (!username || !password) {
+                    const parts = value.split(',').map(s => s.trim());
+                    if (parts.length !== 2 || !parts[0] || !parts[1]) {
                         alert('กรุณากรอกในรูปแบบ: username,password');
                         return;
                     }
                     
-                    await appendToGoogleSheet('Users!A:B', [username, password]);
+                    console.log('Adding user:', parts);
+                    await appendToGoogleSheet('Users!A:B', parts);
                 } else {
                     const sheetNames = {
                         countries: 'Countries',
@@ -1492,9 +1549,12 @@ https://script.google.com/macros/s/AKfycbzZe-rIqNymVWQKI5snHHeScooraH2UOT5XIckY_
                         materials: 'Materials'
                     };
                     
-                    await appendToGoogleSheet(`${sheetNames[currentManageType]}!A:A`, [value]);
+                    const sheetName = sheetNames[currentManageType];
+                    console.log('Adding to sheet:', sheetName, value);
+                    await appendToGoogleSheet(`${sheetName}!A:A`, [value]);
                 }
                 
+                // รีเฟรชข้อมูล
                 await loadMasterData();
                 updateFilters();
                 updateManageList();
@@ -1503,7 +1563,7 @@ https://script.google.com/macros/s/AKfycbzZe-rIqNymVWQKI5snHHeScooraH2UOT5XIckY_
                 alert('เพิ่มรายการเรียบร้อยแล้ว');
             } catch (error) {
                 console.error('Error adding item:', error);
-                alert('เกิดข้อผิดพลาดในการเพิ่มรายการ');
+                // ข้อผิดพลาดจะแสดงใน appendToGoogleSheet แล้ว
             }
         }
 
@@ -1511,7 +1571,8 @@ https://script.google.com/macros/s/AKfycbzZe-rIqNymVWQKI5snHHeScooraH2UOT5XIckY_
             if (!confirm('คุณต้องการลบรายการนี้หรือไม่?')) return;
             
             try {
-                const rowIndex = index + 2; // +1 for header, +1 for 0-based index
+                const rowIndex = index + 2; // +2 เพราะเริ่มจากแถวที่ 2 และ 0-based index
+                console.log('Removing item at row:', rowIndex, 'from', currentManageType);
                 
                 if (currentManageType === 'users') {
                     await updateGoogleSheetRow(`Users!A${rowIndex}:B${rowIndex}`, ['', '']);
@@ -1522,9 +1583,12 @@ https://script.google.com/macros/s/AKfycbzZe-rIqNymVWQKI5snHHeScooraH2UOT5XIckY_
                         materials: 'Materials'
                     };
                     
-                    await updateGoogleSheetRow(`${sheetNames[currentManageType]}!A${rowIndex}:A${rowIndex}`, ['']);
+                    const sheetName = sheetNames[currentManageType];
+                    console.log('Clearing row in sheet:', sheetName, rowIndex);
+                    await updateGoogleSheetRow(`${sheetName}!A${rowIndex}:A${rowIndex}`, ['']);
                 }
                 
+                // รีเฟรชข้อมูล
                 await loadMasterData();
                 updateFilters();
                 updateManageList();
@@ -1532,7 +1596,7 @@ https://script.google.com/macros/s/AKfycbzZe-rIqNymVWQKI5snHHeScooraH2UOT5XIckY_
                 alert('ลบรายการเรียบร้อยแล้ว');
             } catch (error) {
                 console.error('Error removing item:', error);
-                alert('เกิดข้อผิดพลาดในการลบรายการ');
+                // ข้อผิดพลาดจะแสดงใน updateGoogleSheetRow แล้ว
             }
         }
 
