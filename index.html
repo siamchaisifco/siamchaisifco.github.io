@@ -551,7 +551,7 @@
                 <div class="navigation-tabs">
                     <div class="nav-tab active" data-tab="prospects" onclick="switchTab('prospects')">รายการลูกค้า</div>
                     <div class="nav-tab" data-tab="summary" onclick="switchTab('summary')">สรุปข้อมูล</div>
-                    <div class="nav-tab" data-tab="settings" onclick="switchTab('settings')" id="settingsTab">การตั้งค่า</div>
+                    <div class="nav-tab" data-tab="settings" onclick="switchTab('settings')" id="settingsNavTab">การตั้งค่า</div>
                 </div>
 
                 <!-- Prospects Tab -->
@@ -813,13 +813,13 @@
             
             // Show/hide admin settings
             const adminSettings = document.getElementById('adminSettings');
-            const settingsTab = document.getElementById('settingsTab');
+            const settingsNavTab = document.getElementById('settingsNavTab');
             if (userRole === 'admin') {
                 adminSettings.classList.remove('hidden');
-                settingsTab.classList.remove('hidden');
+                settingsNavTab.classList.remove('hidden');
             } else {
                 adminSettings.classList.add('hidden');
-                settingsTab.classList.add('hidden');
+                settingsNavTab.classList.add('hidden');
             }
             
             loadDashboardData();
