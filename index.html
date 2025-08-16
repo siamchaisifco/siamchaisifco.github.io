@@ -661,27 +661,58 @@
 ```javascript
 function doPost(e) {
   try {
+    // Log เพื่อ debug
+    console.log('Received request:', e.postData.contents);
+    
     const data = JSON.parse(e.postData.contents);
     const spreadsheetId = '1Zpmtz6vjMRV6meWy8duKKTTj3ptIf00pggiakMa_Plo';
     const sheet = SpreadsheetApp.openById(spreadsheetId);
     
     if (data.action === 'append') {
-      const targetSheet = sheet.getSheetByName(data.range.split('!')[0]);
+      const sheetName = data.range.split('!')[0];
+      const targetSheet = sheet.getSheetByName(sheetName);
+      
+      console.log('Appending to sheet:', sheetName);
+      console.log('Values:', data.values);
+      
       targetSheet.appendRow(data.values);
-      return ContentService.createTextOutput(JSON.stringify({success: true}));
+      
+      return ContentService
+        .createTextOutput(JSON.stringify({success: true, message: 'Data appended successfully'}))
+        .setMimeType(ContentService.MimeType.JSON);
     }
     
     if (data.action === 'update') {
       const [sheetName, range] = data.range.split('!');
       const targetSheet = sheet.getSheetByName(sheetName);
+      
+      console.log('Updating sheet:', sheetName, 'range:', range);
+      console.log('Values:', data.values);
+      
       const rangeObj = targetSheet.getRange(range);
       rangeObj.setValues([data.values]);
-      return ContentService.createTextOutput(JSON.stringify({success: true}));
+      
+      return ContentService
+        .createTextOutput(JSON.stringify({success: true, message: 'Data updated successfully'}))
+        .setMimeType(ContentService.MimeType.JSON);
     }
     
+    return ContentService
+      .createTextOutput(JSON.stringify({error: 'Unknown action: ' + data.action}))
+      .setMimeType(ContentService.MimeType.JSON);
+    
   } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({error: error.toString()}));
+    console.error('Error in doPost:', error);
+    return ContentService
+      .createTextOutput(JSON.stringify({error: error.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+// Test function สำหรับทดสอบ
+function testFunction() {
+  console.log('Apps Script is working!');
+  return 'Test successful';
 }
 ```
 
@@ -689,12 +720,18 @@ function doPost(e) {
 5. เลือก Type: Web app
 6. Execute as: Me
 7. Who has access: Anyone
-8. คัดลอก URL ที่ได้
+8. กด Deploy
 
 <strong>✅ Apps Script URL ตั้งค่าเรียบร้อยแล้ว:</strong>
 https://script.google.com/macros/s/AKfycbzPA1-kLJ7gzh07em1IAMMqZ8oOtLyxGdtbt-upWvDkasS580m3fvIpAZqlcoG_JIX5/exec
 
-<strong>สถานะ:</strong> ระบบพร้อมใช้งานเต็มรูปแบบ (อ่าน + เขียนข้อมูล)
+<strong>การ Debug:</strong>
+1. เปิด Browser Console (F12)
+2. ลองเพิ่มข้อมูล
+3. ดู log ใน Console
+4. ตรวจสอบ Apps Script Execution log
+
+<strong>หากยังไม่ได้:</strong> ตรวจสอบว่า Apps Script deploy เป็น "Anyone" และใช้โค้ดข้างบนแล้ว
                         </div>
                     </div>
 
@@ -1018,56 +1055,96 @@ https://script.google.com/macros/s/AKfycbzPA1-kLJ7gzh07em1IAMMqZ8oOtLyxGdtbt-upW
 
         async function appendToGoogleSheet(range, values) {
             try {
+                console.log('Attempting to append:', { range, values });
+                console.log('Apps Script URL:', googleSheetsConfig.appsScriptUrl);
+                
+                const payload = {
+                    action: 'append',
+                    range: range,
+                    values: values
+                };
+                
+                console.log('Sending payload:', payload);
+                
                 // ใช้ Apps Script สำหรับการเขียนข้อมูล
                 const response = await fetch(googleSheetsConfig.appsScriptUrl, {
                     method: 'POST',
+                    mode: 'cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        action: 'append',
-                        range: range,
-                        values: values
-                    })
+                    body: JSON.stringify(payload)
                 });
                 
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
+                
+                const responseText = await response.text();
+                console.log('Response text:', responseText);
+                
                 if (!response.ok) {
-                    throw new Error(`Apps Script error! status: ${response.status}`);
+                    throw new Error(`Apps Script error! status: ${response.status}\nResponse: ${responseText}`);
                 }
                 
-                return await response.json();
+                const result = JSON.parse(responseText);
+                console.log('Parsed result:', result);
+                
+                if (result.error) {
+                    throw new Error(`Apps Script error: ${result.error}`);
+                }
+                
+                return result;
             } catch (error) {
                 console.error('Error appending to sheet:', error);
                 // Fallback: แสดงข้อมูลที่ต้องการเพิ่มใน console และแจ้งให้เพิ่มด้วยตนเอง
-                alert(`ไม่สามารถเพิ่มข้อมูลอัตโนมัติได้\nกรุณาเพิ่มข้อมูลนี้ในแผ่นงาน ${range}:\n${values.join(', ')}\n\nหรือตั้งค่า Apps Script ตามคู่มือ`);
+                alert(`ไม่สามารถเพิ่มข้อมูลอัตโนมัติได้\n\nข้อผิดพลาด: ${error.message}\n\nกรุณาเพิ่มข้อมูลนี้ในแผ่นงาน ${range}:\n${values.join(', ')}\n\nหรือตรวจสอบ Apps Script และ Console สำหรับ debug`);
                 throw error;
             }
         }
 
         async function updateGoogleSheetRow(range, values) {
             try {
+                console.log('Attempting to update:', { range, values });
+                
+                const payload = {
+                    action: 'update',
+                    range: range,
+                    values: values
+                };
+                
+                console.log('Sending payload:', payload);
+                
                 // ใช้ Apps Script สำหรับการอัพเดทข้อมูล
                 const response = await fetch(googleSheetsConfig.appsScriptUrl, {
                     method: 'POST',
+                    mode: 'cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        action: 'update',
-                        range: range,
-                        values: values
-                    })
+                    body: JSON.stringify(payload)
                 });
                 
+                console.log('Response status:', response.status);
+                
+                const responseText = await response.text();
+                console.log('Response text:', responseText);
+                
                 if (!response.ok) {
-                    throw new Error(`Apps Script error! status: ${response.status}`);
+                    throw new Error(`Apps Script error! status: ${response.status}\nResponse: ${responseText}`);
                 }
                 
-                return await response.json();
+                const result = JSON.parse(responseText);
+                console.log('Parsed result:', result);
+                
+                if (result.error) {
+                    throw new Error(`Apps Script error: ${result.error}`);
+                }
+                
+                return result;
             } catch (error) {
                 console.error('Error updating sheet:', error);
                 // Fallback: แสดงข้อมูลที่ต้องการอัพเดทใน console และแจ้งให้อัพเดทด้วยตนเอง
-                alert(`ไม่สามารถอัพเดทข้อมูลอัตโนมัติได้\nกรุณาอัพเดทข้อมูลในแผ่นงาน ${range}:\n${values.join(', ')}\n\nหรือตั้งค่า Apps Script ตามคู่มือ`);
+                alert(`ไม่สามารถอัพเดทข้อมูลอัตโนมัติได้\n\nข้อผิดพลาด: ${error.message}\n\nกรุณาอัพเดทข้อมูลในแผ่นงาน ${range}:\n${values.join(', ')}\n\nหรือตรวจสอบ Apps Script และ Console สำหรับ debug`);
                 throw error;
             }
         }
