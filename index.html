@@ -534,36 +534,15 @@
                     <form id="loginForm">
                         <div class="form-group">
                             <label class="form-label">ชื่อผู้ใช้</label>
-                            <input type="text" class="form-input" id="username" required autocomplete="username">
+                            <input type="text" class="form-input" id="username" required>
                         </div>
                         <div class="form-group">
                             <label class="form-label">รหัสผ่าน</label>
-                            <input type="password" class="form-input" id="password" required autocomplete="current-password">
+                            <input type="password" class="form-input" id="password" required>
                         </div>
-                        
-                        <!-- Test Login Credentials -->
-                        <div class="alert" style="background: #e0f2fe; border-color: #0284c7; color: #0c4a6e; margin-bottom: 1rem; font-size: 0.9rem;">
-                            <strong>🔐 ข้อมูลการเข้าสู่ระบบ:</strong><br>
-                            <strong>Admin:</strong> adminsifco / adminsifco888<br>
-                            <strong>User:</strong> ตรวจสอบใน Google Sheets → Users
-                        </div>
-                        
                         <button type="submit" class="btn btn-full">
                             <span id="loginButtonText">เข้าสู่ระบบ</span>
                             <div class="spinner hidden" id="loginSpinner"></div>
-                        </button>
-                        
-                        <!-- Debug Panel -->
-                        <div id="debugPanel" class="test-results" style="margin-top: 1rem; font-size: 0.8rem; display: none;">
-                            <strong>🔍 Debug Information:</strong><br>
-                            <div id="debugInfo"></div>
-                            <button type="button" class="btn btn-secondary" onclick="toggleDebug()" style="margin-top: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.8rem;">
-                                แสดง/ซ่อน Debug
-                            </button>
-                        </div>
-                        
-                        <button type="button" class="btn btn-secondary" onclick="toggleDebug()" style="width: 100%; margin-top: 0.5rem; font-size: 0.8rem;">
-                            🔍 แสดงข้อมูล Debug
                         </button>
                     </form>
                 </div>
@@ -987,17 +966,13 @@ https://script.google.com/macros/s/AKfycbzPA1-kLJ7gzh07em1IAMMqZ8oOtLyxGdtbt-upW
 
         async function handleLogin(e) {
             e.preventDefault();
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
-            
-            console.log('🔐 Attempting login with username:', username);
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
             
             showLoading('loginSpinner', 'loginButtonText', 'กำลังเข้าสู่ระบบ...');
-            clearAlert('loginAlert');
             
-            // Admin login - ตรวจสอบแบบ exact match
+            // Admin login
             if (username === 'adminsifco' && password === 'adminsifco888') {
-                console.log('✅ Admin login successful');
                 currentUser = 'Admin';
                 userRole = 'admin';
                 showDashboard();
@@ -1005,54 +980,25 @@ https://script.google.com/macros/s/AKfycbzPA1-kLJ7gzh07em1IAMMqZ8oOtLyxGdtbt-upW
                 return;
             }
             
-            // User login - ตรวจสอบจาก Google Sheets
-            console.log('🔍 Checking user login from Google Sheets...');
-            try {
-                // ตรวจสอบการเชื่อมต่อก่อน
-                await checkConnectionStatus();
-                
-                // โหลดข้อมูลผู้ใช้
-                console.log('📊 Loading user data...');
-                await loadMasterData();
-                
-                console.log('👥 Available users:', masterData.users);
-                
-                // ค้นหาผู้ใช้ที่ตรงกัน
-                const user = masterData.users.find(u => 
-                    u.username === username && u.password === password
-                );
-                
-                if (user) {
-                    console.log('✅ User login successful:', username);
-                    currentUser = username;
-                    userRole = 'user';
-                    showDashboard();
-                    hideLoading('loginSpinner', 'loginButtonText', 'เข้าสู่ระบบ');
-                    return;
-                } else {
-                    console.log('❌ User not found or password incorrect');
-                    console.log('🔍 Searched for:', { username, password });
-                    console.log('📋 In users:', masterData.users);
-                    throw new Error('ไม่พบผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+            // User login - check Google Sheets
+            if (googleSheetsConfig.spreadsheetId && googleSheetsConfig.apiKey) {
+                try {
+                    await loadMasterData();
+                    const user = masterData.users.find(u => u.username === username && u.password === password);
+                    if (user) {
+                        currentUser = username;
+                        userRole = 'user';
+                        showDashboard();
+                        hideLoading('loginSpinner', 'loginButtonText', 'เข้าสู่ระบบ');
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
                 }
-                
-            } catch (error) {
-                console.error('❌ Login error:', error);
-                
-                // แสดงข้อผิดพลาดตามสาเหตุ
-                let errorMessage = 'เข้าสู่ระบบไม่สำเร็จ';
-                
-                if (error.message.includes('HTTP error! status: 400')) {
-                    errorMessage = 'ไม่สามารถเชื่อมต่อ Google Sheets ได้\nกรุณาตรวจสอบการตั้งค่า';
-                } else if (error.message.includes('ไม่พบผู้ใช้')) {
-                    errorMessage = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
-                } else {
-                    errorMessage = `เกิดข้อผิดพลาด: ${error.message}`;
-                }
-                
-                showAlert('loginAlert', errorMessage, 'error');
             }
             
+            // Login failed
+            showAlert('loginAlert', 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง', 'error');
             hideLoading('loginSpinner', 'loginButtonText', 'เข้าสู่ระบบ');
         }
 
@@ -1775,18 +1721,6 @@ https://script.google.com/macros/s/AKfycbzPA1-kLJ7gzh07em1IAMMqZ8oOtLyxGdtbt-upW
             }
         }
 
-        function toggleDebug() {
-            const debugPanel = document.getElementById('debugPanel');
-            const debugInfo = document.getElementById('debugInfo');
-            
-            if (debugPanel.style.display === 'none') {
-                debugPanel.style.display = 'block';
-                updateDebugInfo();
-            } else {
-                debugPanel.style.display = 'none';
-            }
-        }
-        
         function closeManageModal() {
             document.getElementById('manageModal').classList.remove('show');
         }
