@@ -369,10 +369,10 @@
             color: #065f46;
         }
 
-        .alert-warning {
-            background: #fef3c7;
-            border-color: #fbbf24;
-            color: #92400e;
+        .alert-error {
+            background: #fee2e2;
+            border-color: #fecaca;
+            color: #991b1b;
         }
 
         .hidden {
@@ -645,173 +645,6 @@
                         <div id="testResults" class="test-results hidden"></div>
                     </div>
 
-                    <!-- Apps Script Setup Guide -->
-                    <div class="config-section">
-                        <h3 class="config-title">📋 คำแนะนำการตั้งค่า Apps Script (ขั้นตอนละเอียด)</h3>
-                        
-                        <!-- Test Apps Script Button -->
-                        <div class="form-row" style="margin-bottom: 1rem;">
-                            <button class="btn btn-success" onclick="testAppsScript()">🧪 ทดสอบ Apps Script</button>
-                        </div>
-                        
-                        <div class="alert alert-warning" style="background: #fef3c7; border-color: #fbbf24; color: #92400e; margin-bottom: 1rem;">
-                            <strong>⚠️ ขั้นตอนที่ต้องทำ:</strong> ตั้งค่า Google Apps Script ตามขั้นตอนด้านล่าง
-                        </div>
-                        
-                        <div class="test-results" style="display: block;">
-<strong>🔗 ลิงก์สำคัญ:</strong>
-• Google Apps Script: https://script.google.com
-• Spreadsheet: https://docs.google.com/spreadsheets/d/1Zpmtz6vjMRV6meWy8duKKTTj3ptIf00pggiakMa_Plo
-
-<strong>📝 ขั้นตอนที่ 1: สร้าง Apps Script</strong>
-1. ไปที่ https://script.google.com
-2. กด "+ โปรเจคใหม่" หรือ "New Project"
-3. ลบโค้ดเดิมทั้งหมด แล้ววางโค้ดนี้:
-
-```javascript
-function doPost(e) {
-  try {
-    // Log request สำหรับ debug
-    console.log('📥 Received POST request');
-    console.log('📄 Post data:', e.postData.contents);
-    
-    // Parse JSON data
-    const data = JSON.parse(e.postData.contents);
-    console.log('📊 Parsed data:', JSON.stringify(data));
-    
-    // Open spreadsheet
-    const spreadsheetId = '1Zpmtz6vjMRV6meWy8duKKTTj3ptIf00pggiakMa_Plo';
-    const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
-    console.log('📋 Spreadsheet opened successfully');
-    
-    // Handle append action
-    if (data.action === 'append') {
-      const sheetName = data.range.split('!')[0];
-      console.log('📄 Target sheet:', sheetName);
-      
-      const targetSheet = spreadsheet.getSheetByName(sheetName);
-      if (!targetSheet) {
-        throw new Error(`Sheet "${sheetName}" not found`);
-      }
-      
-      console.log('📝 Appending values:', data.values);
-      targetSheet.appendRow(data.values);
-      console.log('✅ Data appended successfully');
-      
-      return ContentService
-        .createTextOutput(JSON.stringify({
-          success: true, 
-          message: `Data appended to ${sheetName}`,
-          timestamp: new Date().toISOString()
-        }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-    
-    // Handle update action
-    if (data.action === 'update') {
-      const [sheetName, range] = data.range.split('!');
-      console.log('📄 Target sheet:', sheetName, 'Range:', range);
-      
-      const targetSheet = spreadsheet.getSheetByName(sheetName);
-      if (!targetSheet) {
-        throw new Error(`Sheet "${sheetName}" not found`);
-      }
-      
-      console.log('📝 Updating values:', data.values);
-      const rangeObj = targetSheet.getRange(range);
-      rangeObj.setValues([data.values]);
-      console.log('✅ Data updated successfully');
-      
-      return ContentService
-        .createTextOutput(JSON.stringify({
-          success: true, 
-          message: `Data updated in ${sheetName} at ${range}`,
-          timestamp: new Date().toISOString()
-        }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-    
-    // Handle test action
-    if (data.action === 'test') {
-      console.log('🧪 Test request received');
-      return ContentService
-        .createTextOutput(JSON.stringify({
-          success: true,
-          message: 'Apps Script is working correctly!',
-          timestamp: new Date().toISOString(),
-          spreadsheetId: spreadsheetId
-        }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-    
-    // Unknown action
-    throw new Error(`Unknown action: ${data.action}`);
-    
-  } catch (error) {
-    console.error('❌ Error in doPost:', error.toString());
-    return ContentService
-      .createTextOutput(JSON.stringify({
-        success: false,
-        error: error.toString(),
-        timestamp: new Date().toISOString()
-      }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-// Test function
-function testConnection() {
-  console.log('🧪 Manual test executed');
-  const spreadsheetId = '1Zpmtz6vjMRV6meWy8duKKTTj3ptIf00pggiakMa_Plo';
-  try {
-    const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
-    const sheets = spreadsheet.getSheets();
-    console.log('📋 Available sheets:', sheets.map(s => s.getName()));
-    return 'Test successful - ' + sheets.length + ' sheets found';
-  } catch (error) {
-    console.error('❌ Test error:', error);
-    return 'Test failed: ' + error.toString();
-  }
-}
-```
-
-<strong>⚙️ ขั้นตอนที่ 2: Deploy Web App</strong>
-1. กด "💾 บันทึก" (Ctrl+S)
-2. กด "🚀 Deploy" > "New Deployment"
-3. ข้างๆ "Type" กด ⚙️ แล้วเลือก "Web app"
-4. ตั้งค่าดังนี้:
-   • Description: SIFCO Prospect API
-   • Execute as: Me (your email)
-   • Who has access: Anyone
-5. กด "Deploy"
-6. **อนุญาตสิทธิ์** ถ้ามีแจ้ง
-7. **คัดลอก URL** ที่ได้
-
-<strong>🔐 ขั้นตอนที่ 3: อนุญาตสิทธิ์</strong>
-หากมีการแจ้งเตือนเรื่องสิทธิ์:
-1. กด "Review permissions"
-2. เลือกบัญชี Google ของคุณ
-3. กด "Advanced" (ขั้นสูง)
-4. กด "Go to [project name] (unsafe)"
-5. กด "Allow" (อนุญาต)
-
-<strong>🧪 ขั้นตอนที่ 4: ทดสอบ</strong>
-1. คัดลอก URL ที่ได้จาก Deploy
-2. อัพเดทในโค้ด (ถ้าต่างจากที่มี)
-3. กดปุ่ม "🧪 ทดสอบ Apps Script" ด้านบน
-4. ถ้าผ่าน จะแสดง "✅ Apps Script working!"
-
-<strong>📱 URL ปัจจุบัน:</strong>
-https://script.google.com/macros/s/AKfycbzPA1-kLJ7gzh07em1IAMMqZ8oOtLyxGdtbt-upWvDkasS580m3fvIpAZqlcoG_JIX5/exec
-
-<strong>❓ หากยังไม่ได้:</strong>
-1. ตรวจสอบว่า Deploy เป็น "Anyone"
-2. ตรวจสอบสิทธิ์ Spreadsheet
-3. ลองสร้าง URL ใหม่
-4. ดู Console log ในเบราว์เซอร์
-                        </div>
-                    </div>
-
                     <!-- Master Data Management -->
                     <div class="config-section" id="adminSettings">
                         <h3 class="config-title">จัดการข้อมูลหลัก</h3>
@@ -903,9 +736,7 @@ https://script.google.com/macros/s/AKfycbzPA1-kLJ7gzh07em1IAMMqZ8oOtLyxGdtbt-upW
         let userRole = null;
         let googleSheetsConfig = {
             spreadsheetId: '1Zpmtz6vjMRV6meWy8duKKTTj3ptIf00pggiakMa_Plo',
-            apiKey: 'AIzaSyBtkCPgEiTlAS12Q-tPp_6mIPdPkKABcx4',
-            // Apps Script Web App URL สำหรับการเขียนข้อมูล
-            appsScriptUrl: 'https://script.google.com/macros/s/AKfycbzPA1-kLJ7gzh07em1IAMMqZ8oOtLyxGdtbt-upWvDkasS580m3fvIpAZqlcoG_JIX5/exec'
+            apiKey: 'AIzaSyBtkCPgEiTlAS12Q-tPp_6mIPdPkKABcx4'
         };
         let masterData = {
             countries: [],
@@ -1131,99 +962,43 @@ https://script.google.com/macros/s/AKfycbzPA1-kLJ7gzh07em1IAMMqZ8oOtLyxGdtbt-upW
         }
 
         async function appendToGoogleSheet(range, values) {
-            try {
-                console.log('Attempting to append:', { range, values });
-                console.log('Apps Script URL:', googleSheetsConfig.appsScriptUrl);
-                
-                const payload = {
-                    action: 'append',
-                    range: range,
-                    values: values
-                };
-                
-                console.log('Sending payload:', payload);
-                
-                // ใช้ Apps Script สำหรับการเขียนข้อมูล
-                const response = await fetch(googleSheetsConfig.appsScriptUrl, {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload)
-                });
-                
-                console.log('Response status:', response.status);
-                console.log('Response ok:', response.ok);
-                
-                const responseText = await response.text();
-                console.log('Response text:', responseText);
-                
-                if (!response.ok) {
-                    throw new Error(`Apps Script error! status: ${response.status}\nResponse: ${responseText}`);
-                }
-                
-                const result = JSON.parse(responseText);
-                console.log('Parsed result:', result);
-                
-                if (result.error) {
-                    throw new Error(`Apps Script error: ${result.error}`);
-                }
-                
-                return result;
-            } catch (error) {
-                console.error('Error appending to sheet:', error);
-                // Fallback: แสดงข้อมูลที่ต้องการเพิ่มใน console และแจ้งให้เพิ่มด้วยตนเอง
-                alert(`ไม่สามารถเพิ่มข้อมูลอัตโนมัติได้\n\nข้อผิดพลาด: ${error.message}\n\nกรุณาเพิ่มข้อมูลนี้ในแผ่นงาน ${range}:\n${values.join(', ')}\n\nหรือตรวจสอบ Apps Script และ Console สำหรับ debug`);
-                throw error;
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${googleSheetsConfig.spreadsheetId}/values/${range}:append?valueInputOption=RAW&key=${googleSheetsConfig.apiKey}`;
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    values: [values]
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
+            
+            return await response.json();
         }
 
         async function updateGoogleSheetRow(range, values) {
-            try {
-                console.log('Attempting to update:', { range, values });
-                
-                const payload = {
-                    action: 'update',
-                    range: range,
-                    values: values
-                };
-                
-                console.log('Sending payload:', payload);
-                
-                // ใช้ Apps Script สำหรับการอัพเดทข้อมูล
-                const response = await fetch(googleSheetsConfig.appsScriptUrl, {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload)
-                });
-                
-                console.log('Response status:', response.status);
-                
-                const responseText = await response.text();
-                console.log('Response text:', responseText);
-                
-                if (!response.ok) {
-                    throw new Error(`Apps Script error! status: ${response.status}\nResponse: ${responseText}`);
-                }
-                
-                const result = JSON.parse(responseText);
-                console.log('Parsed result:', result);
-                
-                if (result.error) {
-                    throw new Error(`Apps Script error: ${result.error}`);
-                }
-                
-                return result;
-            } catch (error) {
-                console.error('Error updating sheet:', error);
-                // Fallback: แสดงข้อมูลที่ต้องการอัพเดทใน console และแจ้งให้อัพเดทด้วยตนเอง
-                alert(`ไม่สามารถอัพเดทข้อมูลอัตโนมัติได้\n\nข้อผิดพลาด: ${error.message}\n\nกรุณาอัพเดทข้อมูลในแผ่นงาน ${range}:\n${values.join(', ')}\n\nหรือตรวจสอบ Apps Script และ Console สำหรับ debug`);
-                throw error;
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${googleSheetsConfig.spreadsheetId}/values/${range}?valueInputOption=RAW&key=${googleSheetsConfig.apiKey}`;
+            
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    values: [values]
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
+            
+            return await response.json();
         }
 
         function updateFilters() {
@@ -1479,62 +1254,7 @@ https://script.google.com/macros/s/AKfycbzPA1-kLJ7gzh07em1IAMMqZ8oOtLyxGdtbt-upW
             alert('การตั้งค่าถูกฝังไว้ในโปรแกรมแล้ว');
         }
 
-        async function testAppsScript() {
-            const testResults = document.getElementById('testResults');
-            testResults.classList.remove('hidden');
-            testResults.textContent = '🧪 กำลังทดสอบ Apps Script...';
-            
-            try {
-                const response = await fetch(googleSheetsConfig.appsScriptUrl, {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'test'
-                    })
-                });
-                
-                console.log('Test response status:', response.status);
-                const responseText = await response.text();
-                console.log('Test response text:', responseText);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${responseText}`);
-                }
-                
-                const result = JSON.parse(responseText);
-                
-                if (result.success) {
-                    testResults.textContent = '✅ Apps Script ทำงานได้ปกติ!\n\n';
-                    testResults.textContent += `📊 ผลการทดสอบ:\n`;
-                    testResults.textContent += `• สถานะ: สำเร็จ\n`;
-                    testResults.textContent += `• ข้อความ: ${result.message}\n`;
-                    testResults.textContent += `• เวลา: ${result.timestamp}\n`;
-                    testResults.textContent += `• Spreadsheet ID: ${result.spreadsheetId}\n\n`;
-                    testResults.textContent += '🎉 ตอนนี้สามารถเพิ่ม/ลบข้อมูลได้แล้ว!';
-                    
-                    updateConnectionStatus(true, 'เชื่อมต่อสมบูรณ์');
-                } else {
-                    throw new Error(result.error || 'Unknown error');
-                }
-                
-            } catch (error) {
-                console.error('Apps Script test failed:', error);
-                testResults.textContent = '❌ ทดสอบ Apps Script ไม่สำเร็จ\n\n';
-                testResults.textContent += `📋 ข้อผิดพลาด: ${error.message}\n\n`;
-                testResults.textContent += '🔧 วิธีแก้ไข:\n';
-                testResults.textContent += '1. ตรวจสอบว่าสร้าง Apps Script แล้ว\n';
-                testResults.textContent += '2. ตรวจสอบว่า Deploy เป็น "Anyone"\n';
-                testResults.textContent += '3. ตรวจสอบว่าอนุญาตสิทธิ์แล้ว\n';
-                testResults.textContent += '4. ตรวจสอบ URL ว่าถูกต้อง\n';
-                testResults.textContent += '5. ลองสร้าง Deployment ใหม่\n\n';
-                testResults.textContent += '📱 URL ปัจจุบัน:\n' + googleSheetsConfig.appsScriptUrl;
-                
-                updateConnectionStatus(false, 'Apps Script ไม่พร้อม');
-            }
-        }
+        async function testConnection() {
             const testResults = document.getElementById('testResults');
             testResults.classList.remove('hidden');
             testResults.textContent = 'กำลังทดสอบการเชื่อมต่อ...';
