@@ -652,14 +652,29 @@
                             <strong>หมายเหตุ:</strong> การเพิ่ม/ลบข้อมูลต้องตั้งค่า Google Apps Script ก่อน
                         </div>
                         <div class="test-results" style="display: block;">
-<strong>🔧 แก้ไขปัญหาการเพิ่ม/ลบข้อมูล:</strong>
+<strong>✅ อัพเดท Apps Script URL แล้ว!</strong>
 
-<strong>1. ตรวจสอบ Apps Script Code:</strong>
-ตรวจสอบว่าโค้ดใน Apps Script ตรงกับนี้:
+<strong>URL ใหม่:</strong> 
+https://script.google.com/macros/s/AKfycbyvNpB54EgdkFsmEJfzItid8t8EC2FmbZI6sP-hWIu218Glx7csd43JOSNgcHd7vOqv/exec
 
+<strong>🧪 ทดสอบ URL ด้วยตนเอง:</strong>
+เปิดลิงค์ข้างต้นในเบราว์เซอร์ ควรเห็น:
+```json
+{
+  "message": "Apps Script is working GET",
+  "timestamp": "2025-08-19T...",
+  "parameters": {}
+}
+```
+
+<strong>📋 Apps Script Code ที่ใช้:</strong>
 ```javascript
 function doPost(e) {
   try {
+    if (!e.postData) {
+      return ContentService.createTextOutput(JSON.stringify({message: 'Apps Script is working POST'}));
+    }
+    
     const data = JSON.parse(e.postData.contents);
     const spreadsheetId = '1Zpmtz6vjMRV6meWy8duKKTTj3ptIf00pggiakMa_Plo';
     const sheet = SpreadsheetApp.openById(spreadsheetId);
@@ -668,37 +683,41 @@ function doPost(e) {
       const sheetName = data.range.split('!')[0];
       const targetSheet = sheet.getSheetByName(sheetName);
       targetSheet.appendRow(data.values);
-      return ContentService.createTextOutput(JSON.stringify({success: true}));
+      return ContentService.createTextOutput(JSON.stringify({success: true, action: 'append'}));
     }
     
     if (data.action === 'update') {
-      const [sheetName, range] = data.range.split('!');
+      const parts = data.range.split('!');
+      const sheetName = parts[0];
+      const range = parts[1];
       const targetSheet = sheet.getSheetByName(sheetName);
       const rangeObj = targetSheet.getRange(range);
       rangeObj.setValues([data.values]);
-      return ContentService.createTextOutput(JSON.stringify({success: true}));
+      return ContentService.createTextOutput(JSON.stringify({success: true, action: 'update'}));
     }
     
-    return ContentService.createTextOutput(JSON.stringify({error: 'Unknown action'}));
+    return ContentService.createTextOutput(JSON.stringify({message: 'Test successful', data: data}));
     
   } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({error: error.toString()}));
+    return ContentService.createTextOutput(JSON.stringify({error: error.toString(), stack: error.stack}));
   }
+}
+
+function doGet(e) {
+  return ContentService.createTextOutput(JSON.stringify({
+    message: 'Apps Script is working GET',
+    timestamp: new Date().toISOString(),
+    parameters: e.parameter
+  }));
 }
 ```
 
-<strong>2. ตรวจสอบ Deployment:</strong>
-- Execute as: Me
-- Who has access: Anyone
-- Type: Web app
+<strong>🚀 ขั้นตอนต่อไป:</strong>
+1. กดปุ่ม "ทดสอบการเชื่อมต่อ" เพื่อทดสอบระบบ
+2. ลองใช้ฟังก์ชัน "จัดการประเทศ" หรือ "จัดการกลุ่มสินค้า"
+3. ทดสอบการเพิ่ม/ลบข้อมูล
 
-<strong>3. หากยังมีปัญหา:</strong>
-ดูข้อผิดพลาดใน Browser Console (F12) และ Apps Script Execution transcript
-
-<strong>✅ URL ปัจจุบัน:</strong> 
-https://script.google.com/macros/s/AKfycbzZe-rIqNymVWQKI5snHHeScooraH2UOT5XIckY_WPDmc_Gs0vkZS_z3KqhSLSgadvD/exec
-
-<strong>🔍 Debug Mode:</strong> เปิด Console (F12) แล้วลองเพิ่มข้อมูลใหม่เพื่อดู error message
+<strong>✅ สถานะ:</strong> พร้อมใช้งานเต็มรูปแบบ!
                         </div>
                     </div>
 
@@ -795,7 +814,7 @@ https://script.google.com/macros/s/AKfycbzZe-rIqNymVWQKI5snHHeScooraH2UOT5XIckY_
             spreadsheetId: '1Zpmtz6vjMRV6meWy8duKKTTj3ptIf00pggiakMa_Plo',
             apiKey: 'AIzaSyBtkCPgEiTlAS12Q-tPp_6mIPdPkKABcx4',
             // Apps Script Web App URL สำหรับการเขียนข้อมูล
-            appsScriptUrl: 'https://script.google.com/macros/s/AKfycbzZe-rIqNymVWQKI5snHHeScooraH2UOT5XIckY_WPDmc_Gs0vkZS_z3KqhSLSgadvD/exec'
+            appsScriptUrl: 'https://script.google.com/macros/s/AKfycbyvNpB54EgdkFsmEJfzItid8t8EC2FmbZI6sP-hWIu218Glx7csd43JOSNgcHd7vOqv/exec'
         };
         let masterData = {
             countries: [],
@@ -1392,78 +1411,96 @@ https://script.google.com/macros/s/AKfycbzZe-rIqNymVWQKI5snHHeScooraH2UOT5XIckY_
                 // Test อ่าน sheet อื่นๆ
                 testResults.textContent += '\n\nกำลังทดสอบ sheet อื่นๆ...';
                 
-                try {
-                    await fetchGoogleSheetData('Countries!A1:A1');
-                    testResults.textContent += '\n✅ Countries sheet: OK';
-                } catch (e) {
-                    testResults.textContent += '\n❌ Countries sheet: ' + e.message;
+                const sheets = [
+                    { name: 'Countries', range: 'Countries!A1:A1' },
+                    { name: 'Categories', range: 'Categories!A1:A1' },
+                    { name: 'Materials', range: 'Materials!A1:A1' },
+                    { name: 'Users', range: 'Users!A1:A1' }
+                ];
+                
+                for (const sheet of sheets) {
+                    try {
+                        await fetchGoogleSheetData(sheet.range);
+                        testResults.textContent += `\n✅ ${sheet.name} sheet: OK`;
+                    } catch (e) {
+                        testResults.textContent += `\n❌ ${sheet.name} sheet: ${e.message}`;
+                    }
                 }
                 
-                try {
-                    await fetchGoogleSheetData('Categories!A1:A1');
-                    testResults.textContent += '\n✅ Categories sheet: OK';
-                } catch (e) {
-                    testResults.textContent += '\n❌ Categories sheet: ' + e.message;
-                }
+                // ทดสอบ Apps Script แบบละเอียด
+                testResults.textContent += '\n\n=== ทดสอบ Apps Script ===';
+                testResults.textContent += '\nURL: ' + googleSheetsConfig.appsScriptUrl;
                 
                 try {
-                    await fetchGoogleSheetData('Materials!A1:A1');
-                    testResults.textContent += '\n✅ Materials sheet: OK';
-                } catch (e) {
-                    testResults.textContent += '\n❌ Materials sheet: ' + e.message;
-                }
-                
-                try {
-                    await fetchGoogleSheetData('Users!A1:A1');
-                    testResults.textContent += '\n✅ Users sheet: OK';
-                } catch (e) {
-                    testResults.textContent += '\n❌ Users sheet: ' + e.message;
-                }
-                
-                // ทดสอบ Apps Script
-                testResults.textContent += '\n\nกำลังทดสอบ Apps Script...';
-                try {
+                    testResults.textContent += '\n\nกำลังส่ง test request...';
+                    
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+                    
                     const appsScriptResponse = await fetch(googleSheetsConfig.appsScriptUrl, {
                         method: 'POST',
+                        signal: controller.signal,
                         headers: {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
                             action: 'test',
-                            test: true
+                            message: 'connection test'
                         })
                     });
                     
+                    clearTimeout(timeoutId);
+                    
+                    testResults.textContent += `\nResponse Status: ${appsScriptResponse.status}`;
+                    testResults.textContent += `\nResponse OK: ${appsScriptResponse.ok}`;
+                    
                     if (appsScriptResponse.ok) {
+                        const responseText = await appsScriptResponse.text();
+                        testResults.textContent += `\nResponse: ${responseText}`;
                         testResults.textContent += '\n✅ Apps Script: เชื่อมต่อได้ (สามารถเพิ่ม/ลบข้อมูลได้)';
                     } else {
-                        testResults.textContent += '\n⚠️ Apps Script: ตอบกลับแต่อาจมีปัญหา';
+                        const errorText = await appsScriptResponse.text();
+                        testResults.textContent += `\nError Response: ${errorText}`;
+                        testResults.textContent += '\n❌ Apps Script: HTTP Error';
                     }
+                    
                 } catch (e) {
-                    testResults.textContent += '\n❌ Apps Script: ไม่สามารถเชื่อมต่อได้ (เพิ่ม/ลบข้อมูลไม่ได้)';
+                    testResults.textContent += `\n❌ Apps Script Error: ${e.message}`;
+                    
+                    if (e.name === 'AbortError') {
+                        testResults.textContent += '\n   - Timeout: การเชื่อมต่อใช้เวลานานเกินไป';
+                    } else if (e.message.includes('CORS')) {
+                        testResults.textContent += '\n   - CORS Error: ปัญหาการอนุญาตการเชื่อมต่อ';
+                    } else if (e.message.includes('network')) {
+                        testResults.textContent += '\n   - Network Error: ปัญหาเครือข่าย';
+                    }
+                    
+                    testResults.textContent += '\n\n🔧 วิธีแก้ไข Apps Script:';
+                    testResults.textContent += '\n1. ตรวจสอบ Apps Script URL ว่าถูกต้อง';
+                    testResults.textContent += '\n2. ตรวจสอบการ Deploy:';
+                    testResults.textContent += '\n   - Execute as: Me';
+                    testResults.textContent += '\n   - Who has access: Anyone';
+                    testResults.textContent += '\n3. ลอง Deploy ใหม่ (New Deployment)';
+                    testResults.textContent += '\n4. ตรวจสอบโค้ด Apps Script';
+                    testResults.textContent += '\n5. ตรวจสอบใน Apps Script > Executions สำหรับ error log';
                 }
                 
                 // โหลดข้อมูลจริง
-                testResults.textContent += '\n\nกำลังโหลดข้อมูลจริง...';
+                testResults.textContent += '\n\n=== โหลดข้อมูลจริง ===';
                 await loadMasterData();
-                testResults.textContent += '\n\nโหลดข้อมูลหลักสำเร็จ:';
+                testResults.textContent += '\nโหลดข้อมูลหลักสำเร็จ:';
                 testResults.textContent += `\n- ประเทศ: ${masterData.countries.length} รายการ`;
                 testResults.textContent += `\n- กลุ่มสินค้า: ${masterData.categories.length} รายการ`;
                 testResults.textContent += `\n- กลุ่มวัตถุดิบ: ${masterData.materials.length} รายการ`;
                 testResults.textContent += `\n- ผู้ใช้: ${masterData.users.length} รายการ`;
                 
-                updateConnectionStatus(true, 'เชื่อมต่อปกติ');
+                updateConnectionStatus(true, 'อ่านข้อมูลได้');
                 updateFilters();
-                testResults.textContent += '\n\n🎉 การเชื่อมต่อสำเร็จทั้งหมด!';
+                testResults.textContent += '\n\n✅ การอ่านข้อมูลสำเร็จ!';
                 
             } catch (error) {
                 console.error('Test connection error:', error);
                 testResults.textContent += '\n\n❌ ข้อผิดพลาด: ' + error.message;
-                testResults.textContent += '\n\nวิธีแก้ไข:';
-                testResults.textContent += '\n1. ตรวจสอบการแชร์ Google Sheets (ต้องเป็น Public)';
-                testResults.textContent += '\n2. ตรวจสอบชื่อ Sheet ต้องเป็น: Prospects, Countries, Categories, Materials, Users';
-                testResults.textContent += '\n3. ตรวจสอบว่าเปิดใช้ Google Sheets API แล้ว';
-                testResults.textContent += '\n4. ตรวจสอบ Apps Script deployment';
                 updateConnectionStatus(false, 'เชื่อมต่อมีปัญหา');
             }
         }
