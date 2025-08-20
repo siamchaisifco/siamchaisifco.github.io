@@ -721,9 +721,9 @@ function doGet(e) {
                         </div>
                     </div>
 
-                    <!-- Master Data Management -->
+                    <!-- Master Data Management - เฉพาะ Admin -->
                     <div class="config-section" id="adminSettings">
-                        <h3 class="config-title">จัดการข้อมูลหลัก</h3>
+                        <h3 class="config-title">จัดการข้อมูลหลัก (เฉพาะ Admin)</h3>
                         <div class="form-row">
                             <button class="btn" onclick="openManageModal('countries')">จัดการประเทศ</button>
                             <button class="btn" onclick="openManageModal('categories')">จัดการกลุ่มสินค้า</button>
@@ -880,7 +880,7 @@ function doGet(e) {
             
             showLoading('loginSpinner', 'loginButtonText', 'กำลังเข้าสู่ระบบ...');
             
-            // Admin login
+            // Admin login - ฝังไว้ในโค้ด
             if (username === 'adminsifco' && password === 'adminsifco888') {
                 currentUser = 'Admin';
                 userRole = 'admin';
@@ -889,21 +889,22 @@ function doGet(e) {
                 return;
             }
             
-            // User login - check Google Sheets
-            if (googleSheetsConfig.spreadsheetId && googleSheetsConfig.apiKey) {
-                try {
-                    await loadMasterData();
-                    const user = masterData.users.find(u => u.username === username && u.password === password);
-                    if (user) {
-                        currentUser = username;
-                        userRole = 'user';
-                        showDashboard();
-                        hideLoading('loginSpinner', 'loginButtonText', 'เข้าสู่ระบบ');
-                        return;
-                    }
-                } catch (error) {
-                    console.error('Login error:', error);
+            // User login - ตรวจสอบจาก Google Sheets
+            try {
+                await loadMasterData();
+                const user = masterData.users.find(u => u.username === username && u.password === password);
+                if (user) {
+                    currentUser = username;
+                    userRole = 'user';
+                    showDashboard();
+                    hideLoading('loginSpinner', 'loginButtonText', 'เข้าสู่ระบบ');
+                    return;
                 }
+            } catch (error) {
+                console.error('Login error:', error);
+                showAlert('loginAlert', 'ไม่สามารถตรวจสอบข้อมูลผู้ใช้ได้ กรุณาลองใหม่อีกครั้ง', 'error');
+                hideLoading('loginSpinner', 'loginButtonText', 'เข้าสู่ระบบ');
+                return;
             }
             
             // Login failed
@@ -917,13 +918,16 @@ function doGet(e) {
             document.getElementById('userDisplay').classList.remove('hidden');
             document.getElementById('currentUser').textContent = currentUser;
             
-            // Show/hide admin settings
+            // Show/hide admin-only features
             const adminSettings = document.getElementById('adminSettings');
             const settingsNavTab = document.getElementById('settingsNavTab');
+            
             if (userRole === 'admin') {
+                // Admin เห็นทุกอย่าง
                 adminSettings.classList.remove('hidden');
                 settingsNavTab.classList.remove('hidden');
             } else {
+                // User ไม่เห็นเมนูการตั้งค่าและการจัดการข้อมูลหลัก
                 adminSettings.classList.add('hidden');
                 settingsNavTab.classList.add('hidden');
             }
@@ -1539,17 +1543,29 @@ function doGet(e) {
         }
 
         function openManageModal(type) {
+            // ตรวจสอบสิทธิ์ Admin สำหรับการจัดการผู้ใช้
+            if (type === 'users' && userRole !== 'admin') {
+                alert('เฉพาะ Admin เท่านั้นที่สามารถจัดการผู้ใช้ได้');
+                return;
+            }
+            
             currentManageType = type;
             const titles = {
                 countries: 'จัดการประเทศ',
                 categories: 'จัดการกลุ่มสินค้า',
                 materials: 'จัดการกลุ่มวัตถุดิบ',
-                users: 'จัดการผู้ใช้'
+                users: 'จัดการผู้ใช้ (เฉพาะ Admin)'
+            };
+            
+            const placeholders = {
+                countries: 'เพิ่มประเทศใหม่ เช่น Singapore',
+                categories: 'เพิ่มกลุ่มสินค้าใหม่ เช่น Frozen Shrimp',
+                materials: 'เพิ่มกลุ่มวัตถุดิบใหม่ เช่น Shrimp',
+                users: 'เพิ่มผู้ใช้ใหม่: username,password'
             };
             
             document.getElementById('manageModalTitle').textContent = titles[type];
-            document.getElementById('newItemInput').placeholder = 
-                type === 'users' ? 'username,password' : `เพิ่ม${titles[type].replace('จัดการ', '')}ใหม่`;
+            document.getElementById('newItemInput').placeholder = placeholders[type];
             
             updateManageList();
             document.getElementById('manageModal').classList.add('show');
@@ -1560,19 +1576,47 @@ function doGet(e) {
             const data = masterData[currentManageType] || [];
             
             if (currentManageType === 'users') {
-                list.innerHTML = data.map((user, index) => 
-                    `<div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">
-                        <span>${user.username}</span>
-                        <button class="btn" onclick="removeItem(${index})" style="background: #ef4444; padding: 0.25rem 0.5rem; font-size: 0.8rem;">ลบ</button>
-                    </div>`
-                ).join('');
+                // แสดงรายการผู้ใช้พร้อมปุ่มลบ (เฉพาะ Admin)
+                let userHtml = '<div style="margin-bottom: 1rem;"><strong>รายการผู้ใช้:</strong></div>';
+                
+                if (data.length === 0) {
+                    userHtml += '<div style="color: #6b7280; padding: 1rem; text-align: center;">ไม่มีผู้ใช้ในระบบ</div>';
+                } else {
+                    data.forEach((user, index) => {
+                        userHtml += `<div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 0.5rem; background: #f9fafb;">
+                            <div>
+                                <div style="font-weight: 600; color: #374151;">👤 ${user.username}</div>
+                                <div style="font-size: 0.9rem; color: #6b7280;">รหัสผ่าน: ${'*'.repeat(user.password.length)}</div>
+                            </div>
+                            <button class="btn" onclick="removeItem(${index})" style="background: #ef4444; padding: 0.5rem 1rem; font-size: 0.85rem;">ลบ</button>
+                        </div>`;
+                    });
+                }
+                
+                list.innerHTML = userHtml;
             } else {
-                list.innerHTML = data.map((item, index) => 
-                    `<div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">
-                        <span>${item}</span>
-                        <button class="btn" onclick="removeItem(${index})" style="background: #ef4444; padding: 0.25rem 0.5rem; font-size: 0.8rem;">ลบ</button>
-                    </div>`
-                ).join('');
+                // แสดงรายการข้อมูลหลักอื่นๆ
+                let itemHtml = '';
+                const titles = {
+                    countries: 'ประเทศ',
+                    categories: 'กลุ่มสินค้า',
+                    materials: 'กลุ่มวัตถุดิบ'
+                };
+                
+                itemHtml += `<div style="margin-bottom: 1rem;"><strong>รายการ${titles[currentManageType]}:</strong></div>`;
+                
+                if (data.length === 0) {
+                    itemHtml += `<div style="color: #6b7280; padding: 1rem; text-align: center;">ไม่มี${titles[currentManageType]}ในระบบ</div>`;
+                } else {
+                    data.forEach((item, index) => {
+                        itemHtml += `<div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 0.5rem; background: #f9fafb;">
+                            <span style="font-weight: 500; color: #374151;">${item}</span>
+                            <button class="btn" onclick="removeItem(${index})" style="background: #ef4444; padding: 0.5rem 1rem; font-size: 0.85rem;">ลบ</button>
+                        </div>`;
+                    });
+                }
+                
+                list.innerHTML = itemHtml;
             }
         }
 
@@ -1585,13 +1629,26 @@ function doGet(e) {
                 return;
             }
             
+            // ตรวจสอบสิทธิ์ Admin สำหรับการเพิ่มผู้ใช้
+            if (currentManageType === 'users' && userRole !== 'admin') {
+                alert('เฉพาะ Admin เท่านั้นที่สามารถเพิ่มผู้ใช้ได้');
+                return;
+            }
+            
             try {
                 console.log('Adding new item:', currentManageType, value);
                 
                 if (currentManageType === 'users') {
                     const parts = value.split(',').map(s => s.trim());
                     if (parts.length !== 2 || !parts[0] || !parts[1]) {
-                        alert('กรุณากรอกในรูปแบบ: username,password');
+                        alert('กรุณากรอกในรูปแบบ: username,password\nตัวอย่าง: john123,pass456');
+                        return;
+                    }
+                    
+                    // ตรวจสอบว่ามี username ซ้ำหรือไม่
+                    const existingUser = masterData.users.find(u => u.username === parts[0]);
+                    if (existingUser) {
+                        alert(`มีผู้ใช้ "${parts[0]}" อยู่ในระบบแล้ว\nกรุณาใช้ชื่อผู้ใช้อื่น`);
                         return;
                     }
                     
@@ -1604,6 +1661,15 @@ function doGet(e) {
                         materials: 'Materials'
                     };
                     
+                    // ตรวจสอบว่ามีข้อมูลซ้ำหรือไม่
+                    const existingItem = masterData[currentManageType].find(item => 
+                        item.toLowerCase() === value.toLowerCase()
+                    );
+                    if (existingItem) {
+                        alert(`มี "${value}" อยู่ในระบบแล้ว`);
+                        return;
+                    }
+                    
                     const sheetName = sheetNames[currentManageType];
                     console.log('Adding to sheet:', sheetName, value);
                     await appendToGoogleSheet(`${sheetName}!A:A`, [value]);
@@ -1615,7 +1681,14 @@ function doGet(e) {
                 updateManageList();
                 input.value = '';
                 
-                alert('เพิ่มรายการเรียบร้อยแล้ว');
+                const itemNames = {
+                    users: 'ผู้ใช้',
+                    countries: 'ประเทศ',
+                    categories: 'กลุ่มสินค้า',
+                    materials: 'กลุ่มวัตถุดิบ'
+                };
+                
+                alert(`เพิ่ม${itemNames[currentManageType]}เรียบร้อยแล้ว`);
             } catch (error) {
                 console.error('Error adding item:', error);
                 // ข้อผิดพลาดจะแสดงใน appendToGoogleSheet แล้ว
@@ -1623,7 +1696,24 @@ function doGet(e) {
         }
 
         async function removeItem(index) {
-            if (!confirm('คุณต้องการลบรายการนี้หรือไม่?')) return;
+            // ตรวจสอบสิทธิ์ Admin สำหรับการลบผู้ใช้
+            if (currentManageType === 'users' && userRole !== 'admin') {
+                alert('เฉพาะ Admin เท่านั้นที่สามารถลบผู้ใช้ได้');
+                return;
+            }
+            
+            const itemNames = {
+                users: 'ผู้ใช้',
+                countries: 'ประเทศ',
+                categories: 'กลุ่มสินค้า',
+                materials: 'กลุ่มวัตถุดิบ'
+            };
+            
+            const itemName = itemNames[currentManageType];
+            const data = masterData[currentManageType] || [];
+            const itemToDelete = currentManageType === 'users' ? data[index]?.username : data[index];
+            
+            if (!confirm(`คุณต้องการลบ${itemName} "${itemToDelete}" หรือไม่?`)) return;
             
             try {
                 const rowIndex = index + 2; // +2 เพราะเริ่มจากแถวที่ 2 และ 0-based index
@@ -1648,7 +1738,7 @@ function doGet(e) {
                 updateFilters();
                 updateManageList();
                 
-                alert('ลบรายการเรียบร้อยแล้ว');
+                alert(`ลบ${itemName}เรียบร้อยแล้ว`);
             } catch (error) {
                 console.error('Error removing item:', error);
                 // ข้อผิดพลาดจะแสดงใน updateGoogleSheetRow แล้ว
