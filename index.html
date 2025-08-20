@@ -748,58 +748,20 @@ function doGet(e) {
                 </div>
                 <form id="prospectForm">
                     <input type="hidden" id="editId">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Email *</label>
-                            <input type="email" class="form-input" id="prospectEmail" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">ชื่อบริษัท</label>
-                            <input type="text" class="form-input" id="prospectCompany">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">ชื่อผู้ติดต่อ</label>
-                            <input type="text" class="form-input" id="prospectContact">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">ประเทศลูกค้า *</label>
-                            <select class="form-input" id="prospectCountry" required>
-                                <option value="">เลือกประเทศลูกค้า</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">วันที่ *</label>
-                            <input type="date" class="form-input" id="prospectDate" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">ชื่อสินค้า</label>
-                            <input type="text" class="form-input" id="prospectProductName" placeholder="ระบุชื่อสินค้าที่ลูกค้าสนใจ">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">ประเทศที่ขายสินค้า</label>
-                            <select class="form-input" id="prospectSaleCountry">
-                                <option value="">เลือกประเทศที่ขาย</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">กลุ่มสินค้า *</label>
-                            <select class="form-input" id="prospectCategory" required>
-                                <option value="">เลือกกลุ่มสินค้า</option>
-                            </select>
-                        </div>
-                    </div>
+                    
+                    <!-- วันที่ -->
                     <div class="form-group">
-                        <label class="form-label">กลุ่มวัตถุดิบ *</label>
-                        <select class="form-input" id="prospectMaterial" required>
-                            <option value="">เลือกกลุ่มวัตถุดิบ</option>
-                        </select>
+                        <label class="form-label">วันที่ *</label>
+                        <input type="date" class="form-input" id="prospectDate" required>
                     </div>
+                    
+                    <!-- Email -->
+                    <div class="form-group">
+                        <label class="form-label">Email *</label>
+                        <input type="email" class="form-input" id="prospectEmail" required>
+                    </div>
+                    
+                    <!-- Line ID และ WhatsApp -->
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">Line ID</label>
@@ -810,10 +772,63 @@ function doGet(e) {
                             <input type="text" class="form-input" id="prospectWhatsapp" placeholder="เบอร์ WhatsApp ของลูกค้า">
                         </div>
                     </div>
+                    
+                    <!-- ชื่อบริษัท และ ชื่อผู้ติดต่อ -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">ชื่อบริษัท</label>
+                            <input type="text" class="form-input" id="prospectCompany">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">ชื่อผู้ติดต่อ</label>
+                            <input type="text" class="form-input" id="prospectContact">
+                        </div>
+                    </div>
+                    
+                    <!-- ประเทศลูกค้า และ ประเทศที่ขายสินค้า -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">ประเทศลูกค้า *</label>
+                            <select class="form-input" id="prospectCountry" required>
+                                <option value="">เลือกประเทศลูกค้า</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">ประเทศที่ขายสินค้า</label>
+                            <select class="form-input" id="prospectSaleCountry">
+                                <option value="">เลือกประเทศที่ขาย</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- ชื่อสินค้า -->
+                    <div class="form-group">
+                        <label class="form-label">ชื่อสินค้า</label>
+                        <input type="text" class="form-input" id="prospectProductName" placeholder="ระบุชื่อสินค้าที่ลูกค้าสนใจ">
+                    </div>
+                    
+                    <!-- กลุ่มสินค้า และ กลุ่มวัตถุดิบ -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">กลุ่มสินค้า *</label>
+                            <select class="form-input" id="prospectCategory" required>
+                                <option value="">เลือกกลุ่มสินค้า</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">กลุ่มวัตถุดิบ *</label>
+                            <select class="form-input" id="prospectMaterial" required>
+                                <option value="">เลือกกลุ่มวัตถุดิบ</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- รายละเอียดการสนทนา -->
                     <div class="form-group">
                         <label class="form-label">รายละเอียดการสนทนา</label>
                         <textarea class="form-input textarea" id="prospectDetails" placeholder="บันทึกรายละเอียดการสนทนา, ความต้องการ, หรือข้อมูลเพิ่มเติม"></textarea>
                     </div>
+                    
                     <div class="form-row">
                         <button type="submit" class="btn">บันทึก</button>
                         <button type="button" class="btn btn-secondary" onclick="closeModal()">ยกเลิก</button>
