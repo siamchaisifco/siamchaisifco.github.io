@@ -1,24 +1,4 @@
-        async function deleteProspect(id) {
-            if (!confirm('คุณต้องการลบรายการนี้หรือไม่?')) return;
-            
-            try {
-                // Clear the row in Google Sheets - ใช้ row number ที่ถูกต้อง
-                const rowIndex = parseInt(id);
-                await updateGoogleSheetRow(
-                    `Prospects!A${rowIndex}:N${rowIndex}`,
-                    ['', '', '', '', '', '', '', '', '', '', '', '', '', '']
-                );
-                
-                await loadProspects();
-                updateStats();
-                updateSummary();
-                
-                alert('ลบรายการเรียบร้อยแล้ว');
-            } catch (error) {
-                console.error('Error deleting prospect:', error);
-                alert('เกิดข้อผิดพลาดในการลบข้อมูล');
-            }
-        }<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
