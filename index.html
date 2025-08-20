@@ -1,4 +1,24 @@
-<!DOCTYPE html>
+        async function deleteProspect(id) {
+            if (!confirm('คุณต้องการลบรายการนี้หรือไม่?')) return;
+            
+            try {
+                // Clear the row in Google Sheets - ใช้ row number ที่ถูกต้อง
+                const rowIndex = parseInt(id);
+                await updateGoogleSheetRow(
+                    `Prospects!A${rowIndex}:M${rowIndex}`,
+                    ['', '', '', '', '', '', '', '', '', '', '', '', '']
+                );
+                
+                await loadProspects();
+                updateStats();
+                updateSummary();
+                
+                alert('ลบรายการเรียบร้อยแล้ว');
+            } catch (error) {
+                console.error('Error deleting prospect:', error);
+                alert('เกิดข้อผิดพลาดในการลบข้อมูล');
+            }
+        }<!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
@@ -600,12 +620,14 @@
                             <table class="table">
                                 <thead>
                                     <tr>
+                                        <th>วันที่</th>
                                         <th>Email</th>
                                         <th>บริษัท</th>
-                                        <th>ประเทศ</th>
+                                        <th>ชื่อสินค้า</th>
+                                        <th>ประเทศลูกค้า</th>
+                                        <th>ประเทศขาย</th>
                                         <th>กลุ่มสินค้า</th>
                                         <th>กลุ่มวัตถุดิบ</th>
-                                        <th>วันที่สร้าง</th>
                                         <th>จัดการ</th>
                                     </tr>
                                 </thead>
@@ -760,7 +782,17 @@ function doGet(e) {
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label class="form-label">ประเทศ *</label>
+                            <label class="form-label">วันที่ *</label>
+                            <input type="date" class="form-input" id="prospectDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">ชื่อสินค้า</label>
+                            <input type="text" class="form-input" id="prospectProduct" placeholder="ระบุชื่อสินค้าที่ลูกค้าสนใจ">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">ประเทศของลูกค้า *</label>
                             <div style="display: flex; gap: 0.5rem;">
                                 <select class="form-input" id="prospectCountry" required style="flex: 1;">
                                     <option value="">เลือกประเทศ</option>
@@ -768,6 +800,14 @@ function doGet(e) {
                                 <button type="button" class="btn" id="addCountryBtn" style="padding: 0.5rem; font-size: 0.8rem; white-space: nowrap;">+ เพิ่ม</button>
                             </div>
                         </div>
+                        <div class="form-group">
+                            <label class="form-label">ประเทศที่ขายสินค้า</label>
+                            <select class="form-input" id="prospectSaleCountry">
+                                <option value="">เลือกประเทศที่ขาย</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">กลุ่มสินค้า *</label>
                             <div style="display: flex; gap: 0.5rem;">
@@ -777,14 +817,24 @@ function doGet(e) {
                                 <button type="button" class="btn" id="addCategoryBtn" style="padding: 0.5rem; font-size: 0.8rem; white-space: nowrap;">+ เพิ่ม</button>
                             </div>
                         </div>
+                        <div class="form-group">
+                            <label class="form-label">กลุ่มวัตถุดิบ *</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <select class="form-input" id="prospectMaterial" required style="flex: 1;">
+                                    <option value="">เลือกกลุ่มวัตถุดิบ</option>
+                                </select>
+                                <button type="button" class="btn" id="addMaterialBtn" style="padding: 0.5rem; font-size: 0.8rem; white-space: nowrap;">+ เพิ่ม</button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">กลุ่มวัตถุดิบ *</label>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <select class="form-input" id="prospectMaterial" required style="flex: 1;">
-                                <option value="">เลือกกลุ่มวัตถุดิบ</option>
-                            </select>
-                            <button type="button" class="btn" id="addMaterialBtn" style="padding: 0.5rem; font-size: 0.8rem; white-space: nowrap;">+ เพิ่ม</button>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Line ID</label>
+                            <input type="text" class="form-input" id="prospectLine" placeholder="Line ID ของลูกค้า">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">WhatsApp</label>
+                            <input type="text" class="form-input" id="prospectWhatsapp" placeholder="หมายเลข WhatsApp">
                         </div>
                     </div>
                     <div class="form-group">
@@ -1050,7 +1100,7 @@ function doGet(e) {
 
         async function loadProspects() {
             try {
-                const data = await fetchGoogleSheetData('Prospects!A2:I');
+                const data = await fetchGoogleSheetData('Prospects!A2:M');
                 prospects = [];
                 
                 if (data.values && data.values.length > 0) {
@@ -1061,12 +1111,16 @@ function doGet(e) {
                                 email: row[0] || '',
                                 company: row[1] || '',
                                 contact: row[2] || '',
-                                country: row[3] || '',
-                                category: row[4] || '',
-                                material: row[5] || '',
-                                details: row[6] || '',
-                                createdDate: row[7] || new Date().toLocaleDateString('th-TH'),
-                                createdBy: row[8] || currentUser
+                                date: row[3] || '',
+                                product: row[4] || '',
+                                country: row[5] || '',
+                                saleCountry: row[6] || '',
+                                category: row[7] || '',
+                                material: row[8] || '',
+                                line: row[9] || '',
+                                whatsapp: row[10] || '',
+                                details: row[11] || '',
+                                createdBy: row[12] || currentUser
                             });
                         }
                     });
@@ -1200,15 +1254,19 @@ function doGet(e) {
         }
 
         function updateFilters() {
-            // Update country filter
+            // Update country filter และ sale country
             const countryFilter = document.getElementById('countryFilter');
             const prospectCountry = document.getElementById('prospectCountry');
+            const prospectSaleCountry = document.getElementById('prospectSaleCountry');
+            
             countryFilter.innerHTML = '<option value="">ทุกประเทศ</option>';
             prospectCountry.innerHTML = '<option value="">เลือกประเทศ</option>';
+            prospectSaleCountry.innerHTML = '<option value="">เลือกประเทศที่ขาย</option>';
             
             masterData.countries.forEach(country => {
                 countryFilter.innerHTML += `<option value="${country}">${country}</option>`;
                 prospectCountry.innerHTML += `<option value="${country}">${country}</option>`;
+                prospectSaleCountry.innerHTML += `<option value="${country}">${country}</option>`;
             });
             
             // Update category filter
@@ -1298,12 +1356,14 @@ function doGet(e) {
             filteredProspects.forEach(prospect => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
+                    <td>${prospect.date}</td>
                     <td>${prospect.email}</td>
                     <td>${prospect.company}</td>
+                    <td>${prospect.product}</td>
                     <td>${prospect.country}</td>
+                    <td>${prospect.saleCountry}</td>
                     <td>${prospect.category}</td>
                     <td>${prospect.material}</td>
-                    <td>${prospect.createdDate}</td>
                     <td>
                         <button class="btn" onclick="editProspect(${prospect.id})" style="margin-right: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.8rem;">แก้ไข</button>
                         <button class="btn" onclick="deleteProspect(${prospect.id})" style="background: #ef4444; padding: 0.25rem 0.5rem; font-size: 0.8rem;">ลบ</button>
@@ -1353,6 +1413,14 @@ function doGet(e) {
             document.getElementById('modalTitle').textContent = 'เพิ่มรายการใหม่';
             document.getElementById('prospectForm').reset();
             document.getElementById('editId').value = '';
+            
+            // ตั้งค่าวันที่เริ่มต้นเป็นวันนี้
+            const today = new Date();
+            const dateString = today.getFullYear() + '-' + 
+                              String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                              String(today.getDate()).padStart(2, '0');
+            document.getElementById('prospectDate').value = dateString;
+            
             document.getElementById('editModal').classList.add('show');
         }
 
@@ -1365,9 +1433,14 @@ function doGet(e) {
             document.getElementById('prospectEmail').value = prospect.email;
             document.getElementById('prospectCompany').value = prospect.company;
             document.getElementById('prospectContact').value = prospect.contact;
+            document.getElementById('prospectDate').value = prospect.date;
+            document.getElementById('prospectProduct').value = prospect.product;
             document.getElementById('prospectCountry').value = prospect.country;
+            document.getElementById('prospectSaleCountry').value = prospect.saleCountry;
             document.getElementById('prospectCategory').value = prospect.category;
             document.getElementById('prospectMaterial').value = prospect.material;
+            document.getElementById('prospectLine').value = prospect.line;
+            document.getElementById('prospectWhatsapp').value = prospect.whatsapp;
             document.getElementById('prospectDetails').value = prospect.details;
             
             document.getElementById('editModal').classList.add('show');
@@ -1381,11 +1454,15 @@ function doGet(e) {
                 email: document.getElementById('prospectEmail').value,
                 company: document.getElementById('prospectCompany').value,
                 contact: document.getElementById('prospectContact').value,
+                date: document.getElementById('prospectDate').value,
+                product: document.getElementById('prospectProduct').value,
                 country: document.getElementById('prospectCountry').value,
+                saleCountry: document.getElementById('prospectSaleCountry').value,
                 category: document.getElementById('prospectCategory').value,
                 material: document.getElementById('prospectMaterial').value,
+                line: document.getElementById('prospectLine').value,
+                whatsapp: document.getElementById('prospectWhatsapp').value,
                 details: document.getElementById('prospectDetails').value,
-                createdDate: new Date().toLocaleDateString('th-TH'),
                 createdBy: currentUser
             };
             
@@ -1394,18 +1471,20 @@ function doGet(e) {
                     // Update existing - ใช้ row number ที่ถูกต้อง
                     const rowIndex = parseInt(id);
                     await updateGoogleSheetRow(
-                        `Prospects!A${rowIndex}:I${rowIndex}`,
+                        `Prospects!A${rowIndex}:M${rowIndex}`,
                         [prospectData.email, prospectData.company, prospectData.contact, 
-                         prospectData.country, prospectData.category, prospectData.material, 
-                         prospectData.details, prospectData.createdDate, prospectData.createdBy]
+                         prospectData.date, prospectData.product, prospectData.country, 
+                         prospectData.saleCountry, prospectData.category, prospectData.material, 
+                         prospectData.line, prospectData.whatsapp, prospectData.details, prospectData.createdBy]
                     );
                 } else {
                     // Add new - เพิ่มใหม่ต่อจากแถวสุดท้าย
                     await appendToGoogleSheet(
-                        'Prospects!A:I',
+                        'Prospects!A:M',
                         [prospectData.email, prospectData.company, prospectData.contact, 
-                         prospectData.country, prospectData.category, prospectData.material, 
-                         prospectData.details, prospectData.createdDate, prospectData.createdBy]
+                         prospectData.date, prospectData.product, prospectData.country, 
+                         prospectData.saleCountry, prospectData.category, prospectData.material, 
+                         prospectData.line, prospectData.whatsapp, prospectData.details, prospectData.createdBy]
                     );
                 }
                 
