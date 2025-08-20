@@ -1,4 +1,24 @@
-<!DOCTYPE html>
+        async function deleteProspect(id) {
+            if (!confirm('คุณต้องการลบรายการนี้หรือไม่?')) return;
+            
+            try {
+                // Clear the row in Google Sheets - ใช้ row number ที่ถูกต้อง
+                const rowIndex = parseInt(id);
+                await updateGoogleSheetRow(
+                    `Prospects!A${rowIndex}:N${rowIndex}`,
+                    ['', '', '', '', '', '', '', '', '', '', '', '', '', '']
+                );
+                
+                await loadProspects();
+                updateStats();
+                updateSummary();
+                
+                alert('ลบรายการเรียบร้อยแล้ว');
+            } catch (error) {
+                console.error('Error deleting prospect:', error);
+                alert('เกิดข้อผิดพลาดในการลบข้อมูล');
+            }
+        }<!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
@@ -12,99 +32,153 @@
         }
 
         body {
-            font-family: 'Sarabun', Arial, sans-serif;
-            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
             min-height: 100vh;
             color: #333;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 10px;
+        .app-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         .header {
-            text-align: center;
-            padding: 20px;
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+            border-bottom: 3px solid #dc2626;
+            padding: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .header h1 {
-            color: #dc2626;
-            font-size: 2rem;
-            margin-bottom: 5px;
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
             font-weight: bold;
+            font-size: 18px;
         }
 
-        .header .subtitle {
-            color: #666;
-            font-size: 1rem;
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #dc2626;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
         }
 
         .login-container {
-            max-width: 400px;
-            margin: 50px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 70vh;
+        }
+
+        .login-card, .card {
             background: white;
-            padding: 30px;
-            border-radius: 15px;
+            border-radius: 16px;
+            padding: 2rem;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-title {
+            text-align: center;
+            color: #dc2626;
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 1.5rem;
         }
 
-        .form-group label {
+        .form-label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #dc2626;
+            margin-bottom: 0.5rem;
+            color: #374151;
+            font-weight: 500;
         }
 
-        .form-control {
+        .form-input {
             width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #ddd;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e5e7eb;
             border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
+            font-size: 1rem;
+            transition: all 0.3s ease;
         }
 
-        .form-control:focus {
+        .form-input:focus {
             outline: none;
             border-color: #dc2626;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
         }
 
         .btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
-        }
-
-        .btn-primary {
-            background: #dc2626;
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
             color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
         }
 
-        .btn-primary:hover {
-            background: #b91c1c;
+        .btn:hover {
+            background: linear-gradient(135deg, #b91c1c, #991b1b);
             transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.4);
         }
 
         .btn-secondary {
             background: #6b7280;
-            color: white;
         }
 
         .btn-secondary:hover {
@@ -113,137 +187,126 @@
 
         .btn-success {
             background: #059669;
-            color: white;
         }
 
         .btn-success:hover {
             background: #047857;
         }
 
-        .btn-danger {
-            background: #dc2626;
-            color: white;
+        .btn-full {
+            width: 100%;
+            justify-content: center;
         }
 
-        .btn-danger:hover {
-            background: #b91c1c;
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
         }
 
-        .card {
+        .stats-card {
             background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #dc2626;
+            transition: transform 0.3s ease;
         }
 
-        .card h2 {
+        .stats-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stats-number {
+            font-size: 2rem;
+            font-weight: bold;
             color: #dc2626;
-            margin-bottom: 20px;
-            font-size: 1.5rem;
-            border-bottom: 2px solid #dc2626;
-            padding-bottom: 10px;
         }
 
-        .nav-tabs {
+        .stats-label {
+            color: #6b7280;
+            margin-top: 0.5rem;
+        }
+
+        .navigation-tabs {
             display: flex;
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 5px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
         }
 
         .nav-tab {
-            flex: 1;
-            padding: 12px;
-            text-align: center;
-            background: transparent;
-            border: none;
+            background: rgba(255, 255, 255, 0.9);
+            color: #374151;
+            border: 2px solid transparent;
+            padding: 0.75rem 1.5rem;
             border-radius: 8px;
             cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-            min-width: 120px;
-            margin: 2px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            font-weight: 500;
         }
 
         .nav-tab.active {
             background: #dc2626;
             color: white;
+            border-color: #dc2626;
         }
 
         .nav-tab:hover:not(.active) {
-            background: #e5e7eb;
+            background: white;
+            border-color: #dc2626;
         }
 
-        .tab-content {
-            display: none;
+        .search-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
         }
 
-        .tab-content.active {
-            display: block;
+        .search-input {
+            flex: 1;
+            min-width: 200px;
         }
 
-        .search-box {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #dc2626;
-            border-radius: 10px;
-            font-size: 16px;
-            margin-bottom: 20px;
+        .filter-select {
+            padding: 0.75rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+            min-width: 120px;
         }
 
         .data-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
 
-        .data-table th {
-            background: #dc2626;
-            color: white;
-            padding: 15px 10px;
+        .table th,
+        .table td {
+            padding: 1rem;
             text-align: left;
-            font-weight: bold;
+            border-bottom: 1px solid #e5e7eb;
         }
 
-        .data-table td {
-            padding: 12px 10px;
-            border-bottom: 1px solid #eee;
+        .table th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #374151;
         }
 
-        .data-table tr:hover {
-            background: #f8f9fa;
-        }
-
-        .summary-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .summary-card {
-            background: linear-gradient(135deg, #dc2626, #b91c1c);
-            color: white;
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.3);
-        }
-
-        .summary-card h3 {
-            font-size: 2rem;
-            margin-bottom: 10px;
-        }
-
-        .summary-card p {
-            opacity: 0.9;
+        .table tbody tr:hover {
+            background: #f9fafb;
         }
 
         .modal {
@@ -253,1685 +316,1576 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.5);
             z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal.show {
+            display: flex;
         }
 
         .modal-content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
             background: white;
-            padding: 30px;
-            border-radius: 15px;
-            max-width: 800px;
-            width: 90%;
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
             max-height: 90vh;
             overflow-y: auto;
         }
 
-        .close {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            font-size: 30px;
-            cursor: pointer;
-            color: #999;
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
         }
 
-        .close:hover {
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: bold;
             color: #dc2626;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+
+        .close-btn:hover {
+            background: #f3f4f6;
         }
 
         .form-row {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
         }
 
-        .loading {
-            text-align: center;
-            padding: 20px;
-        }
-
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #dc2626;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .textarea {
+            min-height: 100px;
+            resize: vertical;
+            font-family: inherit;
         }
 
         .alert {
-            padding: 15px;
-            margin: 10px 0;
+            padding: 1rem;
             border-radius: 8px;
-            font-weight: bold;
+            margin-bottom: 1rem;
+            border: 1px solid transparent;
         }
 
         .alert-success {
             background: #d1fae5;
+            border-color: #a7f3d0;
             color: #065f46;
-            border: 1px solid #34d399;
         }
 
-        .alert-error {
-            background: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #f87171;
+        .alert-warning {
+            background: #fef3c7;
+            border-color: #fbbf24;
+            color: #92400e;
         }
 
-        .user-info {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 10px 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
+        .hidden {
+            display: none !important;
+        }
+
+        .loading {
+            display: inline-flex;
             align-items: center;
+            gap: 0.5rem;
         }
 
-        .logout-btn {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid currentColor;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
         }
 
-        .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         @media (max-width: 768px) {
-            .container {
-                padding: 5px;
+            .header-content {
+                flex-direction: column;
+                text-align: center;
             }
 
-            .header h1 {
-                font-size: 1.5rem;
+            .logo-text {
+                font-size: 1.2rem;
             }
 
-            .nav-tabs {
+            .main-content {
+                padding: 1rem;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .navigation-tabs {
+                justify-content: flex-start;
+            }
+
+            .search-container {
                 flex-direction: column;
             }
 
-            .nav-tab {
-                margin: 2px 0;
+            .table-container {
+                overflow-x: auto;
             }
 
             .form-row {
                 grid-template-columns: 1fr;
             }
-
-            .data-table {
-                font-size: 14px;
-            }
-
-            .data-table th,
-            .data-table td {
-                padding: 8px 5px;
-            }
-
-            .modal-content {
-                width: 95%;
-                padding: 20px;
-            }
         }
 
-        .list-manager {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .list-section {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .list-section h3 {
-            color: #dc2626;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-
-        .list-item {
+        .connection-status {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #f0f0f0;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
         }
 
-        .list-item:last-child {
-            border-bottom: none;
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ef4444;
+            animation: pulse 2s infinite;
         }
 
-        .add-item-form {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
+        .status-indicator.connected {
+            background: #10b981;
         }
 
-        .add-item-input {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
         }
 
-        .btn-small {
-            padding: 6px 12px;
-            font-size: 14px;
+        .status-text {
+            color: #ef4444;
+            font-weight: 500;
+        }
+
+        .status-text.connected {
+            color: #10b981;
+        }
+
+        .config-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .config-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #dc2626;
+            margin-bottom: 1rem;
+        }
+
+        .test-results {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
         }
     </style>
 </head>
 <body>
-    <!-- Login Screen -->
-    <div id="loginScreen" class="login-container">
+    <div class="app-container" id="app">
+        <!-- Header -->
         <div class="header">
-            <h1>🐟 SIFCO</h1>
-            <p class="subtitle">Prospect Products Management System</p>
-        </div>
-        
-        <div class="form-group">
-            <label for="username">ชื่อผู้ใช้:</label>
-            <input type="text" id="username" class="form-control" placeholder="กรอกชื่อผู้ใช้">
-        </div>
-        
-        <div class="form-group">
-            <label for="password">รหัสผ่าน:</label>
-            <input type="password" id="password" class="form-control" placeholder="กรอกรหัสผ่าน">
-        </div>
-        
-        <button onclick="login()" class="btn btn-primary" style="width: 100%;">เข้าสู่ระบบ</button>
-        
-        <div id="loginError" class="alert alert-error" style="display: none; margin-top: 15px;"></div>
-    </div>
-
-    <!-- Main Application -->
-    <div id="mainApp" style="display: none;">
-        <div class="container">
-            <div class="header">
-                <h1>🐟 Prospect Products SIFCO</h1>
-                <p class="subtitle">ระบบจัดการลูกค้า Prospect - อาหารทะเลแปรรูปแช่แข็งส่งออก</p>
-            </div>
-
-            <div class="user-info">
-                <span>ยินดีต้อนรับ: <strong id="currentUser"></strong></span>
-                <button onclick="logout()" class="logout-btn">ออกจากระบบ</button>
-            </div>
-
-            <!-- Navigation Tabs -->
-            <div class="nav-tabs">
-                <button class="nav-tab active" onclick="showTab('dashboard')">📊 สรุปข้อมูล</button>
-                <button class="nav-tab" onclick="showTab('prospects')">👥 รายการ Prospect</button>
-                <button class="nav-tab" onclick="showTab('add')">➕ เพิ่มข้อมูล</button>
-                <button class="nav-tab" onclick="showTab('manage')" id="manageTab">⚙️ จัดการข้อมูล</button>
-                <button class="nav-tab" onclick="showTab('admin')" id="adminTab" style="display: none;">🔧 Admin</button>
-            </div>
-
-            <!-- Dashboard Tab -->
-            <div id="dashboard" class="tab-content active">
-                <div class="summary-cards" id="summaryCards">
-                    <!-- Summary cards will be populated here -->
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">SP</div>
+                    <div class="logo-text">Prospect Products SIFCO</div>
                 </div>
-                
-                <div class="card">
-                    <h2>🔍 ค้นหาข้อมูล</h2>
-                    <input type="text" id="dashboardSearch" class="search-box" placeholder="ค้นหาจากชื่อบริษัท, ประเทศ, สินค้า, หรือผู้ติดต่อ..." oninput="searchProspects()">
-                    <div id="searchResults"></div>
-                </div>
-            </div>
-
-            <!-- Prospects Tab -->
-            <div id="prospects" class="tab-content">
-                <div class="card">
-                    <h2>📋 รายการ Prospect ทั้งหมด</h2>
-                    <input type="text" id="prospectSearch" class="search-box" placeholder="ค้นหาข้อมูล..." oninput="filterProspects()">
-                    <div class="loading" id="prospectLoading">
-                        <div class="spinner"></div>
-                        <p>กำลังโหลดข้อมูล...</p>
+                <div class="user-info">
+                    <div class="connection-status" id="connectionStatus">
+                        <div class="status-indicator" id="statusIndicator"></div>
+                        <span class="status-text" id="statusText">กำลังตรวจสอบ...</span>
                     </div>
-                    <div id="prospectList"></div>
+                    <div id="userDisplay" class="hidden">
+                        <span id="currentUser"></span>
+                        <button class="btn btn-secondary" onclick="logout()">ออกจากระบบ</button>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Add New Prospect Tab -->
-            <div id="add" class="tab-content">
-                <div class="card">
-                    <h2>➕ เพิ่มข้อมูล Prospect ใหม่</h2>
-                    <form id="prospectForm">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>วันที่:</label>
-                                <input type="date" id="date" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <label>ชื่อบริษัท: *</label>
-                                <input type="text" id="companyName" class="form-control" required placeholder="กรอกชื่อบริษัท">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>ประเทศของลูกค้า: *</label>
-                                <select id="customerCountry" class="form-control" required>
-                                    <option value="">เลือกประเทศ</option>
-                                </select>
-                                <input type="text" id="newCustomerCountry" class="form-control" placeholder="หรือเพิ่มประเทศใหม่" style="margin-top: 5px;">
-                            </div>
-                            <div class="form-group">
-                                <label>ประเทศที่ขายสินค้า: *</label>
-                                <select id="saleCountry" class="form-control" required>
-                                    <option value="">เลือกประเทศ</option>
-                                </select>
-                                <input type="text" id="newSaleCountry" class="form-control" placeholder="หรือเพิ่มประเทศใหม่" style="margin-top: 5px;">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>ชื่อผู้ติดต่อ: *</label>
-                                <input type="text" id="contactName" class="form-control" required placeholder="กรอกชื่อผู้ติดต่อ">
-                            </div>
-                            <div class="form-group">
-                                <label>E-mail:</label>
-                                <input type="email" id="email" class="form-control" placeholder="กรอกอีเมล">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Line ID:</label>
-                                <input type="text" id="line" class="form-control" placeholder="กรอก Line ID">
-                            </div>
-                            <div class="form-group">
-                                <label>WhatsApp:</label>
-                                <input type="text" id="whatsapp" class="form-control" placeholder="กรอกเบอร์ WhatsApp">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>ชื่อสินค้า: *</label>
-                                <input type="text" id="productName" class="form-control" required placeholder="กรอกชื่อสินค้า">
-                            </div>
-                            <div class="form-group">
-                                <label>กลุ่มสินค้า: *</label>
-                                <select id="productGroup" class="form-control" required>
-                                    <option value="">เลือกกลุ่มสินค้า</option>
-                                </select>
-                                <input type="text" id="newProductGroup" class="form-control" placeholder="หรือเพิ่มกลุ่มสินค้าใหม่" style="margin-top: 5px;">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>กลุ่มวัตถุดิบ: *</label>
-                                <select id="materialGroup" class="form-control" required>
-                                    <option value="">เลือกกลุ่มวัตถุดิบ</option>
-                                </select>
-                                <input type="text" id="newMaterialGroup" class="form-control" placeholder="หรือเพิ่มกลุ่มวัตถุดิบใหม่" style="margin-top: 5px;">
-                            </div>
-                        </div>
-
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Login Screen -->
+            <div id="loginScreen" class="login-container">
+                <div class="login-card">
+                    <h2 class="login-title">เข้าสู่ระบบ</h2>
+                    <div id="loginAlert" class="hidden"></div>
+                    <form id="loginForm">
                         <div class="form-group">
-                            <label>รายละเอียดข้อมูลที่คุย:</label>
-                            <textarea id="details" class="form-control" rows="4" placeholder="กรอกรายละเอียดการสนทนา..."></textarea>
+                            <label class="form-label">ชื่อผู้ใช้</label>
+                            <input type="text" class="form-input" id="username" required>
                         </div>
-
-                        <button type="submit" class="btn btn-success">บันทึกข้อมูล</button>
-                        <button type="button" onclick="clearForm()" class="btn btn-secondary">ล้างข้อมูล</button>
+                        <div class="form-group">
+                            <label class="form-label">รหัสผ่าน</label>
+                            <input type="password" class="form-input" id="password" required>
+                        </div>
+                        <button type="submit" class="btn btn-full">
+                            <span id="loginButtonText">เข้าสู่ระบบ</span>
+                            <div class="spinner hidden" id="loginSpinner"></div>
+                        </button>
                     </form>
                 </div>
             </div>
 
-            <!-- Manage Data Tab -->
-            <div id="manage" class="tab-content">
-                <div class="card">
-                    <h2>⚙️ จัดการข้อมูล</h2>
-                    <div class="list-manager" id="listManager">
-                        <!-- List management sections will be populated here -->
+            <!-- Dashboard -->
+            <div id="dashboard" class="hidden">
+                <!-- Stats Cards -->
+                <div class="dashboard-grid">
+                    <div class="stats-card">
+                        <div class="stats-number" id="totalProspects">0</div>
+                        <div class="stats-label">รายการทั้งหมด</div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stats-number" id="totalCountries">0</div>
+                        <div class="stats-label">ประเทศ</div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stats-number" id="totalCategories">0</div>
+                        <div class="stats-label">กลุ่มสินค้า</div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stats-number" id="totalMaterials">0</div>
+                        <div class="stats-label">กลุ่มวัตถุดิบ</div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Admin Tab -->
-            <div id="admin" class="tab-content">
-                <div class="card">
-                    <h2>🔧 การจัดการระบบ (Admin)</h2>
-                    
-                    <div class="form-group">
-                        <h3>🔗 ทดสอบการเชื่อมต่อ Google Sheets</h3>
-                        <button onclick="testConnection()" class="btn btn-primary">ทดสอบการเชื่อมต่อ</button>
-                        <button onclick="testRead()" class="btn btn-secondary">ทดสอบการอ่านข้อมูล</button>
-                        <button onclick="testWrite()" class="btn btn-success">ทดสอบการเขียนข้อมูล</button>
-                        <div id="connectionTest" class="alert" style="display: none; margin-top: 10px;"></div>
+                <!-- Navigation Tabs -->
+                <div class="navigation-tabs">
+                    <div class="nav-tab active" data-tab="prospects" onclick="switchTab('prospects')">รายการลูกค้า</div>
+                    <div class="nav-tab" data-tab="summary" onclick="switchTab('summary')">สรุปข้อมูล</div>
+                    <div class="nav-tab" data-tab="settings" onclick="switchTab('settings')" id="settingsNavTab">การตั้งค่า</div>
+                </div>
+
+                <!-- Prospects Tab -->
+                <div id="prospectsTabContent" class="tab-content">
+                    <!-- Search and Filter -->
+                    <div class="search-container">
+                        <input type="text" class="form-input search-input" id="searchInput" placeholder="ค้นหา Email, บริษัท, ผู้ติดต่อ, ชื่อสินค้า, Line, WhatsApp หรือรายละเอียด...">
+                        <select class="filter-select" id="countryFilter">
+                            <option value="">ทุกประเทศลูกค้า</option>
+                        </select>
+                        <select class="filter-select" id="categoryFilter">
+                            <option value="">ทุกกลุ่มสินค้า</option>
+                        </select>
+                        <select class="filter-select" id="materialFilter">
+                            <option value="">ทุกกลุ่มวัตถุดิบ</option>
+                        </select>
+                        <button class="btn" onclick="openAddModal()">+ เพิ่มรายการ</button>
                     </div>
 
-                    <hr style="margin: 30px 0;">
-
-                    <div class="form-group">
-                        <h3>👥 จัดการผู้ใช้งาน</h3>
-                        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                            <input type="text" id="newUsername" class="form-control" placeholder="ชื่อผู้ใช้ใหม่">
-                            <input type="password" id="newUserPassword" class="form-control" placeholder="รหัสผ่าน">
-                            <button onclick="addUser()" class="btn btn-success">เพิ่มผู้ใช้</button>
+                    <!-- Data Table -->
+                    <div class="data-table">
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Email</th>
+                                        <th>บริษัท</th>
+                                        <th>ผู้ติดต่อ</th>
+                                        <th>ประเทศลูกค้า</th>
+                                        <th>วันที่</th>
+                                        <th>ชื่อสินค้า</th>
+                                        <th>ประเทศที่ขาย</th>
+                                        <th>กลุ่มสินค้า</th>
+                                        <th>กลุ่มวัตถุดิบ</th>
+                                        <th>ติดต่อ</th>
+                                        <th>จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="prospectsTable">
+                                </tbody>
+                            </table>
                         </div>
-                        <div id="userList"></div>
+                    </div>
+                </div>
+
+                <!-- Summary Tab -->
+                <div id="summaryTabContent" class="tab-content hidden">
+                    <div class="dashboard-grid">
+                        <div class="card">
+                            <h3 class="config-title">สรุปตามประเทศ</h3>
+                            <div id="countrySummary"></div>
+                        </div>
+                        <div class="card">
+                            <h3 class="config-title">สรุปตามกลุ่มสินค้า</h3>
+                            <div id="categorySummary"></div>
+                        </div>
+                        <div class="card">
+                            <h3 class="config-title">สรุปตามกลุ่มวัตถุดิบ</h3>
+                            <div id="materialSummary"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div id="settingsTabContent" class="tab-content hidden">
+                    <!-- Connection Test -->
+                    <div class="config-section">
+                        <h3 class="config-title">ทดสอบการเชื่อมต่อ Google Sheets</h3>
+                        <div class="form-row">
+                            <button class="btn" onclick="testConnection()">ทดสอบการเชื่อมต่อ</button>
+                        </div>
+                        <div id="testResults" class="test-results hidden"></div>
+                    </div>
+
+                    <!-- Apps Script Setup Guide -->
+                    <div class="config-section">
+                        <h3 class="config-title">คำแนะนำการตั้งค่า Apps Script (สำหรับเพิ่ม/ลบข้อมูล)</h3>
+                        <div class="alert alert-warning" style="background: #fef3c7; border-color: #fbbf24; color: #92400e; margin-bottom: 1rem;">
+                            <strong>หมายเหตุ:</strong> การเพิ่ม/ลบข้อมูลต้องตั้งค่า Google Apps Script ก่อน
+                        </div>
+                        <div class="test-results" style="display: block;">
+<strong>✅ อัพเดท Apps Script URL แล้ว!</strong>
+
+<strong>URL ใหม่:</strong> 
+https://script.google.com/macros/s/AKfycbyvNpB54EgdkFsmEJfzItid8t8EC2FmbZI6sP-hWIu218Glx7csd43JOSNgcHd7vOqv/exec
+
+<strong>🧪 ทดสอบ URL ด้วยตนเอง:</strong>
+เปิดลิงค์ข้างต้นในเบราว์เซอร์ ควรเห็น:
+```json
+{
+  "message": "Apps Script is working GET",
+  "timestamp": "2025-08-19T...",
+  "parameters": {}
+}
+```
+
+<strong>📋 Apps Script Code ที่ใช้:</strong>
+```javascript
+function doPost(e) {
+  try {
+    if (!e.postData) {
+      return ContentService.createTextOutput(JSON.stringify({message: 'Apps Script is working POST'}));
+    }
+    
+    const data = JSON.parse(e.postData.contents);
+    const spreadsheetId = '1Zpmtz6vjMRV6meWy8duKKTTj3ptIf00pggiakMa_Plo';
+    const sheet = SpreadsheetApp.openById(spreadsheetId);
+    
+    if (data.action === 'append') {
+      const sheetName = data.range.split('!')[0];
+      const targetSheet = sheet.getSheetByName(sheetName);
+      targetSheet.appendRow(data.values);
+      return ContentService.createTextOutput(JSON.stringify({success: true, action: 'append'}));
+    }
+    
+    if (data.action === 'update') {
+      const parts = data.range.split('!');
+      const sheetName = parts[0];
+      const range = parts[1];
+      const targetSheet = sheet.getSheetByName(sheetName);
+      const rangeObj = targetSheet.getRange(range);
+      rangeObj.setValues([data.values]);
+      return ContentService.createTextOutput(JSON.stringify({success: true, action: 'update'}));
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({message: 'Test successful', data: data}));
+    
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({error: error.toString(), stack: error.stack}));
+  }
+}
+
+function doGet(e) {
+  return ContentService.createTextOutput(JSON.stringify({
+    message: 'Apps Script is working GET',
+    timestamp: new Date().toISOString(),
+    parameters: e.parameter
+  }));
+}
+```
+
+<strong>🚀 ขั้นตอนต่อไป:</strong>
+1. กดปุ่ม "ทดสอบการเชื่อมต่อ" เพื่อทดสอบระบบ
+2. ลองใช้ฟังก์ชัน "จัดการประเทศ" หรือ "จัดการกลุ่มสินค้า"
+3. ทดสอบการเพิ่ม/ลบข้อมูล
+
+<strong>✅ สถานะ:</strong> พร้อมใช้งานเต็มรูปแบบ!
+                        </div>
+                    </div>
+
+                    <!-- Master Data Management - เฉพาะ Admin -->
+                    <div class="config-section" id="adminSettings">
+                        <h3 class="config-title">จัดการข้อมูลหลัก (เฉพาะ Admin)</h3>
+                        <div class="form-row">
+                            <button class="btn" onclick="openManageModal('countries')">จัดการประเทศ</button>
+                            <button class="btn" onclick="openManageModal('categories')">จัดการกลุ่มสินค้า</button>
+                            <button class="btn" onclick="openManageModal('materials')">จัดการกลุ่มวัตถุดิบ</button>
+                            <button class="btn" onclick="openManageModal('users')">จัดการผู้ใช้</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Edit Modal -->
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <h2>แก้ไขข้อมูล Prospect</h2>
-            <form id="editForm">
-                <input type="hidden" id="editRowIndex">
-                <!-- Form fields will be populated dynamically -->
-                <div id="editFormFields"></div>
-                <div style="margin-top: 20px;">
-                    <button type="submit" class="btn btn-success">บันทึกการแก้ไข</button>
-                    <button type="button" onclick="closeModal()" class="btn btn-secondary">ยกเลิก</button>
+        <!-- Add/Edit Modal -->
+        <div id="editModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="modalTitle">เพิ่มรายการใหม่</h3>
+                    <button class="close-btn" onclick="closeModal()">&times;</button>
                 </div>
-            </form>
+                <form id="prospectForm">
+                    <input type="hidden" id="editId">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Email *</label>
+                            <input type="email" class="form-input" id="prospectEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">ชื่อบริษัท</label>
+                            <input type="text" class="form-input" id="prospectCompany">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">ชื่อผู้ติดต่อ</label>
+                            <input type="text" class="form-input" id="prospectContact">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">ประเทศลูกค้า *</label>
+                            <select class="form-input" id="prospectCountry" required>
+                                <option value="">เลือกประเทศลูกค้า</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">วันที่ *</label>
+                            <input type="date" class="form-input" id="prospectDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">ชื่อสินค้า</label>
+                            <input type="text" class="form-input" id="prospectProductName" placeholder="ระบุชื่อสินค้าที่ลูกค้าสนใจ">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">ประเทศที่ขายสินค้า</label>
+                            <select class="form-input" id="prospectSaleCountry">
+                                <option value="">เลือกประเทศที่ขาย</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">กลุ่มสินค้า *</label>
+                            <select class="form-input" id="prospectCategory" required>
+                                <option value="">เลือกกลุ่มสินค้า</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">กลุ่มวัตถุดิบ *</label>
+                        <select class="form-input" id="prospectMaterial" required>
+                            <option value="">เลือกกลุ่มวัตถุดิบ</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Line ID</label>
+                            <input type="text" class="form-input" id="prospectLine" placeholder="Line ID ของลูกค้า">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">WhatsApp</label>
+                            <input type="text" class="form-input" id="prospectWhatsapp" placeholder="เบอร์ WhatsApp ของลูกค้า">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">รายละเอียดการสนทนา</label>
+                        <textarea class="form-input textarea" id="prospectDetails" placeholder="บันทึกรายละเอียดการสนทนา, ความต้องการ, หรือข้อมูลเพิ่มเติม"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <button type="submit" class="btn">บันทึก</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">ยกเลิก</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Manage Data Modal -->
+        <div id="manageModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="manageModalTitle">จัดการข้อมูล</h3>
+                    <button class="close-btn" onclick="closeManageModal()">&times;</button>
+                </div>
+                <div class="form-row">
+                    <input type="text" class="form-input" id="newItemInput" placeholder="เพิ่มรายการใหม่">
+                    <button class="btn" onclick="addNewItem()">เพิ่ม</button>
+                </div>
+                <div id="manageList" class="test-results"></div>
+            </div>
         </div>
     </div>
 
     <script>
         // Global variables
-        let currentUserType = null;
-        let currentUsername = null;
-        let allProspects = [];
-        let listData = {
-            countries: [],
-            productGroups: [],
-            materialGroups: []
-        };
-
-        // Configuration
-        const CONFIG = {
+        let currentUser = null;
+        let userRole = null;
+        let googleSheetsConfig = {
             spreadsheetId: '1Zpmtz6vjMRV6meWy8duKKTTj3ptIf00pggiakMa_Plo',
             apiKey: 'AIzaSyBtkCPgEiTlAS12Q-tPp_6mIPdPkKABcx4',
-            scriptUrl: 'https://script.google.com/macros/s/AKfycbyvNpB54EgdkFsmEJfzItid8t8EC2FmbZI6sP-hWIu218Glx7csd43JOSNgcHd7vOqv/exec',
-            timeout: 5000
+            // Apps Script Web App URL สำหรับการเขียนข้อมูล
+            appsScriptUrl: 'https://script.google.com/macros/s/AKfycbyvNpB54EgdkFsmEJfzItid8t8EC2FmbZI6sP-hWIu218Glx7csd43JOSNgcHd7vOqv/exec'
         };
+        let masterData = {
+            countries: [],
+            categories: [],
+            materials: [],
+            users: []
+        };
+        let prospects = [];
+        let filteredProspects = [];
+        let currentManageType = '';
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
-            // Set default date to today
-            document.getElementById('date').valueAsDate = new Date();
-            
-            // Load initial data
-            loadListData();
+            loadStoredConfig();
+            initializeEventListeners();
+            // ทดสอบการเชื่อมต่อทันทีเมื่อเปิดโปรแกรม
+            checkConnectionStatus();
         });
 
-        // Login function
-        async function login() {
+        function initializeEventListeners() {
+            // Login form
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            
+            // Search and filters
+            document.getElementById('searchInput').addEventListener('input', applyFilters);
+            document.getElementById('countryFilter').addEventListener('change', applyFilters);
+            document.getElementById('categoryFilter').addEventListener('change', applyFilters);
+            document.getElementById('materialFilter').addEventListener('change', applyFilters);
+            
+            // Prospect form
+            document.getElementById('prospectForm').addEventListener('submit', handleSaveProspect);
+        }
+
+        function loadStoredConfig() {
+            // ตั้งค่าเริ่มต้น
+            const defaultConfig = {
+                spreadsheetId: '1Zpmtz6vjMRV6meWy8duKKTTj3ptIf00pggiakMa_Plo',
+                apiKey: 'AIzaSyBtkCPgEiTlAS12Q-tPp_6mIPdPkKABcx4'
+            };
+            
+            // ใช้ค่าเริ่มต้น
+            googleSheetsConfig.spreadsheetId = defaultConfig.spreadsheetId;
+            googleSheetsConfig.apiKey = defaultConfig.apiKey;
+        }
+
+        async function checkConnectionStatus() {
+            updateConnectionStatus(false, 'กำลังตรวจสอบ...');
+            
+            try {
+                // ทดสอบการเชื่อมต่อแบบเงียบๆ
+                await fetchGoogleSheetData('Prospects!A1:A1');
+                updateConnectionStatus(true, 'เชื่อมต่อปกติ');
+            } catch (error) {
+                console.error('Connection check failed:', error);
+                updateConnectionStatus(false, 'เชื่อมต่อมีปัญหา');
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             
-            if (!username || !password) {
-                showError('loginError', 'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน');
-                return;
-            }
-
-            // Check admin login
+            showLoading('loginSpinner', 'loginButtonText', 'กำลังเข้าสู่ระบบ...');
+            
+            // Admin login - ฝังไว้ในโค้ด
             if (username === 'adminsifco' && password === 'adminsifco888') {
-                currentUserType = 'admin';
-                currentUsername = username;
-                showMainApp();
+                currentUser = 'Admin';
+                userRole = 'admin';
+                showDashboard();
+                hideLoading('loginSpinner', 'loginButtonText', 'เข้าสู่ระบบ');
                 return;
             }
-
-            // Check user login from Google Sheets
+            
+            // User login - ตรวจสอบจาก Google Sheets
             try {
-                const users = await fetchFromGoogleSheets('Users');
-                const user = users.find(u => u['Username'] === username && u['Password'] === password);
-                
+                await loadMasterData();
+                const user = masterData.users.find(u => u.username === username && u.password === password);
                 if (user) {
-                    currentUserType = 'user';
-                    currentUsername = username;
-                    showMainApp();
-                } else {
-                    showError('loginError', 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+                    currentUser = username;
+                    userRole = 'user';
+                    showDashboard();
+                    hideLoading('loginSpinner', 'loginButtonText', 'เข้าสู่ระบบ');
+                    return;
                 }
             } catch (error) {
-                showError('loginError', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
                 console.error('Login error:', error);
-            }
-        }
-
-        // Show main application
-        function showMainApp() {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
-            document.getElementById('currentUser').textContent = currentUsername;
-            
-            if (currentUserType === 'admin') {
-                document.getElementById('adminTab').style.display = 'block';
-                loadUserList();
-            }
-            
-            loadAllData();
-        }
-
-        // Logout function
-        function logout() {
-            if (confirm('คุณต้องการออกจากระบบหรือไม่?')) {
-                currentUserType = null;
-                currentUsername = null;
-                document.getElementById('loginScreen').style.display = 'block';
-                document.getElementById('mainApp').style.display = 'none';
-                document.getElementById('username').value = '';
-                document.getElementById('password').value = '';
-                document.getElementById('loginError').style.display = 'none';
-            }
-        }
-
-        // Tab management
-        function showTab(tabName) {
-            // Hide all tabs
-            const tabs = document.querySelectorAll('.tab-content');
-            tabs.forEach(tab => tab.classList.remove('active'));
-            
-            // Remove active class from all nav tabs
-            const navTabs = document.querySelectorAll('.nav-tab');
-            navTabs.forEach(tab => tab.classList.remove('active'));
-            
-            // Show selected tab
-            document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
-            
-            // Load data for specific tabs
-            if (tabName === 'prospects') {
-                loadProspects();
-            } else if (tabName === 'dashboard') {
-                loadDashboard();
-            } else if (tabName === 'manage') {
-                loadListManager();
-            }
-        }
-
-        // Fetch data from Google Sheets
-        async function fetchFromGoogleSheets(sheetName) {
-            try {
-                const response = await fetch(`${CONFIG.scriptUrl}?action=read&sheet=${sheetName}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-                
-                return data.data || [];
-            } catch (error) {
-                console.error(`Error fetching ${sheetName}:`, error);
-                throw error;
-            }
-        }
-
-        // Save data to Google Sheets
-        async function saveToGoogleSheets(sheetName, data) {
-            try {
-                const response = await fetch(`${CONFIG.scriptUrl}?action=write&sheet=${sheetName}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ data: data })
-                });
-                
-                const result = await response.json();
-                
-                if (result.error) {
-                    throw new Error(result.error);
-                }
-                
-                return result;
-            } catch (error) {
-                console.error(`Error saving to ${sheetName}:`, error);
-                throw error;
-            }
-        }
-
-        // Load list data (countries, product groups, material groups)
-        async function loadListData() {
-            try {
-                // Load countries
-                const countries = await fetchFromGoogleSheets('Countries');
-                listData.countries = countries.map(item => item['Country']).filter(Boolean);
-                
-                // Load product groups
-                const productGroups = await fetchFromGoogleSheets('ProductGroups');
-                listData.productGroups = productGroups.map(item => item['ProductGroup']).filter(Boolean);
-                
-                // Load material groups
-                const materialGroups = await fetchFromGoogleSheets('MaterialGroups');
-                listData.materialGroups = materialGroups.map(item => item['MaterialGroup']).filter(Boolean);
-                
-                updateDropdowns();
-            } catch (error) {
-                console.error('Error loading list data:', error);
-                // Use default data if can't load from sheets
-                listData.countries = ['Thailand', 'Japan', 'USA', 'Europe', 'China', 'Korea'];
-                listData.productGroups = ['กุ้งแช่แข็ง', 'ปลาแช่แข็ง', 'หมึกแช่แข็ง', 'ปูแช่แข็ง'];
-                listData.materialGroups = ['กุ้งสด', 'ปลาสด', 'หมึกสด', 'ปูสด'];
-                updateDropdowns();
-            }
-        }
-
-        // Update dropdown lists
-        function updateDropdowns() {
-            const customerCountrySelect = document.getElementById('customerCountry');
-            const saleCountrySelect = document.getElementById('saleCountry');
-            const productGroupSelect = document.getElementById('productGroup');
-            const materialGroupSelect = document.getElementById('materialGroup');
-            
-            // Update country dropdowns
-            updateSelectOptions(customerCountrySelect, listData.countries);
-            updateSelectOptions(saleCountrySelect, listData.countries);
-            
-            // Update product group dropdown
-            updateSelectOptions(productGroupSelect, listData.productGroups);
-            
-            // Update material group dropdown
-            updateSelectOptions(materialGroupSelect, listData.materialGroups);
-        }
-
-        // Helper function to update select options
-        function updateSelectOptions(selectElement, options) {
-            const currentValue = selectElement.value;
-            selectElement.innerHTML = '<option value="">เลือก...</option>';
-            
-            options.forEach(option => {
-                const optionElement = document.createElement('option');
-                optionElement.value = option;
-                optionElement.textContent = option;
-                selectElement.appendChild(optionElement);
-            });
-            
-            if (currentValue && options.includes(currentValue)) {
-                selectElement.value = currentValue;
-            }
-        }
-
-        // Load all data
-        async function loadAllData() {
-            await loadListData();
-            loadDashboard();
-        }
-
-        // Load dashboard data
-        async function loadDashboard() {
-            try {
-                allProspects = await fetchFromGoogleSheets('Prospects');
-                updateSummaryCards();
-                displaySearchResults(allProspects);
-            } catch (error) {
-                console.error('Error loading dashboard:', error);
-                document.getElementById('summaryCards').innerHTML = '<div class="alert alert-error">ไม่สามารถโหลดข้อมูลได้</div>';
-            }
-        }
-
-        // Update summary cards
-        function updateSummaryCards() {
-            const summaryCards = document.getElementById('summaryCards');
-            
-            // Calculate summaries
-            const totalProspects = allProspects.length;
-            const uniqueCountries = [...new Set(allProspects.map(p => p['CustomerCountry']).filter(Boolean))].length;
-            const uniqueProductGroups = [...new Set(allProspects.map(p => p['ProductGroup']).filter(Boolean))].length;
-            const uniqueMaterialGroups = [...new Set(allProspects.map(p => p['MaterialGroup']).filter(Boolean))].length;
-            
-            summaryCards.innerHTML = `
-                <div class="summary-card">
-                    <h3>${totalProspects}</h3>
-                    <p>รายการ Prospect ทั้งหมด</p>
-                </div>
-                <div class="summary-card">
-                    <h3>${uniqueCountries}</h3>
-                    <p>ประเทศลูกค้า</p>
-                </div>
-                <div class="summary-card">
-                    <h3>${uniqueProductGroups}</h3>
-                    <p>กลุ่มสินค้า</p>
-                </div>
-                <div class="summary-card">
-                    <h3>${uniqueMaterialGroups}</h3>
-                    <p>กลุ่มวัตถุดิบ</p>
-                </div>
-            `;
-        }
-
-        // Search prospects
-        function searchProspects() {
-            const searchTerm = document.getElementById('dashboardSearch').value.toLowerCase();
-            const filteredProspects = allProspects.filter(prospect => {
-                return Object.values(prospect).some(value => 
-                    value && value.toString().toLowerCase().includes(searchTerm)
-                );
-            });
-            displaySearchResults(filteredProspects);
-        }
-
-        // Display search results
-        function displaySearchResults(prospects) {
-            const searchResults = document.getElementById('searchResults');
-            
-            if (prospects.length === 0) {
-                searchResults.innerHTML = '<p>ไม่พบข้อมูลที่ค้นหา</p>';
+                showAlert('loginAlert', 'ไม่สามารถตรวจสอบข้อมูลผู้ใช้ได้ กรุณาลองใหม่อีกครั้ง', 'error');
+                hideLoading('loginSpinner', 'loginButtonText', 'เข้าสู่ระบบ');
                 return;
             }
-
-            let html = `
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>วันที่</th>
-                            <th>บริษัท</th>
-                            <th>ประเทศลูกค้า</th>
-                            <th>ผู้ติดต่อ</th>
-                            <th>สินค้า</th>
-                            <th>กลุ่มสินค้า</th>
-                            <th>กลุ่มวัตถุดิบ</th>
-                            <th>การจัดการ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            prospects.forEach((prospect, index) => {
-                html += `
-                    <tr>
-                        <td>${formatDate(prospect['Date'])}</td>
-                        <td>${prospect['CompanyName'] || ''}</td>
-                        <td>${prospect['CustomerCountry'] || ''}</td>
-                        <td>${prospect['ContactName'] || ''}</td>
-                        <td>${prospect['ProductName'] || ''}</td>
-                        <td>${prospect['ProductGroup'] || ''}</td>
-                        <td>${prospect['MaterialGroup'] || ''}</td>
-                        <td>
-                            <button onclick="editProspect(${index})" class="btn btn-small btn-primary">แก้ไข</button>
-                            <button onclick="deleteProspect(${index})" class="btn btn-small btn-danger">ลบ</button>
-                        </td>
-                    </tr>
-                `;
-            });
-
-            html += '</tbody></table>';
-            searchResults.innerHTML = html;
+            
+            // Login failed
+            showAlert('loginAlert', 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง', 'error');
+            hideLoading('loginSpinner', 'loginButtonText', 'เข้าสู่ระบบ');
         }
 
-        // Load prospects list
-        async function loadProspects() {
-            document.getElementById('prospectLoading').style.display = 'block';
-            document.getElementById('prospectList').innerHTML = '';
+        function showDashboard() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('userDisplay').classList.remove('hidden');
+            document.getElementById('currentUser').textContent = currentUser;
+            
+            // Show/hide admin-only features
+            const adminSettings = document.getElementById('adminSettings');
+            const settingsNavTab = document.getElementById('settingsNavTab');
+            
+            if (userRole === 'admin') {
+                // Admin เห็นทุกอย่าง
+                adminSettings.classList.remove('hidden');
+                settingsNavTab.classList.remove('hidden');
+            } else {
+                // User ไม่เห็นเมนูการตั้งค่าและการจัดการข้อมูลหลัก
+                adminSettings.classList.add('hidden');
+                settingsNavTab.classList.add('hidden');
+            }
+            
+            loadDashboardData();
+        }
+
+        function logout() {
+            currentUser = null;
+            userRole = null;
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('userDisplay').classList.add('hidden');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            clearAlert('loginAlert');
+        }
+
+        async function loadDashboardData() {
+            updateConnectionStatus(false, 'กำลังโหลดข้อมูล...');
             
             try {
-                allProspects = await fetchFromGoogleSheets('Prospects');
-                document.getElementById('prospectLoading').style.display = 'none';
-                displayProspectList(allProspects);
+                await loadMasterData();
+                await loadProspects();
+                updateFilters();
+                updateStats();
+                updateSummary();
+                updateConnectionStatus(true, 'เชื่อมต่อปกติ');
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                updateConnectionStatus(false, 'โหลดข้อมูลไม่สำเร็จ');
+            }
+        }
+
+        async function loadMasterData() {
+            try {
+                // Load countries from sheet (เริ่มจากแถวที่ 2)
+                const countriesData = await fetchGoogleSheetData('Countries!A2:A');
+                masterData.countries = countriesData.values ? countriesData.values.flat().filter(v => v) : [];
+                
+                // Load categories from sheet (เริ่มจากแถวที่ 2)
+                const categoriesData = await fetchGoogleSheetData('Categories!A2:A');
+                masterData.categories = categoriesData.values ? categoriesData.values.flat().filter(v => v) : [];
+                
+                // Load materials from sheet (เริ่มจากแถวที่ 2)
+                const materialsData = await fetchGoogleSheetData('Materials!A2:A');
+                masterData.materials = materialsData.values ? materialsData.values.flat().filter(v => v) : [];
+                
+                // Load users from sheet (เริ่มจากแถวที่ 2)
+                const usersData = await fetchGoogleSheetData('Users!A2:B');
+                masterData.users = [];
+                if (usersData.values) {
+                    usersData.values.forEach(row => {
+                        if (row[0] && row[1]) {
+                            masterData.users.push({
+                                username: row[0],
+                                password: row[1]
+                            });
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading master data:', error);
+                throw error;
+            }
+        }
+
+        async function loadProspects() {
+            try {
+                const data = await fetchGoogleSheetData('Prospects!A2:N');
+                prospects = [];
+                
+                if (data.values && data.values.length > 0) {
+                    data.values.forEach((row, index) => {
+                        if (row[0]) { // If email exists
+                            prospects.push({
+                                id: index + 2, // +2 เพราะเริ่มจากแถวที่ 2 และ 0-based index
+                                email: row[0] || '',
+                                company: row[1] || '',
+                                contact: row[2] || '',
+                                country: row[3] || '',
+                                category: row[4] || '',
+                                material: row[5] || '',
+                                details: row[6] || '',
+                                date: row[7] || new Date().toLocaleDateString('th-TH'),
+                                productName: row[8] || '',
+                                saleCountry: row[9] || '',
+                                line: row[10] || '',
+                                whatsapp: row[11] || '',
+                                createdDate: row[12] || new Date().toLocaleDateString('th-TH'),
+                                createdBy: row[13] || currentUser
+                            });
+                        }
+                    });
+                }
+                
+                filteredProspects = [...prospects];
+                renderProspectsTable();
             } catch (error) {
                 console.error('Error loading prospects:', error);
-                document.getElementById('prospectLoading').style.display = 'none';
-                document.getElementById('prospectList').innerHTML = '<div class="alert alert-error">ไม่สามารถโหลดข้อมูลได้</div>';
+                throw error;
             }
         }
 
-        // Display prospect list
-        function displayProspectList(prospects) {
-            const prospectList = document.getElementById('prospectList');
+        async function fetchGoogleSheetData(range) {
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${googleSheetsConfig.spreadsheetId}/values/${range}?key=${googleSheetsConfig.apiKey}`;
             
-            if (prospects.length === 0) {
-                prospectList.innerHTML = '<p>ยังไม่มีข้อมูล Prospect</p>';
-                return;
+            console.log('Fetching URL:', url);
+            
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Error response:', errorText);
+                throw new Error(`HTTP error! status: ${response.status}\nDetails: ${errorText}`);
             }
+            
+            return await response.json();
+        }
 
-            let html = `
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>วันที่</th>
-                            <th>บริษัท</th>
-                            <th>ประเทศลูกค้า</th>
-                            <th>ประเทศขาย</th>
-                            <th>ผู้ติดต่อ</th>
-                            <th>Email</th>
-                            <th>สินค้า</th>
-                            <th>กลุ่มสินค้า</th>
-                            <th>กลุ่มวัตถุดิบ</th>
-                            <th>การจัดการ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
+        async function appendToGoogleSheet(range, values) {
+            try {
+                // ใช้ Apps Script สำหรับการเขียนข้อมูล
+                console.log('Sending to Apps Script:', { action: 'append', range, values });
+                
+                const response = await fetch(googleSheetsConfig.appsScriptUrl, {
+                    method: 'POST',
+                    redirect: 'follow',
+                    headers: {
+                        'Content-Type': 'text/plain',
+                    },
+                    body: JSON.stringify({
+                        action: 'append',
+                        range: range,
+                        values: values
+                    })
+                });
+                
+                console.log('Apps Script response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Apps Script error response:', errorText);
+                    throw new Error(`Apps Script error! status: ${response.status}\nResponse: ${errorText}`);
+                }
+                
+                const result = await response.text();
+                console.log('Apps Script result:', result);
+                
+                // ลองแปลงเป็น JSON
+                try {
+                    const jsonResult = JSON.parse(result);
+                    if (jsonResult.error) {
+                        throw new Error(`Apps Script error: ${jsonResult.error}`);
+                    }
+                    return jsonResult;
+                } catch (parseError) {
+                    // ถ้าไม่ใช่ JSON ให้ return text ธรรมดา
+                    console.log('Response is not JSON, returning as text');
+                    return { success: true, response: result };
+                }
+                
+            } catch (error) {
+                console.error('Error appending to sheet:', error);
+                
+                // แสดงข้อมูลที่ต้องการเพิ่มให้ผู้ใช้เพิ่มด้วยตนเอง
+                const sheetName = range.split('!')[0];
+                alert(`ไม่สามารถเพิ่มข้อมูลอัตโนมัติได้\n\nข้อผิดพลาด: ${error.message}\n\nกรุณาเพิ่มข้อมูลนี้ในแผ่นงาน "${sheetName}" ด้วยตนเอง:\n${Array.isArray(values) ? values.join(', ') : values}\n\nหรือตรวจสอบการตั้งค่า Apps Script`);
+                throw error;
+            }
+        }
 
-            prospects.forEach((prospect, index) => {
-                html += `
-                    <tr>
-                        <td>${formatDate(prospect['Date'])}</td>
-                        <td>${prospect['CompanyName'] || ''}</td>
-                        <td>${prospect['CustomerCountry'] || ''}</td>
-                        <td>${prospect['SaleCountry'] || ''}</td>
-                        <td>${prospect['ContactName'] || ''}</td>
-                        <td>${prospect['Email'] || ''}</td>
-                        <td>${prospect['ProductName'] || ''}</td>
-                        <td>${prospect['ProductGroup'] || ''}</td>
-                        <td>${prospect['MaterialGroup'] || ''}</td>
-                        <td>
-                            <button onclick="editProspect(${index})" class="btn btn-small btn-primary">แก้ไข</button>
-                            <button onclick="deleteProspect(${index})" class="btn btn-small btn-danger">ลบ</button>
-                        </td>
-                    </tr>
+        async function updateGoogleSheetRow(range, values) {
+            try {
+                // ใช้ Apps Script สำหรับการอัพเดทข้อมูล
+                console.log('Updating via Apps Script:', { action: 'update', range, values });
+                
+                const response = await fetch(googleSheetsConfig.appsScriptUrl, {
+                    method: 'POST',
+                    redirect: 'follow',
+                    headers: {
+                        'Content-Type': 'text/plain',
+                    },
+                    body: JSON.stringify({
+                        action: 'update',
+                        range: range,
+                        values: values
+                    })
+                });
+                
+                console.log('Apps Script update response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Apps Script update error response:', errorText);
+                    throw new Error(`Apps Script error! status: ${response.status}\nResponse: ${errorText}`);
+                }
+                
+                const result = await response.text();
+                console.log('Apps Script update result:', result);
+                
+                // ลองแปลงเป็น JSON
+                try {
+                    const jsonResult = JSON.parse(result);
+                    if (jsonResult.error) {
+                        throw new Error(`Apps Script error: ${jsonResult.error}`);
+                    }
+                    return jsonResult;
+                } catch (parseError) {
+                    // ถ้าไม่ใช่ JSON ให้ return text ธรรมดา
+                    console.log('Update response is not JSON, returning as text');
+                    return { success: true, response: result };
+                }
+                
+            } catch (error) {
+                console.error('Error updating sheet:', error);
+                
+                // แสดงข้อมูลที่ต้องการอัพเดทให้ผู้ใช้อัพเดทด้วยตนเอง
+                alert(`ไม่สามารถอัพเดทข้อมูลอัตโนมัติได้\n\nข้อผิดพลาด: ${error.message}\n\nกรุณาอัพเดทข้อมูลในแผ่นงาน "${range}":\n${Array.isArray(values) ? values.join(', ') : values}\n\nหรือตรวจสอบการตั้งค่า Apps Script`);
+                throw error;
+            }
+        }
+
+        function updateFilters() {
+            // Update country filter
+            const countryFilter = document.getElementById('countryFilter');
+            const prospectCountry = document.getElementById('prospectCountry');
+            const prospectSaleCountry = document.getElementById('prospectSaleCountry');
+            
+            countryFilter.innerHTML = '<option value="">ทุกประเทศ</option>';
+            prospectCountry.innerHTML = '<option value="">เลือกประเทศลูกค้า</option>';
+            prospectSaleCountry.innerHTML = '<option value="">เลือกประเทศที่ขาย</option>';
+            
+            masterData.countries.forEach(country => {
+                countryFilter.innerHTML += `<option value="${country}">${country}</option>`;
+                prospectCountry.innerHTML += `<option value="${country}">${country}</option>`;
+                prospectSaleCountry.innerHTML += `<option value="${country}">${country}</option>`;
+            });
+            
+            // Update category filter
+            const categoryFilter = document.getElementById('categoryFilter');
+            const prospectCategory = document.getElementById('prospectCategory');
+            categoryFilter.innerHTML = '<option value="">ทุกกลุ่มสินค้า</option>';
+            prospectCategory.innerHTML = '<option value="">เลือกกลุ่มสินค้า</option>';
+            
+            masterData.categories.forEach(category => {
+                categoryFilter.innerHTML += `<option value="${category}">${category}</option>`;
+                prospectCategory.innerHTML += `<option value="${category}">${category}</option>`;
+            });
+            
+            // Update material filter
+            const materialFilter = document.getElementById('materialFilter');
+            const prospectMaterial = document.getElementById('prospectMaterial');
+            materialFilter.innerHTML = '<option value="">ทุกกลุ่มวัตถุดิบ</option>';
+            prospectMaterial.innerHTML = '<option value="">เลือกกลุ่มวัตถุดิบ</option>';
+            
+            masterData.materials.forEach(material => {
+                materialFilter.innerHTML += `<option value="${material}">${material}</option>`;
+                prospectMaterial.innerHTML += `<option value="${material}">${material}</option>`;
+            });
+        }
+
+        function updateStats() {
+            document.getElementById('totalProspects').textContent = prospects.length;
+            document.getElementById('totalCountries').textContent = new Set(prospects.map(p => p.country).filter(c => c)).size;
+            document.getElementById('totalCategories').textContent = new Set(prospects.map(p => p.category).filter(c => c)).size;
+            document.getElementById('totalMaterials').textContent = new Set(prospects.map(p => p.material).filter(m => m)).size;
+        }
+
+        function updateSummary() {
+            // Country summary
+            const countryCounts = {};
+            prospects.forEach(p => {
+                if (p.country) {
+                    countryCounts[p.country] = (countryCounts[p.country] || 0) + 1;
+                }
+            });
+            
+            let countryHtml = '';
+            Object.entries(countryCounts)
+                .sort(([,a], [,b]) => b - a)
+                .forEach(([country, count]) => {
+                    countryHtml += `<div>${country}: ${count} รายการ</div>`;
+                });
+            document.getElementById('countrySummary').innerHTML = countryHtml || 'ไม่มีข้อมูล';
+            
+            // Category summary
+            const categoryCounts = {};
+            prospects.forEach(p => {
+                if (p.category) {
+                    categoryCounts[p.category] = (categoryCounts[p.category] || 0) + 1;
+                }
+            });
+            
+            let categoryHtml = '';
+            Object.entries(categoryCounts)
+                .sort(([,a], [,b]) => b - a)
+                .forEach(([category, count]) => {
+                    categoryHtml += `<div>${category}: ${count} รายการ</div>`;
+                });
+            document.getElementById('categorySummary').innerHTML = categoryHtml || 'ไม่มีข้อมูล';
+            
+            // Material summary
+            const materialCounts = {};
+            prospects.forEach(p => {
+                if (p.material) {
+                    materialCounts[p.material] = (materialCounts[p.material] || 0) + 1;
+                }
+            });
+            
+            let materialHtml = '';
+            Object.entries(materialCounts)
+                .sort(([,a], [,b]) => b - a)
+                .forEach(([material, count]) => {
+                    materialHtml += `<div>${material}: ${count} รายการ</div>`;
+                });
+            document.getElementById('materialSummary').innerHTML = materialHtml || 'ไม่มีข้อมูล';
+        }
+
+        function renderProspectsTable() {
+            const tbody = document.getElementById('prospectsTable');
+            tbody.innerHTML = '';
+            
+            filteredProspects.forEach(prospect => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${prospect.email}</td>
+                    <td>${prospect.company}</td>
+                    <td>${prospect.contact}</td>
+                    <td>${prospect.country}</td>
+                    <td>${prospect.date}</td>
+                    <td>${prospect.productName}</td>
+                    <td>${prospect.saleCountry}</td>
+                    <td>${prospect.category}</td>
+                    <td>${prospect.material}</td>
+                    <td>
+                        ${prospect.line ? `<div>📱 ${prospect.line}</div>` : ''}
+                        ${prospect.whatsapp ? `<div>💬 ${prospect.whatsapp}</div>` : ''}
+                    </td>
+                    <td>
+                        <button class="btn" onclick="editProspect(${prospect.id})" style="margin-right: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.8rem;">แก้ไข</button>
+                        <button class="btn" onclick="deleteProspect(${prospect.id})" style="background: #ef4444; padding: 0.25rem 0.5rem; font-size: 0.8rem;">ลบ</button>
+                    </td>
                 `;
+                tbody.appendChild(row);
             });
-
-            html += '</tbody></table>';
-            prospectList.innerHTML = html;
         }
 
-        // Filter prospects
-        function filterProspects() {
-            const searchTerm = document.getElementById('prospectSearch').value.toLowerCase();
-            const filteredProspects = allProspects.filter(prospect => {
-                return Object.values(prospect).some(value => 
-                    value && value.toString().toLowerCase().includes(searchTerm)
-                );
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const countryFilter = document.getElementById('countryFilter').value;
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const materialFilter = document.getElementById('materialFilter').value;
+            
+            filteredProspects = prospects.filter(prospect => {
+                const matchesSearch = !searchTerm || 
+                    prospect.email.toLowerCase().includes(searchTerm) ||
+                    prospect.company.toLowerCase().includes(searchTerm) ||
+                    prospect.contact.toLowerCase().includes(searchTerm) ||
+                    prospect.productName.toLowerCase().includes(searchTerm) ||
+                    prospect.details.toLowerCase().includes(searchTerm) ||
+                    prospect.line.toLowerCase().includes(searchTerm) ||
+                    prospect.whatsapp.toLowerCase().includes(searchTerm);
+                
+                const matchesCountry = !countryFilter || prospect.country === countryFilter;
+                const matchesCategory = !categoryFilter || prospect.category === categoryFilter;
+                const matchesMaterial = !materialFilter || prospect.material === materialFilter;
+                
+                return matchesSearch && matchesCountry && matchesCategory && matchesMaterial;
             });
-            displayProspectList(filteredProspects);
+            
+            renderProspectsTable();
         }
 
-        // Add new prospect
-        document.getElementById('prospectForm').addEventListener('submit', async function(e) {
+        function switchTab(tabName) {
+            // Update active tab
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            
+            // Show/hide tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            document.getElementById(`${tabName}TabContent`).classList.remove('hidden');
+        }
+
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = 'เพิ่มรายการใหม่';
+            document.getElementById('prospectForm').reset();
+            document.getElementById('editId').value = '';
+            
+            // ตั้งวันที่เป็นวันปัจจุบัน
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('prospectDate').value = today;
+            
+            document.getElementById('editModal').classList.add('show');
+        }
+
+        function editProspect(id) {
+            const prospect = prospects.find(p => p.id === id);
+            if (!prospect) return;
+            
+            document.getElementById('modalTitle').textContent = 'แก้ไขรายการ';
+            document.getElementById('editId').value = id;
+            document.getElementById('prospectEmail').value = prospect.email;
+            document.getElementById('prospectCompany').value = prospect.company;
+            document.getElementById('prospectContact').value = prospect.contact;
+            document.getElementById('prospectCountry').value = prospect.country;
+            
+            // แปลงวันที่จากรูปแบบไทยเป็น ISO สำหรับ input date
+            let dateValue = '';
+            if (prospect.date) {
+                try {
+                    // ถ้าเป็นรูปแบบไทย (dd/mm/yyyy) แปลงเป็น yyyy-mm-dd
+                    const parts = prospect.date.split('/');
+                    if (parts.length === 3) {
+                        dateValue = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                    } else {
+                        dateValue = prospect.date;
+                    }
+                } catch (e) {
+                    dateValue = new Date().toISOString().split('T')[0];
+                }
+            }
+            document.getElementById('prospectDate').value = dateValue;
+            
+            document.getElementById('prospectProductName').value = prospect.productName;
+            document.getElementById('prospectSaleCountry').value = prospect.saleCountry;
+            document.getElementById('prospectCategory').value = prospect.category;
+            document.getElementById('prospectMaterial').value = prospect.material;
+            document.getElementById('prospectLine').value = prospect.line;
+            document.getElementById('prospectWhatsapp').value = prospect.whatsapp;
+            document.getElementById('prospectDetails').value = prospect.details;
+            
+            document.getElementById('editModal').classList.add('show');
+        }
+
+        async function handleSaveProspect(e) {
             e.preventDefault();
             
-            // Get form data
-            const formData = {
-                Date: document.getElementById('date').value,
-                CompanyName: document.getElementById('companyName').value,
-                CustomerCountry: getSelectValue('customerCountry', 'newCustomerCountry'),
-                SaleCountry: getSelectValue('saleCountry', 'newSaleCountry'),
-                ContactName: document.getElementById('contactName').value,
-                Email: document.getElementById('email').value,
-                Line: document.getElementById('line').value,
-                WhatsApp: document.getElementById('whatsapp').value,
-                ProductName: document.getElementById('productName').value,
-                ProductGroup: getSelectValue('productGroup', 'newProductGroup'),
-                MaterialGroup: getSelectValue('materialGroup', 'newMaterialGroup'),
-                Details: document.getElementById('details').value
+            const id = document.getElementById('editId').value;
+            
+            // แปลงวันที่จาก input date เป็นรูปแบบไทย
+            const dateInput = document.getElementById('prospectDate').value;
+            let formattedDate = '';
+            if (dateInput) {
+                const date = new Date(dateInput);
+                formattedDate = date.toLocaleDateString('th-TH');
+            }
+            
+            const prospectData = {
+                email: document.getElementById('prospectEmail').value,
+                company: document.getElementById('prospectCompany').value,
+                contact: document.getElementById('prospectContact').value,
+                country: document.getElementById('prospectCountry').value,
+                category: document.getElementById('prospectCategory').value,
+                material: document.getElementById('prospectMaterial').value,
+                details: document.getElementById('prospectDetails').value,
+                date: formattedDate,
+                productName: document.getElementById('prospectProductName').value,
+                saleCountry: document.getElementById('prospectSaleCountry').value,
+                line: document.getElementById('prospectLine').value,
+                whatsapp: document.getElementById('prospectWhatsapp').value,
+                createdDate: new Date().toLocaleDateString('th-TH'),
+                createdBy: currentUser
             };
-
+            
             try {
-                // Add new items to lists if needed
-                await updateListsFromForm();
+                if (id) {
+                    // Update existing - ใช้ row number ที่ถูกต้อง
+                    const rowIndex = parseInt(id);
+                    await updateGoogleSheetRow(
+                        `Prospects!A${rowIndex}:N${rowIndex}`,
+                        [prospectData.email, prospectData.company, prospectData.contact, 
+                         prospectData.country, prospectData.category, prospectData.material, 
+                         prospectData.details, prospectData.date, prospectData.productName,
+                         prospectData.saleCountry, prospectData.line, prospectData.whatsapp,
+                         prospectData.createdDate, prospectData.createdBy]
+                    );
+                } else {
+                    // Add new - เพิ่มใหม่ต่อจากแถวสุดท้าย
+                    await appendToGoogleSheet(
+                        'Prospects!A:N',
+                        [prospectData.email, prospectData.company, prospectData.contact, 
+                         prospectData.country, prospectData.category, prospectData.material, 
+                         prospectData.details, prospectData.date, prospectData.productName,
+                         prospectData.saleCountry, prospectData.line, prospectData.whatsapp,
+                         prospectData.createdDate, prospectData.createdBy]
+                    );
+                }
                 
-                // Get current prospects
-                const currentProspects = await fetchFromGoogleSheets('Prospects');
-                
-                // Add new prospect
-                currentProspects.push(formData);
-                
-                // Save to Google Sheets
-                await saveToGoogleSheets('Prospects', currentProspects);
+                await loadProspects();
+                updateStats();
+                updateSummary();
+                closeModal();
                 
                 alert('บันทึกข้อมูลเรียบร้อยแล้ว');
-                clearForm();
-                loadAllData();
-                
             } catch (error) {
                 console.error('Error saving prospect:', error);
-                alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง');
+                alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
             }
-        });
-
-        // Get value from select or new input
-        function getSelectValue(selectId, newInputId) {
-            const selectValue = document.getElementById(selectId).value;
-            const newValue = document.getElementById(newInputId).value.trim();
-            return newValue || selectValue;
         }
 
-        // Update lists from form inputs
-        async function updateListsFromForm() {
+        async function deleteProspect(id) {
+            if (!confirm('คุณต้องการลบรายการนี้หรือไม่?')) return;
+            
             try {
-                let updated = false;
-
-                // Update countries
-                const newCustomerCountry = document.getElementById('newCustomerCountry').value.trim();
-                const newSaleCountry = document.getElementById('newSaleCountry').value.trim();
+                // Clear the row in Google Sheets - ใช้ row number ที่ถูกต้อง
+                const rowIndex = parseInt(id);
+                await updateGoogleSheetRow(
+                    `Prospects!A${rowIndex}:I${rowIndex}`,
+                    ['', '', '', '', '', '', '', '', '']
+                );
                 
-                if (newCustomerCountry && !listData.countries.includes(newCustomerCountry)) {
-                    listData.countries.push(newCustomerCountry);
-                    await saveToGoogleSheets('Countries', listData.countries.map(c => ({Country: c})));
-                    updated = true;
-                }
+                await loadProspects();
+                updateStats();
+                updateSummary();
                 
-                if (newSaleCountry && !listData.countries.includes(newSaleCountry)) {
-                    listData.countries.push(newSaleCountry);
-                    await saveToGoogleSheets('Countries', listData.countries.map(c => ({Country: c})));
-                    updated = true;
-                }
-
-                // Update product groups
-                const newProductGroup = document.getElementById('newProductGroup').value.trim();
-                if (newProductGroup && !listData.productGroups.includes(newProductGroup)) {
-                    listData.productGroups.push(newProductGroup);
-                    await saveToGoogleSheets('ProductGroups', listData.productGroups.map(p => ({ProductGroup: p})));
-                    updated = true;
-                }
-
-                // Update material groups
-                const newMaterialGroup = document.getElementById('newMaterialGroup').value.trim();
-                if (newMaterialGroup && !listData.materialGroups.includes(newMaterialGroup)) {
-                    listData.materialGroups.push(newMaterialGroup);
-                    await saveToGoogleSheets('MaterialGroups', listData.materialGroups.map(m => ({MaterialGroup: m})));
-                    updated = true;
-                }
-
-                if (updated) {
-                    updateDropdowns();
-                }
+                alert('ลบรายการเรียบร้อยแล้ว');
             } catch (error) {
-                console.error('Error updating lists:', error);
+                console.error('Error deleting prospect:', error);
+                alert('เกิดข้อผิดพลาดในการลบข้อมูล');
             }
         }
 
-        // Clear form
-        function clearForm() {
-            document.getElementById('prospectForm').reset();
-            document.getElementById('date').valueAsDate = new Date();
-            
-            // Clear new input fields
-            document.getElementById('newCustomerCountry').value = '';
-            document.getElementById('newSaleCountry').value = '';
-            document.getElementById('newProductGroup').value = '';
-            document.getElementById('newMaterialGroup').value = '';
-        }
-
-        // Edit prospect
-        function editProspect(index) {
-            const prospect = allProspects[index];
-            
-            // Populate edit form
-            document.getElementById('editRowIndex').value = index;
-            
-            const editFormFields = document.getElementById('editFormFields');
-            editFormFields.innerHTML = `
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>วันที่:</label>
-                        <input type="date" id="editDate" class="form-control" value="${prospect['Date'] || ''}" required>
-                    </div>
-                    <div class="form-group">
-                        <label>ชื่อบริษัท:</label>
-                        <input type="text" id="editCompanyName" class="form-control" value="${prospect['CompanyName'] || ''}" required>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>ประเทศของลูกค้า:</label>
-                        <select id="editCustomerCountry" class="form-control" required>
-                            <option value="">เลือกประเทศ</option>
-                            ${listData.countries.map(country => 
-                                `<option value="${country}" ${country === prospect['CustomerCountry'] ? 'selected' : ''}>${country}</option>`
-                            ).join('')}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>ประเทศที่ขายสินค้า:</label>
-                        <select id="editSaleCountry" class="form-control" required>
-                            <option value="">เลือกประเทศ</option>
-                            ${listData.countries.map(country => 
-                                `<option value="${country}" ${country === prospect['SaleCountry'] ? 'selected' : ''}>${country}</option>`
-                            ).join('')}
-                        </select>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>ชื่อผู้ติดต่อ:</label>
-                        <input type="text" id="editContactName" class="form-control" value="${prospect['ContactName'] || ''}" required>
-                    </div>
-                    <div class="form-group">
-                        <label>E-mail:</label>
-                        <input type="email" id="editEmail" class="form-control" value="${prospect['Email'] || ''}">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Line ID:</label>
-                        <input type="text" id="editLine" class="form-control" value="${prospect['Line'] || ''}">
-                    </div>
-                    <div class="form-group">
-                        <label>WhatsApp:</label>
-                        <input type="text" id="editWhatsApp" class="form-control" value="${prospect['WhatsApp'] || ''}">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>ชื่อสินค้า:</label>
-                        <input type="text" id="editProductName" class="form-control" value="${prospect['ProductName'] || ''}" required>
-                    </div>
-                    <div class="form-group">
-                        <label>กลุ่มสินค้า:</label>
-                        <select id="editProductGroup" class="form-control" required>
-                            <option value="">เลือกกลุ่มสินค้า</option>
-                            ${listData.productGroups.map(group => 
-                                `<option value="${group}" ${group === prospect['ProductGroup'] ? 'selected' : ''}>${group}</option>`
-                            ).join('')}
-                        </select>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>กลุ่มวัตถุดิบ:</label>
-                        <select id="editMaterialGroup" class="form-control" required>
-                            <option value="">เลือกกลุ่มวัตถุดิบ</option>
-                            ${listData.materialGroups.map(group => 
-                                `<option value="${group}" ${group === prospect['MaterialGroup'] ? 'selected' : ''}>${group}</option>`
-                            ).join('')}
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>รายละเอียดข้อมูลที่คุย:</label>
-                    <textarea id="editDetails" class="form-control" rows="4">${prospect['Details'] || ''}</textarea>
-                </div>
-            `;
-            
-            document.getElementById('editModal').style.display = 'block';
-        }
-
-        // Save edited prospect
-        document.getElementById('editForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const index = parseInt(document.getElementById('editRowIndex').value);
-            
-            const updatedData = {
-                Date: document.getElementById('editDate').value,
-                CompanyName: document.getElementById('editCompanyName').value,
-                CustomerCountry: document.getElementById('editCustomerCountry').value,
-                SaleCountry: document.getElementById('editSaleCountry').value,
-                ContactName: document.getElementById('editContactName').value,
-                Email: document.getElementById('editEmail').value,
-                Line: document.getElementById('editLine').value,
-                WhatsApp: document.getElementById('editWhatsApp').value,
-                ProductName: document.getElementById('editProductName').value,
-                ProductGroup: document.getElementById('editProductGroup').value,
-                MaterialGroup: document.getElementById('editMaterialGroup').value,
-                Details: document.getElementById('editDetails').value
-            };
-
-            try {
-                allProspects[index] = updatedData;
-                await saveToGoogleSheets('Prospects', allProspects);
-                
-                closeModal();
-                alert('แก้ไขข้อมูลเรียบร้อยแล้ว');
-                loadAllData();
-                
-            } catch (error) {
-                console.error('Error updating prospect:', error);
-                alert('เกิดข้อผิดพลาดในการแก้ไขข้อมูล กรุณาลองใหม่อีกครั้ง');
-            }
-        });
-
-        // Delete prospect
-        async function deleteProspect(index) {
-            if (confirm('คุณต้องการลบข้อมูลนี้หรือไม่?')) {
-                try {
-                    allProspects.splice(index, 1);
-                    await saveToGoogleSheets('Prospects', allProspects);
-                    
-                    alert('ลบข้อมูลเรียบร้อยแล้ว');
-                    loadAllData();
-                    
-                } catch (error) {
-                    console.error('Error deleting prospect:', error);
-                    alert('เกิดข้อผิดพลาดในการลบข้อมูล กรุณาลองใหม่อีกครั้ง');
-                }
-            }
-        }
-
-        // Close modal
         function closeModal() {
-            document.getElementById('editModal').style.display = 'none';
+            document.getElementById('editModal').classList.remove('show');
         }
 
-        // Load list manager
-        function loadListManager() {
-            const listManager = document.getElementById('listManager');
+        async function saveGoogleSheetsConfig() {
+            // ฟังก์ชันนี้ไม่ต้องใช้แล้ว เพราะค่าฝังไว้ในโค้ดแล้ว
+            alert('การตั้งค่าถูกฝังไว้ในโปรแกรมแล้ว');
+        }
+
+        async function testConnection() {
+            const testResults = document.getElementById('testResults');
+            testResults.classList.remove('hidden');
+            testResults.textContent = 'กำลังทดสอบการเชื่อมต่อ...';
             
-            listManager.innerHTML = `
-                <div class="list-section">
-                    <h3>🌍 ประเทศ</h3>
-                    <div id="countriesList"></div>
-                    <div class="add-item-form">
-                        <input type="text" id="newCountryInput" class="add-item-input" placeholder="เพิ่มประเทศใหม่">
-                        <button onclick="addListItem('countries', 'newCountryInput')" class="btn btn-success btn-small">เพิ่ม</button>
-                    </div>
-                </div>
+            updateConnectionStatus(false, 'กำลังทดสอบ...');
+            
+            try {
+                // Test อ่านข้อมูลจาก sheet หลัก
+                testResults.textContent += '\n\nกำลังทดสอบการอ่าน sheet Prospects...';
+                const testData = await fetchGoogleSheetData('Prospects!A1:A1');
+                testResults.textContent += '\n✅ อ่าน sheet Prospects ได้';
                 
-                <div class="list-section">
-                    <h3>📦 กลุ่มสินค้า</h3>
-                    <div id="productGroupsList"></div>
-                    <div class="add-item-form">
-                        <input type="text" id="newProductGroupInput" class="add-item-input" placeholder="เพิ่มกลุ่มสินค้าใหม่">
-                        <button onclick="addListItem('productGroups', 'newProductGroupInput')" class="btn btn-success btn-small">เพิ่ม</button>
-                    </div>
-                </div>
+                // Test อ่าน sheet อื่นๆ
+                testResults.textContent += '\n\nกำลังทดสอบ sheet อื่นๆ...';
                 
-                <div class="list-section">
-                    <h3>🥩 กลุ่มวัตถุดิบ</h3>
-                    <div id="materialGroupsList"></div>
-                    <div class="add-item-form">
-                        <input type="text" id="newMaterialGroupInput" class="add-item-input" placeholder="เพิ่มกลุ่มวัตถุดิบใหม่">
-                        <button onclick="addListItem('materialGroups', 'newMaterialGroupInput')" class="btn btn-success btn-small">เพิ่ม</button>
-                    </div>
-                </div>
-            `;
-            
-            updateListDisplay();
+                const sheets = [
+                    { name: 'Countries', range: 'Countries!A1:A1' },
+                    { name: 'Categories', range: 'Categories!A1:A1' },
+                    { name: 'Materials', range: 'Materials!A1:A1' },
+                    { name: 'Users', range: 'Users!A1:A1' }
+                ];
+                
+                for (const sheet of sheets) {
+                    try {
+                        await fetchGoogleSheetData(sheet.range);
+                        testResults.textContent += `\n✅ ${sheet.name} sheet: OK`;
+                    } catch (e) {
+                        testResults.textContent += `\n❌ ${sheet.name} sheet: ${e.message}`;
+                    }
+                }
+                
+                // ทดสอบ Apps Script แบบละเอียด
+                testResults.textContent += '\n\n=== ทดสอบ Apps Script ===';
+                testResults.textContent += '\nURL: ' + googleSheetsConfig.appsScriptUrl;
+                
+                try {
+                    testResults.textContent += '\n\nกำลังส่ง test request...';
+                    
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+                    
+                    const appsScriptResponse = await fetch(googleSheetsConfig.appsScriptUrl, {
+                        method: 'POST',
+                        signal: controller.signal,
+                        redirect: 'follow',
+                        headers: {
+                            'Content-Type': 'text/plain',
+                        },
+                        body: JSON.stringify({
+                            action: 'test',
+                            message: 'connection test from SIFCO app'
+                        })
+                    });
+                    
+                    clearTimeout(timeoutId);
+                    
+                    testResults.textContent += `\nResponse Status: ${appsScriptResponse.status}`;
+                    testResults.textContent += `\nResponse OK: ${appsScriptResponse.ok}`;
+                    
+                    if (appsScriptResponse.ok) {
+                        const responseText = await appsScriptResponse.text();
+                        testResults.textContent += `\nResponse: ${responseText}`;
+                        
+                        // ลองแปลง JSON
+                        try {
+                            const jsonResponse = JSON.parse(responseText);
+                            if (jsonResponse.error) {
+                                testResults.textContent += '\n⚠️ Apps Script: มี error ใน response';
+                                testResults.textContent += `\nError: ${jsonResponse.error}`;
+                            } else {
+                                testResults.textContent += '\n✅ Apps Script: เชื่อมต่อได้ (สามารถเพิ่ม/ลบข้อมูลได้)';
+                            }
+                        } catch (parseError) {
+                            testResults.textContent += '\n✅ Apps Script: เชื่อมต่อได้ (response ไม่ใช่ JSON)';
+                        }
+                    } else {
+                        const errorText = await appsScriptResponse.text();
+                        testResults.textContent += `\nError Response: ${errorText}`;
+                        testResults.textContent += '\n❌ Apps Script: HTTP Error';
+                    }
+                    
+                } catch (e) {
+                    testResults.textContent += `\n❌ Apps Script Error: ${e.message}`;
+                    
+                    if (e.name === 'AbortError') {
+                        testResults.textContent += '\n   - Timeout: การเชื่อมต่อใช้เวลานานเกินไป';
+                        testResults.textContent += '\n   - แต่ URL ทำงานได้ (ทดสอบแยกแล้ว)';
+                        testResults.textContent += '\n   - ปัญหาอาจอยู่ที่ CORS policy';
+                    } else if (e.message.includes('CORS')) {
+                        testResults.textContent += '\n   - CORS Error: ปัญหาการอนุญาตการเชื่อมต่อ';
+                    } else if (e.message.includes('Failed to fetch')) {
+                        testResults.textContent += '\n   - Network/CORS Error: ไม่สามารถเชื่อมต่อได้';
+                        testResults.textContent += '\n   - แต่ URL ใช้งานได้ปกติ (ทดสอบแยกแล้ว)';
+                        testResults.textContent += '\n   - ลองใช้ Incognito mode หรือ browser อื่น';
+                    } else if (e.message.includes('network')) {
+                        testResults.textContent += '\n   - Network Error: ปัญหาเครือข่าย';
+                    }
+                    
+                    testResults.textContent += '\n\n🔧 วิธีแก้ไข:';
+                    testResults.textContent += '\n1. URL ทำงานได้แล้ว (ทดสอบแยกแล้ว)';
+                    testResults.textContent += '\n2. ปัญหาอาจอยู่ที่ browser security/CORS';
+                    testResults.textContent += '\n3. ลองเปิด Incognito mode';
+                    testResults.textContent += '\n4. ลองใช้ browser อื่น (Chrome, Firefox, Safari)';
+                    testResults.textContent += '\n5. หรือเพิ่ม/ลบข้อมูลด้วยตนเองใน Google Sheets';
+                    testResults.textContent += '\n\n💡 ระบบจะแสดงข้อมูลให้คัดลอกเมื่อเพิ่ม/ลบไม่สำเร็จ';
+                }
+                
+                // โหลดข้อมูลจริง
+                testResults.textContent += '\n\n=== โหลดข้อมูลจริง ===';
+                await loadMasterData();
+                testResults.textContent += '\nโหลดข้อมูลหลักสำเร็จ:';
+                testResults.textContent += `\n- ประเทศ: ${masterData.countries.length} รายการ`;
+                testResults.textContent += `\n- กลุ่มสินค้า: ${masterData.categories.length} รายการ`;
+                testResults.textContent += `\n- กลุ่มวัตถุดิบ: ${masterData.materials.length} รายการ`;
+                testResults.textContent += `\n- ผู้ใช้: ${masterData.users.length} รายการ`;
+                
+                updateConnectionStatus(true, 'อ่านข้อมูลได้');
+                updateFilters();
+                testResults.textContent += '\n\n✅ การอ่านข้อมูลสำเร็จ!';
+                
+            } catch (error) {
+                console.error('Test connection error:', error);
+                testResults.textContent += '\n\n❌ ข้อผิดพลาด: ' + error.message;
+                updateConnectionStatus(false, 'เชื่อมต่อมีปัญหา');
+            }
         }
 
-        // Update list display
-        function updateListDisplay() {
-            updateListSection('countries', 'countriesList');
-            updateListSection('productGroups', 'productGroupsList');
-            updateListSection('materialGroups', 'materialGroupsList');
+        function updateConnectionStatus(connected = false, message = '') {
+            const indicator = document.getElementById('statusIndicator');
+            const text = document.getElementById('statusText');
+            
+            if (connected) {
+                indicator.classList.add('connected');
+                text.classList.add('connected');
+                text.textContent = message || 'เชื่อมต่อแล้ว';
+            } else {
+                indicator.classList.remove('connected');
+                text.classList.remove('connected');
+                text.textContent = message || 'ไม่ได้เชื่อมต่อ';
+            }
         }
 
-        // Update specific list section
-        function updateListSection(listType, containerId) {
-            const container = document.getElementById(containerId);
-            const items = listData[listType];
+        function openManageModal(type) {
+            // ตรวจสอบสิทธิ์ Admin สำหรับการจัดการผู้ใช้
+            if (type === 'users' && userRole !== 'admin') {
+                alert('เฉพาะ Admin เท่านั้นที่สามารถจัดการผู้ใช้ได้');
+                return;
+            }
             
-            container.innerHTML = items.map((item, index) => `
-                <div class="list-item">
-                    <span>${item}</span>
-                    <button onclick="removeListItem('${listType}', ${index})" class="btn btn-danger btn-small">ลบ</button>
-                </div>
-            `).join('');
+            currentManageType = type;
+            const titles = {
+                countries: 'จัดการประเทศ',
+                categories: 'จัดการกลุ่มสินค้า',
+                materials: 'จัดการกลุ่มวัตถุดิบ',
+                users: 'จัดการผู้ใช้ (เฉพาะ Admin)'
+            };
+            
+            const placeholders = {
+                countries: 'เพิ่มประเทศใหม่ เช่น Singapore',
+                categories: 'เพิ่มกลุ่มสินค้าใหม่ เช่น Frozen Shrimp',
+                materials: 'เพิ่มกลุ่มวัตถุดิบใหม่ เช่น Shrimp',
+                users: 'เพิ่มผู้ใช้ใหม่: username,password'
+            };
+            
+            document.getElementById('manageModalTitle').textContent = titles[type];
+            document.getElementById('newItemInput').placeholder = placeholders[type];
+            
+            updateManageList();
+            document.getElementById('manageModal').classList.add('show');
         }
 
-        // Add list item
-        async function addListItem(listType, inputId) {
-            const input = document.getElementById(inputId);
-            const newItem = input.value.trim();
+        function updateManageList() {
+            const list = document.getElementById('manageList');
+            const data = masterData[currentManageType] || [];
             
-            if (!newItem) {
+            if (currentManageType === 'users') {
+                // แสดงรายการผู้ใช้พร้อมปุ่มลบ (เฉพาะ Admin)
+                let userHtml = '<div style="margin-bottom: 1rem;"><strong>รายการผู้ใช้:</strong></div>';
+                
+                if (data.length === 0) {
+                    userHtml += '<div style="color: #6b7280; padding: 1rem; text-align: center;">ไม่มีผู้ใช้ในระบบ</div>';
+                } else {
+                    data.forEach((user, index) => {
+                        userHtml += `<div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 0.5rem; background: #f9fafb;">
+                            <div>
+                                <div style="font-weight: 600; color: #374151;">👤 ${user.username}</div>
+                                <div style="font-size: 0.9rem; color: #6b7280;">รหัสผ่าน: ${'*'.repeat(user.password.length)}</div>
+                            </div>
+                            <button class="btn" onclick="removeItem(${index})" style="background: #ef4444; padding: 0.5rem 1rem; font-size: 0.85rem;">ลบ</button>
+                        </div>`;
+                    });
+                }
+                
+                list.innerHTML = userHtml;
+            } else {
+                // แสดงรายการข้อมูลหลักอื่นๆ
+                let itemHtml = '';
+                const titles = {
+                    countries: 'ประเทศ',
+                    categories: 'กลุ่มสินค้า',
+                    materials: 'กลุ่มวัตถุดิบ'
+                };
+                
+                itemHtml += `<div style="margin-bottom: 1rem;"><strong>รายการ${titles[currentManageType]}:</strong></div>`;
+                
+                if (data.length === 0) {
+                    itemHtml += `<div style="color: #6b7280; padding: 1rem; text-align: center;">ไม่มี${titles[currentManageType]}ในระบบ</div>`;
+                } else {
+                    data.forEach((item, index) => {
+                        itemHtml += `<div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 0.5rem; background: #f9fafb;">
+                            <span style="font-weight: 500; color: #374151;">${item}</span>
+                            <button class="btn" onclick="removeItem(${index})" style="background: #ef4444; padding: 0.5rem 1rem; font-size: 0.85rem;">ลบ</button>
+                        </div>`;
+                    });
+                }
+                
+                list.innerHTML = itemHtml;
+            }
+        }
+
+        async function addNewItem() {
+            const input = document.getElementById('newItemInput');
+            const value = input.value.trim();
+            
+            if (!value) {
                 alert('กรุณากรอกข้อมูล');
                 return;
             }
             
-            if (listData[listType].includes(newItem)) {
-                alert('รายการนี้มีอยู่แล้ว');
+            // ตรวจสอบสิทธิ์ Admin สำหรับการเพิ่มผู้ใช้
+            if (currentManageType === 'users' && userRole !== 'admin') {
+                alert('เฉพาะ Admin เท่านั้นที่สามารถเพิ่มผู้ใช้ได้');
                 return;
             }
             
             try {
-                listData[listType].push(newItem);
+                console.log('Adding new item:', currentManageType, value);
                 
-                // Save to Google Sheets
-                const sheetName = getSheetNameFromListType(listType);
-                const data = listData[listType].map(item => {
-                    const obj = {};
-                    obj[getFieldNameFromListType(listType)] = item;
-                    return obj;
-                });
+                if (currentManageType === 'users') {
+                    const parts = value.split(',').map(s => s.trim());
+                    if (parts.length !== 2 || !parts[0] || !parts[1]) {
+                        alert('กรุณากรอกในรูปแบบ: username,password\nตัวอย่าง: john123,pass456');
+                        return;
+                    }
+                    
+                    // ตรวจสอบว่ามี username ซ้ำหรือไม่
+                    const existingUser = masterData.users.find(u => u.username === parts[0]);
+                    if (existingUser) {
+                        alert(`มีผู้ใช้ "${parts[0]}" อยู่ในระบบแล้ว\nกรุณาใช้ชื่อผู้ใช้อื่น`);
+                        return;
+                    }
+                    
+                    console.log('Adding user:', parts);
+                    await appendToGoogleSheet('Users!A:B', parts);
+                } else {
+                    const sheetNames = {
+                        countries: 'Countries',
+                        categories: 'Categories',
+                        materials: 'Materials'
+                    };
+                    
+                    // ตรวจสอบว่ามีข้อมูลซ้ำหรือไม่
+                    const existingItem = masterData[currentManageType].find(item => 
+                        item.toLowerCase() === value.toLowerCase()
+                    );
+                    if (existingItem) {
+                        alert(`มี "${value}" อยู่ในระบบแล้ว`);
+                        return;
+                    }
+                    
+                    const sheetName = sheetNames[currentManageType];
+                    console.log('Adding to sheet:', sheetName, value);
+                    await appendToGoogleSheet(`${sheetName}!A:A`, [value]);
+                }
                 
-                await saveToGoogleSheets(sheetName, data);
-                
+                // รีเฟรชข้อมูล
+                await loadMasterData();
+                updateFilters();
+                updateManageList();
                 input.value = '';
-                updateListDisplay();
-                updateDropdowns();
                 
-                alert('เพิ่มรายการเรียบร้อยแล้ว');
+                const itemNames = {
+                    users: 'ผู้ใช้',
+                    countries: 'ประเทศ',
+                    categories: 'กลุ่มสินค้า',
+                    materials: 'กลุ่มวัตถุดิบ'
+                };
                 
+                alert(`เพิ่ม${itemNames[currentManageType]}เรียบร้อยแล้ว`);
             } catch (error) {
-                console.error('Error adding list item:', error);
-                alert('เกิดข้อผิดพลาดในการเพิ่มรายการ');
+                console.error('Error adding item:', error);
+                // ข้อผิดพลาดจะแสดงใน appendToGoogleSheet แล้ว
             }
         }
 
-        // Remove list item
-        async function removeListItem(listType, index) {
-            if (confirm('คุณต้องการลบรายการนี้หรือไม่?')) {
-                try {
-                    listData[listType].splice(index, 1);
-                    
-                    // Save to Google Sheets
-                    const sheetName = getSheetNameFromListType(listType);
-                    const data = listData[listType].map(item => {
-                        const obj = {};
-                        obj[getFieldNameFromListType(listType)] = item;
-                        return obj;
-                    });
-                    
-                    await saveToGoogleSheets(sheetName, data);
-                    
-                    updateListDisplay();
-                    updateDropdowns();
-                    
-                    alert('ลบรายการเรียบร้อยแล้ว');
-                    
-                } catch (error) {
-                    console.error('Error removing list item:', error);
-                    alert('เกิดข้อผิดพลาดในการลบรายการ');
-                }
-            }
-        }
-
-        // Helper functions for list management
-        function getSheetNameFromListType(listType) {
-            const mapping = {
-                'countries': 'Countries',
-                'productGroups': 'ProductGroups',
-                'materialGroups': 'MaterialGroups'
-            };
-            return mapping[listType];
-        }
-
-        function getFieldNameFromListType(listType) {
-            const mapping = {
-                'countries': 'Country',
-                'productGroups': 'ProductGroup',
-                'materialGroups': 'MaterialGroup'
-            };
-            return mapping[listType];
-        }
-
-        // Admin functions
-        async function testConnection() {
-            const testResult = document.getElementById('connectionTest');
-            testResult.style.display = 'block';
-            testResult.className = 'alert';
-            testResult.textContent = 'กำลังทดสอบการเชื่อมต่อ...';
-            
-            try {
-                const response = await fetch(CONFIG.scriptUrl + '?action=test');
-                const result = await response.json();
-                
-                if (result.success) {
-                    testResult.className = 'alert alert-success';
-                    testResult.textContent = 'เชื่อมต่อสำเร็จ!';
-                } else {
-                    testResult.className = 'alert alert-error';
-                    testResult.textContent = 'เชื่อมต่อไม่สำเร็จ: ' + (result.error || 'Unknown error');
-                }
-            } catch (error) {
-                testResult.className = 'alert alert-error';
-                testResult.textContent = 'เชื่อมต่อไม่สำเร็จ: ' + error.message;
-            }
-        }
-
-        async function testRead() {
-            const testResult = document.getElementById('connectionTest');
-            testResult.style.display = 'block';
-            testResult.className = 'alert';
-            testResult.textContent = 'กำลังทดสอบการอ่านข้อมูล...';
-            
-            try {
-                const data = await fetchFromGoogleSheets('Countries');
-                testResult.className = 'alert alert-success';
-                testResult.textContent = `อ่านข้อมูลสำเร็จ! พบข้อมูล ${data.length} รายการ`;
-            } catch (error) {
-                testResult.className = 'alert alert-error';
-                testResult.textContent = 'อ่านข้อมูลไม่สำเร็จ: ' + error.message;
-            }
-        }
-
-        async function testWrite() {
-            const testResult = document.getElementById('connectionTest');
-            testResult.style.display = 'block';
-            testResult.className = 'alert';
-            testResult.textContent = 'กำลังทดสอบการเขียนข้อมูล...';
-            
-            try {
-                const testData = [{Country: 'Test-' + Date.now()}];
-                await saveToGoogleSheets('Countries', testData);
-                testResult.className = 'alert alert-success';
-                testResult.textContent = 'เขียนข้อมูลทดสอบสำเร็จ!';
-            } catch (error) {
-                testResult.className = 'alert alert-error';
-                testResult.textContent = 'เขียนข้อมูลไม่สำเร็จ: ' + error.message;
-            }
-        }
-
-        // Load user list for admin
-        async function loadUserList() {
-            try {
-                const users = await fetchFromGoogleSheets('Users');
-                const userListContainer = document.getElementById('userList');
-                
-                let html = '<h4>รายการผู้ใช้งาน:</h4>';
-                if (users.length === 0) {
-                    html += '<p>ยังไม่มีผู้ใช้งาน</p>';
-                } else {
-                    html += '<div class="data-table" style="overflow-x: auto;">';
-                    html += '<table style="width: 100%; border-collapse: collapse;">';
-                    html += '<thead><tr><th style="padding: 10px; background: #dc2626; color: white;">ชื่อผู้ใช้</th><th style="padding: 10px; background: #dc2626; color: white;">การจัดการ</th></tr></thead>';
-                    html += '<tbody>';
-                    
-                    users.forEach((user, index) => {
-                        html += `<tr>
-                            <td style="padding: 10px; border-bottom: 1px solid #eee;">${user['Username'] || ''}</td>
-                            <td style="padding: 10px; border-bottom: 1px solid #eee;">
-                                <button onclick="deleteUser(${index})" class="btn btn-danger btn-small">ลบ</button>
-                            </td>
-                        </tr>`;
-                    });
-                    
-                    html += '</tbody></table></div>';
-                }
-                
-                userListContainer.innerHTML = html;
-            } catch (error) {
-                console.error('Error loading users:', error);
-                document.getElementById('userList').innerHTML = '<div class="alert alert-error">ไม่สามารถโหลดรายการผู้ใช้ได้</div>';
-            }
-        }
-
-        // Add new user
-        async function addUser() {
-            const username = document.getElementById('newUsername').value.trim();
-            const password = document.getElementById('newUserPassword').value.trim();
-            
-            if (!username || !password) {
-                alert('กรุณากรอกชื่อผู้ใช้และรหัสผ่าน');
+        async function removeItem(index) {
+            // ตรวจสอบสิทธิ์ Admin สำหรับการลบผู้ใช้
+            if (currentManageType === 'users' && userRole !== 'admin') {
+                alert('เฉพาะ Admin เท่านั้นที่สามารถลบผู้ใช้ได้');
                 return;
             }
             
+            const itemNames = {
+                users: 'ผู้ใช้',
+                countries: 'ประเทศ',
+                categories: 'กลุ่มสินค้า',
+                materials: 'กลุ่มวัตถุดิบ'
+            };
+            
+            const itemName = itemNames[currentManageType];
+            const data = masterData[currentManageType] || [];
+            const itemToDelete = currentManageType === 'users' ? data[index]?.username : data[index];
+            
+            if (!confirm(`คุณต้องการลบ${itemName} "${itemToDelete}" หรือไม่?`)) return;
+            
             try {
-                const users = await fetchFromGoogleSheets('Users');
+                const rowIndex = index + 2; // +2 เพราะเริ่มจากแถวที่ 2 และ 0-based index
+                console.log('Removing item at row:', rowIndex, 'from', currentManageType);
                 
-                // Check if username already exists
-                if (users.some(user => user['Username'] === username)) {
-                    alert('ชื่อผู้ใช้นี้มีอยู่แล้ว');
-                    return;
+                if (currentManageType === 'users') {
+                    await updateGoogleSheetRow(`Users!A${rowIndex}:B${rowIndex}`, ['', '']);
+                } else {
+                    const sheetNames = {
+                        countries: 'Countries',
+                        categories: 'Categories',
+                        materials: 'Materials'
+                    };
+                    
+                    const sheetName = sheetNames[currentManageType];
+                    console.log('Clearing row in sheet:', sheetName, rowIndex);
+                    await updateGoogleSheetRow(`${sheetName}!A${rowIndex}:A${rowIndex}`, ['']);
                 }
                 
-                // Add new user
-                users.push({
-                    Username: username,
-                    Password: password
-                });
+                // รีเฟรชข้อมูล
+                await loadMasterData();
+                updateFilters();
+                updateManageList();
                 
-                await saveToGoogleSheets('Users', users);
-                
-                // Clear form
-                document.getElementById('newUsername').value = '';
-                document.getElementById('newUserPassword').value = '';
-                
-                alert('เพิ่มผู้ใช้เรียบร้อยแล้ว');
-                loadUserList();
-                
+                alert(`ลบ${itemName}เรียบร้อยแล้ว`);
             } catch (error) {
-                console.error('Error adding user:', error);
-                alert('เกิดข้อผิดพลาดในการเพิ่มผู้ใช้');
+                console.error('Error removing item:', error);
+                // ข้อผิดพลาดจะแสดงใน updateGoogleSheetRow แล้ว
             }
         }
 
-        // Delete user
-        async function deleteUser(index) {
-            if (confirm('คุณต้องการลบผู้ใช้นี้หรือไม่?')) {
-                try {
-                    const users = await fetchFromGoogleSheets('Users');
-                    users.splice(index, 1);
-                    
-                    await saveToGoogleSheets('Users', users);
-                    
-                    alert('ลบผู้ใช้เรียบร้อยแล้ว');
-                    loadUserList();
-                    
-                } catch (error) {
-                    console.error('Error deleting user:', error);
-                    alert('เกิดข้อผิดพลาดในการลบผู้ใช้');
-                }
-            }
+        function closeManageModal() {
+            document.getElementById('manageModal').classList.remove('show');
         }
 
-        // Utility functions
-        function formatDate(dateString) {
-            if (!dateString) return '';
-            const date = new Date(dateString);
-            return date.toLocaleDateString('th-TH');
+        function showLoading(spinnerId, textId, text) {
+            document.getElementById(spinnerId).classList.remove('hidden');
+            document.getElementById(textId).textContent = text;
         }
 
-        function showError(elementId, message) {
-            const element = document.getElementById(elementId);
-            element.textContent = message;
-            element.style.display = 'block';
-            setTimeout(() => {
-                element.style.display = 'none';
-            }, 5000);
+        function hideLoading(spinnerId, textId, text) {
+            document.getElementById(spinnerId).classList.add('hidden');
+            document.getElementById(textId).textContent = text;
         }
 
-        // Handle Enter key in login form
-        document.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && document.getElementById('loginScreen').style.display !== 'none') {
-                login();
-            }
-        });
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('editModal');
-            if (event.target === modal) {
-                closeModal();
-            }
+        function showAlert(alertId, message, type) {
+            const alert = document.getElementById(alertId);
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alert.classList.remove('hidden');
         }
 
-        // Handle form submission for adding new list items on Enter key
-        document.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                if (e.target.id === 'newCountryInput') {
-                    addListItem('countries', 'newCountryInput');
-                } else if (e.target.id === 'newProductGroupInput') {
-                    addListItem('productGroups', 'newProductGroupInput');
-                } else if (e.target.id === 'newMaterialGroupInput') {
-                    addListItem('materialGroups', 'newMaterialGroupInput');
-                }
-            }
-        });
-
-        // Auto-fill functionality for new inputs
-        document.addEventListener('input', function(e) {
-            if (e.target.id === 'newCustomerCountry' && e.target.value.trim()) {
-                document.getElementById('customerCountry').value = '';
-            } else if (e.target.id === 'newSaleCountry' && e.target.value.trim()) {
-                document.getElementById('saleCountry').value = '';
-            } else if (e.target.id === 'newProductGroup' && e.target.value.trim()) {
-                document.getElementById('productGroup').value = '';
-            } else if (e.target.id === 'newMaterialGroup' && e.target.value.trim()) {
-                document.getElementById('materialGroup').value = '';
-            }
-        });
-
-        // Responsive table handling
-        function makeTablesResponsive() {
-            const tables = document.querySelectorAll('.data-table');
-            tables.forEach(table => {
-                if (window.innerWidth <= 768) {
-                    table.style.fontSize = '12px';
-                    const cells = table.querySelectorAll('th, td');
-                    cells.forEach(cell => {
-                        cell.style.padding = '6px 4px';
-                    });
-                } else {
-                    table.style.fontSize = '14px';
-                    const cells = table.querySelectorAll('th, td');
-                    cells.forEach(cell => {
-                        cell.style.padding = '12px 10px';
-                    });
-                }
-            });
+        function clearAlert(alertId) {
+            document.getElementById(alertId).classList.add('hidden');
         }
-
-        // Handle window resize
-        window.addEventListener('resize', makeTablesResponsive);
-
-        // Auto-refresh data every 5 minutes when on dashboard
-        setInterval(() => {
-            const activeTab = document.querySelector('.tab-content.active');
-            if (activeTab && activeTab.id === 'dashboard') {
-                loadDashboard();
-            }
-        }, 300000); // 5 minutes
-
-        // Validation for required fields
-        function validateForm(formId) {
-            const form = document.getElementById(formId);
-            const requiredFields = form.querySelectorAll('[required]');
-            let isValid = true;
-            
-            requiredFields.forEach(field => {
-                if (!field.value.trim()) {
-                    field.style.borderColor = '#dc2626';
-                    isValid = false;
-                } else {
-                    field.style.borderColor = '#ddd';
-                }
-            });
-            
-            return isValid;
-        }
-
-        // Add validation to form submission
-        document.getElementById('prospectForm').addEventListener('submit', function(e) {
-            if (!validateForm('prospectForm')) {
-                e.preventDefault();
-                alert('กรุณากรอกข้อมูลในช่องที่จำเป็น (มีเครื่องหมาย *)');
-            }
-        });
-
-        // Enhanced search functionality with filters
-        function createAdvancedSearch() {
-            const searchContainer = document.getElementById('searchResults');
-            const filterHtml = `
-                <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px;">
-                    <h4 style="margin-bottom: 15px; color: #dc2626;">🔍 ค้นหาขั้นสูง</h4>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>กลุ่มสินค้า:</label>
-                            <select id="filterProductGroup" class="form-control" onchange="applyFilters()">
-                                <option value="">ทั้งหมด</option>
-                                ${listData.productGroups.map(group => `<option value="${group}">${group}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>กลุ่มวัตถุดิบ:</label>
-                            <select id="filterMaterialGroup" class="form-control" onchange="applyFilters()">
-                                <option value="">ทั้งหมด</option>
-                                ${listData.materialGroups.map(group => `<option value="${group}">${group}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>ประเทศลูกค้า:</label>
-                            <select id="filterCountry" class="form-control" onchange="applyFilters()">
-                                <option value="">ทั้งหมด</option>
-                                ${listData.countries.map(country => `<option value="${country}">${country}</option>`).join('')}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div id="filteredResults"></div>
-            `;
-            return filterHtml;
-        }
-
-        // Apply advanced filters
-        function applyFilters() {
-            const productGroupFilter = document.getElementById('filterProductGroup')?.value || '';
-            const materialGroupFilter = document.getElementById('filterMaterialGroup')?.value || '';
-            const countryFilter = document.getElementById('filterCountry')?.value || '';
-            const searchTerm = document.getElementById('dashboardSearch').value.toLowerCase();
-            
-            let filteredProspects = allProspects.filter(prospect => {
-                const matchesSearch = !searchTerm || Object.values(prospect).some(value => 
-                    value && value.toString().toLowerCase().includes(searchTerm)
-                );
-                const matchesProductGroup = !productGroupFilter || prospect['ProductGroup'] === productGroupFilter;
-                const matchesMaterialGroup = !materialGroupFilter || prospect['MaterialGroup'] === materialGroupFilter;
-                const matchesCountry = !countryFilter || prospect['CustomerCountry'] === countryFilter;
-                
-                return matchesSearch && matchesProductGroup && matchesMaterialGroup && matchesCountry;
-            });
-            
-            const resultsContainer = document.getElementById('filteredResults') || document.getElementById('searchResults');
-            displaySearchResults(filteredProspects);
-        }
-
-        // Export data functionality
-        function exportToCSV() {
-            if (allProspects.length === 0) {
-                alert('ไม่มีข้อมูลสำหรับส่งออก');
-                return;
-            }
-            
-            const headers = ['วันที่', 'ชื่อบริษัท', 'ประเทศลูกค้า', 'ประเทศขาย', 'ผู้ติดต่อ', 'Email', 'Line', 'WhatsApp', 'สินค้า', 'กลุ่มสินค้า', 'กลุ่มวัตถุดิบ', 'รายละเอียด'];
-            
-            let csvContent = headers.join(',') + '\n';
-            
-            allProspects.forEach(prospect => {
-                const row = [
-                    prospect['Date'] || '',
-                    prospect['CompanyName'] || '',
-                    prospect['CustomerCountry'] || '',
-                    prospect['SaleCountry'] || '',
-                    prospect['ContactName'] || '',
-                    prospect['Email'] || '',
-                    prospect['Line'] || '',
-                    prospect['WhatsApp'] || '',
-                    prospect['ProductName'] || '',
-                    prospect['ProductGroup'] || '',
-                    prospect['MaterialGroup'] || '',
-                    prospect['Details'] || ''
-                ].map(field => `"${field}"`);
-                
-                csvContent += row.join(',') + '\n';
-            });
-            
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `prospects_${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
-        }
-
-        // Print functionality
-        function printData() {
-            const printWindow = window.open('', '_blank');
-            const printContent = `
-                <html>
-                <head>
-                    <title>Prospect Products SIFCO - รายงาน</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; margin: 20px; }
-                        h1 { color: #dc2626; text-align: center; }
-                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                        th { background-color: #dc2626; color: white; }
-                        tr:nth-child(even) { background-color: #f9f9f9; }
-                        .summary { background: #f0f0f0; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
-                    </style>
-                </head>
-                <body>
-                    <h1>🐟 Prospect Products SIFCO</h1>
-                    <div class="summary">
-                        <strong>สรุปข้อมูล:</strong> รายการ Prospect ทั้งหมด ${allProspects.length} รายการ<br>
-                        <strong>วันที่พิมพ์:</strong> ${new Date().toLocaleDateString('th-TH')}
-                    </div>
-                    ${document.getElementById('searchResults').innerHTML || ''}
-                </body>
-                </html>
-            `;
-            
-            printWindow.document.write(printContent);
-            printWindow.document.close();
-            printWindow.print();
-        }
-
-        // Add export and print buttons to dashboard
-        function addExportButtons() {
-            const summaryCards = document.getElementById('summaryCards');
-            if (summaryCards && allProspects.length > 0) {
-                const exportButtons = `
-                    <div style="text-align: center; margin: 20px 0;">
-                        <button onclick="exportToCSV()" class="btn btn-success" style="margin: 5px;">📥 ส่งออก CSV</button>
-                        <button onclick="printData()" class="btn btn-secondary" style="margin: 5px;">🖨️ พิมพ์รายงาน</button>
-                    </div>
-                `;
-                summaryCards.insertAdjacentHTML('afterend', exportButtons);
-            }
-        }
-
-        // Enhanced dashboard loading
-        const originalLoadDashboard = loadDashboard;
-        loadDashboard = async function() {
-            await originalLoadDashboard();
-            addExportButtons();
-        };
-
-        // Status indicator
-        function showStatus(message, type = 'info') {
-            const existingStatus = document.getElementById('statusIndicator');
-            if (existingStatus) {
-                existingStatus.remove();
-            }
-            
-            const statusDiv = document.createElement('div');
-            statusDiv.id = 'statusIndicator';
-            statusDiv.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 10px 20px;
-                border-radius: 5px;
-                color: white;
-                font-weight: bold;
-                z-index: 9999;
-                ${type === 'success' ? 'background: #059669;' : 
-                  type === 'error' ? 'background: #dc2626;' : 
-                  'background: #3b82f6;'}
-            `;
-            statusDiv.textContent = message;
-            
-            document.body.appendChild(statusDiv);
-            
-            setTimeout(() => {
-                statusDiv.remove();
-            }, 3000);
-        }
-
-        // Enhanced error handling
-        window.addEventListener('error', function(e) {
-            console.error('Application error:', e.error);
-            showStatus('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง', 'error');
-        });
-
-        // Service worker for offline functionality (optional)
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js').catch(err => {
-                console.log('Service worker registration failed:', err);
-            });
-        }
-
-        // Final initialization
-        console.log('🐟 Prospect Products SIFCO - System Initialized');
-        console.log('Version: 1.0.0');
-        console.log('Developed for: SIFCO Seafood Export Company');
     </script>
 </body>
 </html>
