@@ -1782,14 +1782,114 @@ function doGet(e) {
             }
         }
 
-        function closeManageModal() {
-            document.getElementById('manageModal').classList.remove('show');
-        }
-
         function closeQuickAddModal() {
             document.getElementById('quickAddModal').classList.remove('show');
             document.getElementById('quickAddInput').value = '';
             clearAlert('quickAddAlert');
+        }
+
+        function addNewOptionFromModal(type, targetSelectId) {
+            console.log('addNewOptionFromModal called:', type, targetSelectId);
+            
+            const titles = {
+                countries: 'ประเทศ',
+                categories: 'กลุ่มสินค้า',
+                materials: 'กลุ่มวัตถุดิบ'
+            };
+            
+            const placeholders = {
+                countries: 'เช่น Singapore, Malaysia, Indonesia',
+                categories: 'เช่น Frozen Shrimp, Frozen Fish, Frozen Squid',
+                materials: 'เช่น Shrimp, Fish, Squid, Crab'
+            };
+            
+            document.getElementById('quickAddModalTitle').textContent = `เพิ่ม${titles[type]}ใหม่`;
+            document.getElementById('quickAddLabel').textContent = `ชื่อ${titles[type]}:`;
+            document.getElementById('quickAddInput').placeholder = placeholders[type];
+            document.getElementById('quickAddType').value = type;
+            document.getElementById('quickAddTargetSelect').value = targetSelectId;
+            document.getElementById('quickAddInput').value = '';
+            
+            clearAlert('quickAddAlert');
+            document.getElementById('quickAddModal').classList.add('show');
+            
+            // Focus ที่ input field
+            setTimeout(() => {
+                document.getElementById('quickAddInput').focus();
+            }, 100);
+        }
+
+        async function handleQuickAdd(e) {
+            e.preventDefault();
+            console.log('handleQuickAdd called');
+            
+            const type = document.getElementById('quickAddType').value;
+            const targetSelectId = document.getElementById('quickAddTargetSelect').value;
+            const value = document.getElementById('quickAddInput').value.trim();
+            
+            console.log('Quick add data:', { type, targetSelectId, value });
+            
+            if (!value) {
+                showAlert('quickAddAlert', 'กรุณากรอกข้อมูล', 'error');
+                return;
+            }
+            
+            showLoading('quickAddSpinner', 'quickAddButtonText', 'กำลังเพิ่ม...');
+            
+            try {
+                // ตรวจสอบว่ามีข้อมูลซ้ำหรือไม่
+                const existingItem = masterData[type].find(item => 
+                    item.toLowerCase() === value.toLowerCase()
+                );
+                if (existingItem) {
+                    showAlert('quickAddAlert', `มี "${value}" อยู่ในระบบแล้ว`, 'error');
+                    hideLoading('quickAddSpinner', 'quickAddButtonText', 'เพิ่ม');
+                    return;
+                }
+                
+                const sheetNames = {
+                    countries: 'Countries',
+                    categories: 'Categories',
+                    materials: 'Materials'
+                };
+                
+                const sheetName = sheetNames[type];
+                console.log('Quick adding to sheet:', sheetName, value);
+                
+                await appendToGoogleSheet(`${sheetName}!A:A`, [value]);
+                
+                // รีเฟรชข้อมูลและอัพเดท dropdown
+                await loadMasterData();
+                updateFilters();
+                
+                // เลือกรายการที่เพิ่งเพิ่มใน dropdown
+                const targetSelect = document.getElementById(targetSelectId);
+                if (targetSelect) {
+                    targetSelect.value = value;
+                }
+                
+                // ปิด modal
+                closeQuickAddModal();
+                
+                const itemNames = {
+                    countries: 'ประเทศ',
+                    categories: 'กลุ่มสินค้า',
+                    materials: 'กลุ่มวัตถุดิบ'
+                };
+                
+                // แสดงการแจ้งเตือนสั้นๆ
+                alert(`✅ เพิ่ม${itemNames[type]} "${value}" เรียบร้อยแล้ว`);
+                
+            } catch (error) {
+                console.error('Error in quick add:', error);
+                showAlert('quickAddAlert', `เกิดข้อผิดพลาด: ${error.message}`, 'error');
+            }
+            
+            hideLoading('quickAddSpinner', 'quickAddButtonText', 'เพิ่ม');
+        }
+
+        function closeManageModal() {
+            document.getElementById('manageModal').classList.remove('show');
         }
 
         function showLoading(spinnerId, textId, text) {
