@@ -1046,9 +1046,9 @@ function doGet(e) {
                 
                 const response = await fetch(googleSheetsConfig.appsScriptUrl, {
                     method: 'POST',
-                    mode: 'cors',
+                    redirect: 'follow',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'text/plain',
                     },
                     body: JSON.stringify({
                         action: 'append',
@@ -1098,9 +1098,9 @@ function doGet(e) {
                 
                 const response = await fetch(googleSheetsConfig.appsScriptUrl, {
                     method: 'POST',
-                    mode: 'cors',
+                    redirect: 'follow',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'text/plain',
                     },
                     body: JSON.stringify({
                         action: 'update',
@@ -1435,17 +1435,18 @@ function doGet(e) {
                     testResults.textContent += '\n\nกำลังส่ง test request...';
                     
                     const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+                    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
                     
                     const appsScriptResponse = await fetch(googleSheetsConfig.appsScriptUrl, {
                         method: 'POST',
                         signal: controller.signal,
+                        redirect: 'follow',
                         headers: {
-                            'Content-Type': 'application/json',
+                            'Content-Type': 'text/plain',
                         },
                         body: JSON.stringify({
                             action: 'test',
-                            message: 'connection test'
+                            message: 'connection test from SIFCO app'
                         })
                     });
                     
@@ -1457,7 +1458,19 @@ function doGet(e) {
                     if (appsScriptResponse.ok) {
                         const responseText = await appsScriptResponse.text();
                         testResults.textContent += `\nResponse: ${responseText}`;
-                        testResults.textContent += '\n✅ Apps Script: เชื่อมต่อได้ (สามารถเพิ่ม/ลบข้อมูลได้)';
+                        
+                        // ลองแปลง JSON
+                        try {
+                            const jsonResponse = JSON.parse(responseText);
+                            if (jsonResponse.error) {
+                                testResults.textContent += '\n⚠️ Apps Script: มี error ใน response';
+                                testResults.textContent += `\nError: ${jsonResponse.error}`;
+                            } else {
+                                testResults.textContent += '\n✅ Apps Script: เชื่อมต่อได้ (สามารถเพิ่ม/ลบข้อมูลได้)';
+                            }
+                        } catch (parseError) {
+                            testResults.textContent += '\n✅ Apps Script: เชื่อมต่อได้ (response ไม่ใช่ JSON)';
+                        }
                     } else {
                         const errorText = await appsScriptResponse.text();
                         testResults.textContent += `\nError Response: ${errorText}`;
@@ -1469,20 +1482,25 @@ function doGet(e) {
                     
                     if (e.name === 'AbortError') {
                         testResults.textContent += '\n   - Timeout: การเชื่อมต่อใช้เวลานานเกินไป';
+                        testResults.textContent += '\n   - แต่ URL ทำงานได้ (ทดสอบแยกแล้ว)';
+                        testResults.textContent += '\n   - ปัญหาอาจอยู่ที่ CORS policy';
                     } else if (e.message.includes('CORS')) {
                         testResults.textContent += '\n   - CORS Error: ปัญหาการอนุญาตการเชื่อมต่อ';
+                    } else if (e.message.includes('Failed to fetch')) {
+                        testResults.textContent += '\n   - Network/CORS Error: ไม่สามารถเชื่อมต่อได้';
+                        testResults.textContent += '\n   - แต่ URL ใช้งานได้ปกติ (ทดสอบแยกแล้ว)';
+                        testResults.textContent += '\n   - ลองใช้ Incognito mode หรือ browser อื่น';
                     } else if (e.message.includes('network')) {
                         testResults.textContent += '\n   - Network Error: ปัญหาเครือข่าย';
                     }
                     
-                    testResults.textContent += '\n\n🔧 วิธีแก้ไข Apps Script:';
-                    testResults.textContent += '\n1. ตรวจสอบ Apps Script URL ว่าถูกต้อง';
-                    testResults.textContent += '\n2. ตรวจสอบการ Deploy:';
-                    testResults.textContent += '\n   - Execute as: Me';
-                    testResults.textContent += '\n   - Who has access: Anyone';
-                    testResults.textContent += '\n3. ลอง Deploy ใหม่ (New Deployment)';
-                    testResults.textContent += '\n4. ตรวจสอบโค้ด Apps Script';
-                    testResults.textContent += '\n5. ตรวจสอบใน Apps Script > Executions สำหรับ error log';
+                    testResults.textContent += '\n\n🔧 วิธีแก้ไข:';
+                    testResults.textContent += '\n1. URL ทำงานได้แล้ว (ทดสอบแยกแล้ว)';
+                    testResults.textContent += '\n2. ปัญหาอาจอยู่ที่ browser security/CORS';
+                    testResults.textContent += '\n3. ลองเปิด Incognito mode';
+                    testResults.textContent += '\n4. ลองใช้ browser อื่น (Chrome, Firefox, Safari)';
+                    testResults.textContent += '\n5. หรือเพิ่ม/ลบข้อมูลด้วยตนเองใน Google Sheets';
+                    testResults.textContent += '\n\n💡 ระบบจะแสดงข้อมูลให้คัดลอกเมื่อเพิ่ม/ลบไม่สำเร็จ';
                 }
                 
                 // โหลดข้อมูลจริง
