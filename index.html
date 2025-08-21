@@ -550,30 +550,9 @@
 
             <!-- Dashboard -->
             <div id="dashboard" class="hidden">
-                <!-- Stats Cards -->
-                <div class="dashboard-grid">
-                    <div class="stats-card">
-                        <div class="stats-number" id="totalProspects">0</div>
-                        <div class="stats-label">รายการทั้งหมด</div>
-                    </div>
-                    <div class="stats-card">
-                        <div class="stats-number" id="totalCountries">0</div>
-                        <div class="stats-label">ประเทศ</div>
-                    </div>
-                    <div class="stats-card">
-                        <div class="stats-number" id="totalCategories">0</div>
-                        <div class="stats-label">กลุ่มสินค้า</div>
-                    </div>
-                    <div class="stats-card">
-                        <div class="stats-number" id="totalMaterials">0</div>
-                        <div class="stats-label">กลุ่มวัตถุดิบ</div>
-                    </div>
-                </div>
-
                 <!-- Navigation Tabs -->
                 <div class="navigation-tabs">
                     <div class="nav-tab active" data-tab="prospects" onclick="switchTab('prospects')">รายการลูกค้า</div>
-                    <div class="nav-tab" data-tab="summary" onclick="switchTab('summary')">สรุปข้อมูล</div>
                     <div class="nav-tab" data-tab="manage" onclick="switchTab('manage')">จัดการข้อมูล</div>
                     <div class="nav-tab" data-tab="settings" onclick="switchTab('settings')" id="settingsNavTab">การตั้งค่า</div>
                 </div>
@@ -680,24 +659,6 @@
                                     <!-- Users will be loaded here -->
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Summary Tab -->
-                <div id="summaryTabContent" class="tab-content hidden">
-                    <div class="dashboard-grid">
-                        <div class="card">
-                            <h3 class="config-title">สรุปตามประเทศ</h3>
-                            <div id="countrySummary"></div>
-                        </div>
-                        <div class="card">
-                            <h3 class="config-title">สรุปตามกลุ่มสินค้า</h3>
-                            <div id="categorySummary"></div>
-                        </div>
-                        <div class="card">
-                            <h3 class="config-title">สรุปตามกลุ่มวัตถุดิบ</h3>
-                            <div id="materialSummary"></div>
                         </div>
                     </div>
                 </div>
@@ -1067,8 +1028,6 @@ function doGet(e) {
                 await loadMasterData();
                 await loadProspects();
                 updateFilters();
-                updateStats();
-                updateSummary();
                 updateConnectionStatus(true, 'เชื่อมต่อปกติ');
             } catch (error) {
                 console.error('Error loading dashboard data:', error);
@@ -1541,8 +1500,6 @@ function doGet(e) {
                 }
                 
                 await loadProspects();
-                updateStats();
-                updateSummary();
                 closeModal();
                 
                 alert('บันทึกข้อมูลเรียบร้อยแล้ว');
@@ -1564,8 +1521,6 @@ function doGet(e) {
                 );
                 
                 await loadProspects();
-                updateStats();
-                updateSummary();
                 
                 alert('ลบรายการเรียบร้อยแล้ว');
             } catch (error) {
