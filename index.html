@@ -301,6 +301,7 @@
             align-items: center;
             justify-content: center;
             padding: 1rem;
+            overflow-y: auto;
         }
 
         .modal.show {
@@ -315,7 +316,6 @@
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
-            position: relative;
         }
 
         .modal-header {
@@ -344,6 +344,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.3s ease;
         }
 
         .close-btn:hover {
@@ -912,18 +913,18 @@ function doGet(e) {
         </div>
 
         <!-- View Details Modal -->
-        <div id="viewModal" class="modal" onclick="closeViewModal()">
-            <div class="modal-content" style="max-width: 600px;" onclick="event.stopPropagation()">
+        <div id="viewModal" class="modal">
+            <div class="modal-content" style="max-width: 600px;">
                 <div class="modal-header">
                     <h3 class="modal-title">รายละเอียดข้อมูลลูกค้า</h3>
-                    <button class="close-btn" onclick="closeViewModal()" type="button">&times;</button>
+                    <button class="close-btn" onclick="closeViewModal()">&times;</button>
                 </div>
                 <div id="viewModalContent" style="line-height: 1.8;">
                     <!-- Details will be loaded here -->
                 </div>
                 <div style="margin-top: 2rem; text-align: center;">
-                    <button class="btn" onclick="editFromView()" type="button">แก้ไขข้อมูล</button>
-                    <button class="btn btn-secondary" onclick="closeViewModal()" type="button">ปิด</button>
+                    <button class="btn" onclick="editFromView()">แก้ไขข้อมูล</button>
+                    <button class="btn btn-secondary" onclick="closeViewModal()">ปิด</button>
                 </div>
             </div>
         </div>
@@ -965,7 +966,12 @@ function doGet(e) {
         let currentManageType = '';
 
         // Initialize app
-        // ลบการเรียก DOMContentLoaded ซ้ำ
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStoredConfig();
+            initializeEventListeners();
+            // ทดสอบการเชื่อมต่อทันทีเมื่อเปิดโปรแกรม
+            checkConnectionStatus();
+        });
 
         function initializeEventListeners() {
             // Login form
@@ -982,6 +988,38 @@ function doGet(e) {
             
             // Change password form
             document.getElementById('changePasswordForm').addEventListener('submit', handleChangePassword);
+            
+            // Modal event listeners
+            document.addEventListener('click', function(e) {
+                // ปิด modal เมื่อคลิกนอกพื้นที่ modal
+                if (e.target.classList.contains('modal')) {
+                    if (e.target.id === 'viewModal') {
+                        closeViewModal();
+                    } else if (e.target.id === 'editModal') {
+                        closeModal();
+                    } else if (e.target.id === 'changePasswordModal') {
+                        closeChangePasswordModal();
+                    } else if (e.target.id === 'manageModal') {
+                        closeManageModal();
+                    }
+                }
+            });
+            
+            // ESC key listener
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    // ปิด modal ที่เปิดอยู่เมื่อกด ESC
+                    if (document.getElementById('viewModal').classList.contains('show')) {
+                        closeViewModal();
+                    } else if (document.getElementById('editModal').classList.contains('show')) {
+                        closeModal();
+                    } else if (document.getElementById('changePasswordModal').classList.contains('show')) {
+                        closeChangePasswordModal();
+                    } else if (document.getElementById('manageModal').classList.contains('show')) {
+                        closeManageModal();
+                    }
+                }
+            });
         }
 
         function loadStoredConfig() {
@@ -1975,7 +2013,6 @@ function doGet(e) {
         let currentViewProspectId = null;
 
         function viewProspectDetails(id) {
-            console.log('Opening view modal for prospect:', id);
             const prospect = prospects.find(p => p.id === id);
             if (!prospect) return;
             
@@ -2026,10 +2063,7 @@ function doGet(e) {
                 </div>
             `;
             
-            const modal = document.getElementById('viewModal');
-            modal.style.display = 'flex';
-            modal.classList.add('show');
-            console.log('View modal should be visible now');
+            document.getElementById('viewModal').classList.add('show');
         }
 
         function editFromView() {
