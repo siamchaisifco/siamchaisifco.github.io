@@ -789,15 +789,21 @@ function doGet(e) {
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">ประเทศลูกค้า *</label>
-                            <select class="form-input" id="prospectCountry" required>
-                                <option value="">เลือกประเทศลูกค้า</option>
-                            </select>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <select class="form-input" id="prospectCountry" required style="flex: 1;">
+                                    <option value="">เลือกประเทศลูกค้า</option>
+                                </select>
+                                <button type="button" class="btn" onclick="showQuickAddModal('countries', 'prospectCountry')" style="padding: 0.75rem; font-size: 0.9rem; white-space: nowrap;">+ เพิ่ม</button>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label class="form-label">ประเทศที่ขายสินค้า</label>
-                            <select class="form-input" id="prospectSaleCountry">
-                                <option value="">เลือกประเทศที่ขาย</option>
-                            </select>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <select class="form-input" id="prospectSaleCountry" style="flex: 1;">
+                                    <option value="">เลือกประเทศที่ขาย</option>
+                                </select>
+                                <button type="button" class="btn" onclick="showQuickAddModal('countries', 'prospectSaleCountry')" style="padding: 0.75rem; font-size: 0.9rem; white-space: nowrap;">+ เพิ่ม</button>
+                            </div>
                         </div>
                     </div>
                     
@@ -811,15 +817,21 @@ function doGet(e) {
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">กลุ่มสินค้า *</label>
-                            <select class="form-input" id="prospectCategory" required>
-                                <option value="">เลือกกลุ่มสินค้า</option>
-                            </select>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <select class="form-input" id="prospectCategory" required style="flex: 1;">
+                                    <option value="">เลือกกลุ่มสินค้า</option>
+                                </select>
+                                <button type="button" class="btn" onclick="showQuickAddModal('categories', 'prospectCategory')" style="padding: 0.75rem; font-size: 0.9rem; white-space: nowrap;">+ เพิ่ม</button>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label class="form-label">กลุ่มวัตถุดิบ *</label>
-                            <select class="form-input" id="prospectMaterial" required>
-                                <option value="">เลือกกลุ่มวัตถุดิบ</option>
-                            </select>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <select class="form-input" id="prospectMaterial" required style="flex: 1;">
+                                    <option value="">เลือกกลุ่มวัตถุดิบ</option>
+                                </select>
+                                <button type="button" class="btn" onclick="showQuickAddModal('materials', 'prospectMaterial')" style="padding: 0.75rem; font-size: 0.9rem; white-space: nowrap;">+ เพิ่ม</button>
+                            </div>
                         </div>
                     </div>
                     
@@ -837,18 +849,25 @@ function doGet(e) {
             </div>
         </div>
 
-        <!-- Manage Data Modal -->
-        <div id="manageModal" class="modal">
-            <div class="modal-content">
+        <!-- Quick Add Modal -->
+        <div id="quickAddModal" class="modal">
+            <div class="modal-content" style="max-width: 400px;">
                 <div class="modal-header">
-                    <h3 class="modal-title" id="manageModalTitle">จัดการข้อมูล</h3>
-                    <button class="close-btn" onclick="closeManageModal()">&times;</button>
+                    <h3 class="modal-title" id="quickAddModalTitle">เพิ่มข้อมูลใหม่</h3>
+                    <button class="close-btn" onclick="closeQuickAddModal()">&times;</button>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" id="quickAddLabel">ชื่อรายการ</label>
+                    <input type="text" class="form-input" id="quickAddInput" placeholder="กรอกชื่อรายการใหม่">
                 </div>
                 <div class="form-row">
-                    <input type="text" class="form-input" id="newItemInput" placeholder="เพิ่มรายการใหม่">
-                    <button class="btn" onclick="addNewItem()">เพิ่ม</button>
+                    <button type="button" class="btn" onclick="saveQuickAdd()">
+                        <span id="quickAddButtonText">เพิ่ม</span>
+                        <div class="spinner hidden" id="quickAddSpinner"></div>
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeQuickAddModal()">ยกเลิก</button>
                 </div>
-                <div id="manageList" class="test-results"></div>
+                <div id="quickAddStatus" class="hidden" style="margin-top: 1rem; padding: 0.75rem; border-radius: 6px; font-size: 0.9rem;"></div>
             </div>
         </div>
     </div>
