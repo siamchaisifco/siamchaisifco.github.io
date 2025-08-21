@@ -470,10 +470,15 @@
         .status-text {
             color: #ef4444;
             font-weight: 500;
+            font-size: 0.85rem;
         }
 
         .status-text.connected {
             color: #10b981;
+        }
+
+        .status-text.loading {
+            color: #f59e0b;
         }
 
         .config-section {
@@ -1391,9 +1396,36 @@ function doGet(e) {
             });
             document.getElementById(`${tabName}TabContent`).classList.remove('hidden');
             
-            // โหลดข้อมูลพิเศษสำหรับแต่ละแท็บ
-            if (tabName === 'manage') {
-                updateQuickManageLists();
+            // รีเฟรชข้อมูลทุกครั้งที่เปลี่ยนเมนู
+            refreshDataForTab(tabName);
+        }
+
+        async function refreshDataForTab(tabName) {
+            try {
+                updateConnectionStatus(false, 'กำลังโหลดข้อมูล...');
+                
+                // โหลดข้อมูลหลักและ prospects ใหม่ทุกครั้ง
+                await loadMasterData();
+                await loadProspects();
+                updateFilters();
+                
+                // โหลดข้อมูลพิเศษสำหรับแต่ละแท็บ
+                if (tabName === 'manage') {
+                    updateQuickManageLists();
+                } else if (tabName === 'prospects') {
+                    // ข้อมูลได้รีเฟรชแล้วใน loadProspects()
+                    applyFilters();
+                }
+                
+                updateConnectionStatus(true, 'เชื่อมต่อปกติ');
+                
+                console.log(`ข้อมูลรีเฟรชเรียบร้อยสำหรับเมนู: ${tabName}`);
+            } catch (error) {
+                console.error('Error refreshing data:', error);
+                updateConnectionStatus(false, 'เชื่อมต่อมีปัญหา');
+                
+                // แสดงข้อผิดพลาดแต่ไม่ป๊อปอัพ เพื่อไม่รบกวนการใช้งาน
+                console.warn('ไม่สามารถรีเฟรชข้อมูลได้:', error.message);
             }
         }
 
@@ -1673,13 +1705,18 @@ function doGet(e) {
             const indicator = document.getElementById('statusIndicator');
             const text = document.getElementById('statusText');
             
+            // ลบ class เก่าทั้งหมด
+            text.classList.remove('connected', 'loading');
+            
             if (connected) {
                 indicator.classList.add('connected');
                 text.classList.add('connected');
                 text.textContent = message || 'เชื่อมต่อแล้ว';
             } else {
                 indicator.classList.remove('connected');
-                text.classList.remove('connected');
+                if (message && message.includes('กำลัง')) {
+                    text.classList.add('loading');
+                }
                 text.textContent = message || 'ไม่ได้เชื่อมต่อ';
             }
         }
@@ -1950,9 +1987,13 @@ function doGet(e) {
             }
         }
 
-        function closeViewModal() {
-            document.getElementById('viewModal').classList.remove('show');
-            currentViewProspectId = null;
+        function refreshCurrentTab() {
+            // หาเมนูที่กำลังใช้งานอยู่
+            const activeTab = document.querySelector('.nav-tab.active');
+            const currentTabName = activeTab ? activeTab.getAttribute('data-tab') : 'prospects';
+            
+            // รีเฟรชข้อมูลสำหรับเมนูปัจจุบัน
+            refreshDataForTab(currentTabName);
         }
         async function addQuickItem(type) {
             const inputIds = {
