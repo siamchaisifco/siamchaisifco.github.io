@@ -179,11 +179,19 @@
         }
 
         .dashboard-grid {
-            display: none; /* ซ่อนแดชบอร์ด */
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
         }
 
         .stats-card {
-            display: none; /* ซ่อนการ์ดสถิติ */
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #dc2626;
+            transition: transform 0.3s ease;
         }
 
         .stats-card:hover {
@@ -1207,8 +1215,10 @@ function doGet(e) {
         }
 
         function updateStats() {
-            // ลบการอัพเดทสถิติเพราะไม่มี dashboard แล้ว
-            return;
+            document.getElementById('totalProspects').textContent = prospects.length;
+            document.getElementById('totalCountries').textContent = new Set(prospects.map(p => p.country).filter(c => c)).size;
+            document.getElementById('totalCategories').textContent = new Set(prospects.map(p => p.category).filter(c => c)).size;
+            document.getElementById('totalMaterials').textContent = new Set(prospects.map(p => p.material).filter(m => m)).size;
         }
 
         function updateSummary() {
