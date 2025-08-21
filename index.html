@@ -550,12 +550,35 @@
 
             <!-- Dashboard -->
             <div id="dashboard" class="hidden">
+                <!-- Stats Cards -->
+                <div class="dashboard-grid">
+                    <div class="stats-card">
+                        <div class="stats-number" id="totalProspects">0</div>
+                        <div class="stats-label">รายการทั้งหมด</div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stats-number" id="totalCountries">0</div>
+                        <div class="stats-label">ประเทศ</div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stats-number" id="totalCategories">0</div>
+                        <div class="stats-label">กลุ่มสินค้า</div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stats-number" id="totalMaterials">0</div>
+                        <div class="stats-label">กลุ่มวัตถุดิบ</div>
+                    </div>
+                </div>
+
                 <!-- Navigation Tabs -->
                 <div class="navigation-tabs">
                     <div class="nav-tab active" data-tab="prospects" onclick="switchTab('prospects')">รายการลูกค้า</div>
                     <div class="nav-tab" data-tab="summary" onclick="switchTab('summary')">สรุปข้อมูล</div>
                     <div class="nav-tab" data-tab="settings" onclick="switchTab('settings')" id="settingsNavTab">การตั้งค่า</div>
                 </div>
+
+                <!-- Prospects Tab -->
+                <div id="prospectsTabContent" class="tab-content">
                     <!-- Search and Filter -->
                     <div class="search-container">
                         <input type="text" class="form-input search-input" id="searchInput" placeholder="ค้นหา Email, บริษัท, ผู้ติดต่อ, ชื่อสินค้า, Line, WhatsApp หรือรายละเอียด...">
