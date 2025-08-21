@@ -623,17 +623,11 @@
                             <table class="table">
                                 <thead>
                                     <tr>
-                                        <th>Email</th>
-                                        <th>บริษัท</th>
-                                        <th>ผู้ติดต่อ</th>
-                                        <th>ประเทศลูกค้า</th>
                                         <th>วันที่</th>
-                                        <th>ชื่อสินค้า</th>
+                                        <th>บริษัท</th>
                                         <th>ประเทศที่ขาย</th>
-                                        <th>กลุ่มสินค้า</th>
-                                        <th>กลุ่มวัตถุดิบ</th>
-                                        <th>ติดต่อ</th>
-                                        <th>จัดการ</th>
+                                        <th>ชื่อสินค้า</th>
+                                        <th>รายละเอียด</th>
                                     </tr>
                                 </thead>
                                 <tbody id="prospectsTable">
@@ -1386,23 +1380,14 @@ function doGet(e) {
             filteredProspects.forEach(prospect => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${prospect.email}</td>
-                    <td>${prospect.company}</td>
-                    <td>${prospect.contact}</td>
-                    <td>${prospect.country}</td>
-                    <td>${prospect.date}</td>
-                    <td>${prospect.productName}</td>
-                    <td>${prospect.saleCountry}</td>
-                    <td>${prospect.category}</td>
-                    <td>${prospect.material}</td>
-                    <td>
-                        ${prospect.line ? `<div>📱 ${prospect.line}</div>` : ''}
-                        ${prospect.whatsapp ? `<div>💬 ${prospect.whatsapp}</div>` : ''}
-                    </td>
-                    <td>
-                        <button class="btn" onclick="viewProspect(${prospect.id})" style="margin-right: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.8rem; background: #059669;">ดู</button>
-                        <button class="btn" onclick="editProspect(${prospect.id})" style="margin-right: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.8rem;">แก้ไข</button>
-                        <button class="btn" onclick="deleteProspect(${prospect.id})" style="background: #ef4444; padding: 0.25rem 0.5rem; font-size: 0.8rem;">ลบ</button>
+                    <td style="white-space: nowrap;">${prospect.date || '-'}</td>
+                    <td style="font-weight: 500;">${prospect.company || '-'}</td>
+                    <td>${prospect.saleCountry || '-'}</td>
+                    <td>${prospect.productName || '-'}</td>
+                    <td style="text-align: center;">
+                        <button class="btn" onclick="viewProspect(${prospect.id})" style="background: #059669; padding: 0.5rem 1rem; font-size: 0.9rem; white-space: nowrap;">
+                            📋 ดูรายละเอียด
+                        </button>
                     </td>
                 `;
                 tbody.appendChild(row);
@@ -1667,6 +1652,16 @@ function doGet(e) {
                     
                     <div class="view-label">👨‍💼 ผู้สร้างข้อมูล</div>
                     <div class="view-value">${prospect.createdBy || '-'}</div>
+                </div>
+
+                <!-- ปุ่มจัดการ -->
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb;">
+                    <button class="btn" onclick="closeViewModal(); editProspect(${prospect.id})" style="flex: 1;">
+                        ✏️ แก้ไขข้อมูล
+                    </button>
+                    <button class="btn" onclick="closeViewModal(); deleteProspect(${prospect.id})" style="flex: 1; background: #ef4444;">
+                        🗑️ ลบรายการ
+                    </button>
                 </div>
             `;
             
