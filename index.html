@@ -179,19 +179,11 @@
         }
 
         .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+            display: none; /* ซ่อนแดชบอร์ด */
         }
 
         .stats-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            border-left: 4px solid #dc2626;
-            transition: transform 0.3s ease;
+            display: none; /* ซ่อนการ์ดสถิติ */
         }
 
         .stats-card:hover {
@@ -550,35 +542,12 @@
 
             <!-- Dashboard -->
             <div id="dashboard" class="hidden">
-                <!-- Stats Cards -->
-                <div class="dashboard-grid">
-                    <div class="stats-card">
-                        <div class="stats-number" id="totalProspects">0</div>
-                        <div class="stats-label">รายการทั้งหมด</div>
-                    </div>
-                    <div class="stats-card">
-                        <div class="stats-number" id="totalCountries">0</div>
-                        <div class="stats-label">ประเทศ</div>
-                    </div>
-                    <div class="stats-card">
-                        <div class="stats-number" id="totalCategories">0</div>
-                        <div class="stats-label">กลุ่มสินค้า</div>
-                    </div>
-                    <div class="stats-card">
-                        <div class="stats-number" id="totalMaterials">0</div>
-                        <div class="stats-label">กลุ่มวัตถุดิบ</div>
-                    </div>
-                </div>
-
                 <!-- Navigation Tabs -->
                 <div class="navigation-tabs">
                     <div class="nav-tab active" data-tab="prospects" onclick="switchTab('prospects')">รายการลูกค้า</div>
                     <div class="nav-tab" data-tab="summary" onclick="switchTab('summary')">สรุปข้อมูล</div>
                     <div class="nav-tab" data-tab="settings" onclick="switchTab('settings')" id="settingsNavTab">การตั้งค่า</div>
                 </div>
-
-                <!-- Prospects Tab -->
-                <div id="prospectsTabContent" class="tab-content">
                     <!-- Search and Filter -->
                     <div class="search-container">
                         <input type="text" class="form-input search-input" id="searchInput" placeholder="ค้นหา Email, บริษัท, ผู้ติดต่อ, ชื่อสินค้า, Line, WhatsApp หรือรายละเอียด...">
@@ -789,21 +758,15 @@ function doGet(e) {
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">ประเทศลูกค้า *</label>
-                            <div style="display: flex; gap: 0.5rem;">
-                                <select class="form-input" id="prospectCountry" required style="flex: 1;">
-                                    <option value="">เลือกประเทศลูกค้า</option>
-                                </select>
-                                <button type="button" class="btn quick-add-btn" data-type="countries" data-target="prospectCountry" style="padding: 0.75rem; font-size: 0.9rem; white-space: nowrap;">+ เพิ่ม</button>
-                            </div>
+                            <select class="form-input" id="prospectCountry" required>
+                                <option value="">เลือกประเทศลูกค้า</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label class="form-label">ประเทศที่ขายสินค้า</label>
-                            <div style="display: flex; gap: 0.5rem;">
-                                <select class="form-input" id="prospectSaleCountry" style="flex: 1;">
-                                    <option value="">เลือกประเทศที่ขาย</option>
-                                </select>
-                                <button type="button" class="btn quick-add-btn" data-type="countries" data-target="prospectSaleCountry" style="padding: 0.75rem; font-size: 0.9rem; white-space: nowrap;">+ เพิ่ม</button>
-                            </div>
+                            <select class="form-input" id="prospectSaleCountry">
+                                <option value="">เลือกประเทศที่ขาย</option>
+                            </select>
                         </div>
                     </div>
                     
@@ -817,21 +780,15 @@ function doGet(e) {
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">กลุ่มสินค้า *</label>
-                            <div style="display: flex; gap: 0.5rem;">
-                                <select class="form-input" id="prospectCategory" required style="flex: 1;">
-                                    <option value="">เลือกกลุ่มสินค้า</option>
-                                </select>
-                                <button type="button" class="btn quick-add-btn" data-type="categories" data-target="prospectCategory" style="padding: 0.75rem; font-size: 0.9rem; white-space: nowrap;">+ เพิ่ม</button>
-                            </div>
+                            <select class="form-input" id="prospectCategory" required>
+                                <option value="">เลือกกลุ่มสินค้า</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label class="form-label">กลุ่มวัตถุดิบ *</label>
-                            <div style="display: flex; gap: 0.5rem;">
-                                <select class="form-input" id="prospectMaterial" required style="flex: 1;">
-                                    <option value="">เลือกกลุ่มวัตถุดิบ</option>
-                                </select>
-                                <button type="button" class="btn quick-add-btn" data-type="materials" data-target="prospectMaterial" style="padding: 0.75rem; font-size: 0.9rem; white-space: nowrap;">+ เพิ่ม</button>
-                            </div>
+                            <select class="form-input" id="prospectMaterial" required>
+                                <option value="">เลือกกลุ่มวัตถุดิบ</option>
+                            </select>
                         </div>
                     </div>
                     
@@ -849,25 +806,18 @@ function doGet(e) {
             </div>
         </div>
 
-        <!-- Quick Add Modal -->
-        <div id="quickAddModal" class="modal">
-            <div class="modal-content" style="max-width: 400px;">
+        <!-- Manage Data Modal -->
+        <div id="manageModal" class="modal">
+            <div class="modal-content">
                 <div class="modal-header">
-                    <h3 class="modal-title" id="quickAddModalTitle">เพิ่มข้อมูลใหม่</h3>
-                    <button class="close-btn" onclick="closeQuickAddModal()">&times;</button>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" id="quickAddLabel">ชื่อรายการ</label>
-                    <input type="text" class="form-input" id="quickAddInput" placeholder="กรอกชื่อรายการใหม่">
+                    <h3 class="modal-title" id="manageModalTitle">จัดการข้อมูล</h3>
+                    <button class="close-btn" onclick="closeManageModal()">&times;</button>
                 </div>
                 <div class="form-row">
-                    <button type="button" class="btn" onclick="saveQuickAdd()">
-                        <span id="quickAddButtonText">เพิ่ม</span>
-                        <div class="spinner hidden" id="quickAddSpinner"></div>
-                    </button>
-                    <button type="button" class="btn btn-secondary" onclick="closeQuickAddModal()">ยกเลิก</button>
+                    <input type="text" class="form-input" id="newItemInput" placeholder="เพิ่มรายการใหม่">
+                    <button class="btn" onclick="addNewItem()">เพิ่ม</button>
                 </div>
-                <div id="quickAddStatus" class="hidden" style="margin-top: 1rem; padding: 0.75rem; border-radius: 6px; font-size: 0.9rem;"></div>
+                <div id="manageList" class="test-results"></div>
             </div>
         </div>
     </div>
@@ -912,17 +862,6 @@ function doGet(e) {
             
             // Prospect form
             document.getElementById('prospectForm').addEventListener('submit', handleSaveProspect);
-            
-            // Quick Add buttons - ใช้ event delegation
-            document.addEventListener('click', function(e) {
-                if (e.target.classList.contains('quick-add-btn')) {
-                    console.log('Quick add button clicked');
-                    const type = e.target.getAttribute('data-type');
-                    const target = e.target.getAttribute('data-target');
-                    console.log('Type:', type, 'Target:', target);
-                    showQuickAddModal(type, target);
-                }
-            });
         }
 
         function loadStoredConfig() {
@@ -1268,10 +1207,8 @@ function doGet(e) {
         }
 
         function updateStats() {
-            document.getElementById('totalProspects').textContent = prospects.length;
-            document.getElementById('totalCountries').textContent = new Set(prospects.map(p => p.country).filter(c => c)).size;
-            document.getElementById('totalCategories').textContent = new Set(prospects.map(p => p.category).filter(c => c)).size;
-            document.getElementById('totalMaterials').textContent = new Set(prospects.map(p => p.material).filter(m => m)).size;
+            // ลบการอัพเดทสถิติเพราะไม่มี dashboard แล้ว
+            return;
         }
 
         function updateSummary() {
