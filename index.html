@@ -916,6 +916,7 @@ function doGet(e) {
                 </div>
                 <div style="margin-top: 2rem; text-align: center;">
                     <button class="btn" onclick="editFromView()">แก้ไขข้อมูล</button>
+                    <button class="btn" onclick="deleteFromView()" style="background: #ef4444; margin: 0 0.5rem;">ลบข้อมูล</button>
                     <button class="btn btn-secondary" onclick="closeViewModal()">ปิด</button>
                 </div>
             </div>
@@ -2031,6 +2032,32 @@ function doGet(e) {
             if (currentViewProspectId) {
                 editProspect(currentViewProspectId);
             }
+        }
+
+        function deleteFromView() {
+            if (!currentViewProspectId) return;
+            
+            const prospect = prospects.find(p => p.id === currentViewProspectId);
+            if (!prospect) return;
+            
+            // การยืนยันครั้งที่ 1
+            const companyInfo = prospect.company ? `บริษัท: ${prospect.company}` : `อีเมล: ${prospect.email}`;
+            const productInfo = prospect.productName ? `\nสินค้า: ${prospect.productName}` : '';
+            
+            if (!confirm(`⚠️ คุณต้องการลบข้อมูลนี้หรือไม่?\n\n${companyInfo}${productInfo}\n\nกดตกลงเพื่อดำเนินการต่อ`)) {
+                return;
+            }
+            
+            // การยืนยันครั้งที่ 2 (ย้ำอีกครั้ง)
+            if (!confirm(`🚨 ยืนยันการลบข้อมูลอีกครั้ง\n\nข้อมูลที่ลบแล้วจะไม่สามารถกู้คืนได้\n\n• ${companyInfo}${productInfo}\n\nคุณแน่ใจหรือไม่ที่จะลบข้อมูลนี้?`)) {
+                return;
+            }
+            
+            // ปิด Modal ก่อนลบ
+            closeViewModal();
+            
+            // ลบข้อมูลจริง
+            deleteProspect(currentViewProspectId);
         }
 
         function closeViewModal() {
