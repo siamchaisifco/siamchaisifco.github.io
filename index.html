@@ -1380,10 +1380,10 @@ function doGet(e) {
             filteredProspects.forEach(prospect => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td style="white-space: nowrap;">${prospect.date || '-'}</td>
-                    <td style="font-weight: 500;">${prospect.company || '-'}</td>
+                    <td style="font-weight: 500;">${prospect.date || '-'}</td>
+                    <td style="font-weight: 600; color: #dc2626;">${prospect.company || '-'}</td>
                     <td>${prospect.saleCountry || '-'}</td>
-                    <td>${prospect.productName || '-'}</td>
+                    <td style="color: #059669;">${prospect.productName || '-'}</td>
                     <td style="text-align: center;">
                         <button class="btn" onclick="viewProspect(${prospect.id})" style="background: #059669; padding: 0.5rem 1rem; font-size: 0.9rem; white-space: nowrap;">
                             📋 ดูรายละเอียด
@@ -1654,18 +1654,28 @@ function doGet(e) {
                     <div class="view-value">${prospect.createdBy || '-'}</div>
                 </div>
 
-                <!-- ปุ่มจัดการ -->
-                <div style="display: flex; gap: 1rem; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb;">
-                    <button class="btn" onclick="closeViewModal(); editProspect(${prospect.id})" style="flex: 1;">
+                <!-- ปุ่มแก้ไขและลบ -->
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+                    <button class="btn" onclick="editProspectFromView(${prospect.id})" style="flex: 1;">
                         ✏️ แก้ไขข้อมูล
                     </button>
-                    <button class="btn" onclick="closeViewModal(); deleteProspect(${prospect.id})" style="flex: 1; background: #ef4444;">
+                    <button class="btn" onclick="deleteProspectFromView(${prospect.id})" style="background: #ef4444; flex: 1;">
                         🗑️ ลบรายการ
                     </button>
                 </div>
             `;
             
             document.getElementById('viewModal').classList.add('show');
+        }
+
+        function editProspectFromView(id) {
+            closeViewModal();
+            editProspect(id);
+        }
+
+        async function deleteProspectFromView(id) {
+            closeViewModal();
+            await deleteProspect(id);
         }
 
         function closeViewModal() {
