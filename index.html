@@ -317,6 +317,49 @@
             overflow-y: auto;
         }
 
+        .view-section {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #dc2626;
+        }
+
+        .view-label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+
+        .view-value {
+            color: #6b7280;
+            margin-bottom: 0.75rem;
+            word-wrap: break-word;
+        }
+
+        .view-value.large {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #dc2626;
+        }
+
+        .contact-info {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: white;
+            padding: 0.5rem;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+
         .modal-header {
             display: flex;
             justify-content: space-between;
@@ -862,6 +905,22 @@ function doGet(e) {
             </div>
         </div>
 
+        <!-- View Details Modal -->
+        <div id="viewModal" class="modal">
+            <div class="modal-content" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h3 class="modal-title">📋 รายละเอียดลูกค้า</h3>
+                    <button class="close-btn" onclick="closeViewModal()">&times;</button>
+                </div>
+                <div id="viewContent" style="max-height: 70vh; overflow-y: auto;">
+                    <!-- Content will be loaded here -->
+                </div>
+                <div style="margin-top: 1.5rem; text-align: center;">
+                    <button class="btn btn-secondary" onclick="closeViewModal()">ปิด</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Manage Data Modal -->
         <div id="manageModal" class="modal">
             <div class="modal-content">
@@ -1341,6 +1400,7 @@ function doGet(e) {
                         ${prospect.whatsapp ? `<div>💬 ${prospect.whatsapp}</div>` : ''}
                     </td>
                     <td>
+                        <button class="btn" onclick="viewProspect(${prospect.id})" style="margin-right: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.8rem; background: #059669;">ดู</button>
                         <button class="btn" onclick="editProspect(${prospect.id})" style="margin-right: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.8rem;">แก้ไข</button>
                         <button class="btn" onclick="deleteProspect(${prospect.id})" style="background: #ef4444; padding: 0.25rem 0.5rem; font-size: 0.8rem;">ลบ</button>
                     </td>
@@ -1529,8 +1589,92 @@ function doGet(e) {
             }
         }
 
-        function closeModal() {
-            document.getElementById('editModal').classList.remove('show');
+        function viewProspect(id) {
+            const prospect = prospects.find(p => p.id === id);
+            if (!prospect) return;
+            
+            const viewContent = document.getElementById('viewContent');
+            
+            viewContent.innerHTML = `
+                <!-- ข้อมูลหลัก -->
+                <div class="view-section">
+                    <div class="view-label">📧 Email</div>
+                    <div class="view-value large">${prospect.email || '-'}</div>
+                    
+                    <div class="view-label">🏢 ชื่อบริษัท</div>
+                    <div class="view-value">${prospect.company || '-'}</div>
+                    
+                    <div class="view-label">👤 ชื่อผู้ติดต่อ</div>
+                    <div class="view-value">${prospect.contact || '-'}</div>
+                </div>
+
+                <!-- ข้อมูลติดต่อ -->
+                <div class="view-section">
+                    <div class="view-label">📱 ช่องทางติดต่อ</div>
+                    <div class="contact-info">
+                        ${prospect.line ? `
+                            <div class="contact-item">
+                                <span>📱</span>
+                                <span><strong>Line:</strong> ${prospect.line}</span>
+                            </div>
+                        ` : ''}
+                        ${prospect.whatsapp ? `
+                            <div class="contact-item">
+                                <span>💬</span>
+                                <span><strong>WhatsApp:</strong> ${prospect.whatsapp}</span>
+                            </div>
+                        ` : ''}
+                        ${!prospect.line && !prospect.whatsapp ? '<div class="view-value">ไม่มีข้อมูล</div>' : ''}
+                    </div>
+                </div>
+
+                <!-- ข้อมูลประเทศ -->
+                <div class="view-section">
+                    <div class="view-label">🌍 ประเทศลูกค้า</div>
+                    <div class="view-value">${prospect.country || '-'}</div>
+                    
+                    <div class="view-label">🌏 ประเทศที่ขายสินค้า</div>
+                    <div class="view-value">${prospect.saleCountry || '-'}</div>
+                </div>
+
+                <!-- ข้อมูลสินค้า -->
+                <div class="view-section">
+                    <div class="view-label">📅 วันที่</div>
+                    <div class="view-value">${prospect.date || '-'}</div>
+                    
+                    <div class="view-label">🏷️ ชื่อสินค้า</div>
+                    <div class="view-value">${prospect.productName || '-'}</div>
+                    
+                    <div class="view-label">📦 กลุ่มสินค้า</div>
+                    <div class="view-value">${prospect.category || '-'}</div>
+                    
+                    <div class="view-label">🥫 กลุ่มวัตถุดิบ</div>
+                    <div class="view-value">${prospect.material || '-'}</div>
+                </div>
+
+                <!-- รายละเอียดการสนทนา -->
+                ${prospect.details ? `
+                    <div class="view-section">
+                        <div class="view-label">💬 รายละเอียดการสนทนา</div>
+                        <div class="view-value" style="white-space: pre-wrap; line-height: 1.6;">${prospect.details}</div>
+                    </div>
+                ` : ''}
+
+                <!-- ข้อมูลระบบ -->
+                <div class="view-section" style="border-left-color: #6b7280;">
+                    <div class="view-label">📅 วันที่สร้างข้อมูล</div>
+                    <div class="view-value">${prospect.createdDate || '-'}</div>
+                    
+                    <div class="view-label">👨‍💼 ผู้สร้างข้อมูล</div>
+                    <div class="view-value">${prospect.createdBy || '-'}</div>
+                </div>
+            `;
+            
+            document.getElementById('viewModal').classList.add('show');
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewModal').classList.remove('show');
         }
 
         async function saveGoogleSheetsConfig() {
@@ -1885,7 +2029,9 @@ function doGet(e) {
         }
 
         // ฟังก์ชันสำหรับจัดการข้อมูลแบบเร็ว
-        async function addQuickItem(type) {
+        function closeModal() {
+            document.getElementById('editModal').classList.remove('show');
+        }
             const inputIds = {
                 'countries': 'newCountryInput',
                 'categories': 'newCategoryInput', 
