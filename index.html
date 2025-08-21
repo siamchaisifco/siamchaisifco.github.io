@@ -611,6 +611,7 @@
                 <div class="navigation-tabs">
                     <div class="nav-tab active" data-tab="prospects" onclick="switchTab('prospects')">รายการลูกค้า</div>
                     <div class="nav-tab" data-tab="manage" onclick="switchTab('manage')">จัดการข้อมูล</div>
+                    <div class="nav-tab" data-tab="summary" onclick="switchTab('summary')">สรุปข้อมูล</div>
                     <div class="nav-tab" data-tab="settings" onclick="switchTab('settings')" id="settingsNavTab">การตั้งค่า</div>
                 </div>
 
@@ -1007,6 +1008,7 @@
                 await loadProspects();
                 updateFilters();
                 updateStats();
+                updateSummary();
                 updateConnectionStatus(true, 'เชื่อมต่อปกติ');
             } catch (error) {
                 console.error('Error loading dashboard data:', error);
@@ -1655,6 +1657,7 @@
                 
                 await loadProspects();
                 updateStats();
+                updateSummary();
                 closeModal();
                 
                 alert('บันทึกข้อมูลเรียบร้อยแล้ว');
