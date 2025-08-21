@@ -317,49 +317,6 @@
             overflow-y: auto;
         }
 
-        .view-section {
-            background: #f9fafb;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-left: 4px solid #dc2626;
-        }
-
-        .view-label {
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 0.25rem;
-            font-size: 0.9rem;
-        }
-
-        .view-value {
-            color: #6b7280;
-            margin-bottom: 0.75rem;
-            word-wrap: break-word;
-        }
-
-        .view-value.large {
-            font-size: 1.1rem;
-            font-weight: 500;
-            color: #dc2626;
-        }
-
-        .contact-info {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .contact-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: white;
-            padding: 0.5rem;
-            border-radius: 6px;
-            border: 1px solid #e5e7eb;
-        }
-
         .modal-header {
             display: flex;
             justify-content: space-between;
@@ -627,7 +584,7 @@
                                         <th>บริษัท</th>
                                         <th>ประเทศที่ขาย</th>
                                         <th>ชื่อสินค้า</th>
-                                        <th>รายละเอียด</th>
+                                        <th>จัดการ</th>
                                     </tr>
                                 </thead>
                                 <tbody id="prospectsTable">
@@ -903,13 +860,14 @@ function doGet(e) {
         <div id="viewModal" class="modal">
             <div class="modal-content" style="max-width: 600px;">
                 <div class="modal-header">
-                    <h3 class="modal-title">📋 รายละเอียดลูกค้า</h3>
+                    <h3 class="modal-title">รายละเอียดข้อมูลลูกค้า</h3>
                     <button class="close-btn" onclick="closeViewModal()">&times;</button>
                 </div>
-                <div id="viewContent" style="max-height: 70vh; overflow-y: auto;">
-                    <!-- Content will be loaded here -->
+                <div id="viewModalContent" style="line-height: 1.8;">
+                    <!-- Details will be loaded here -->
                 </div>
-                <div style="margin-top: 1.5rem; text-align: center;">
+                <div style="margin-top: 2rem; text-align: center;">
+                    <button class="btn" onclick="editFromView()">แก้ไขข้อมูล</button>
                     <button class="btn btn-secondary" onclick="closeViewModal()">ปิด</button>
                 </div>
             </div>
@@ -1380,14 +1338,14 @@ function doGet(e) {
             filteredProspects.forEach(prospect => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td style="font-weight: 500;">${prospect.date || '-'}</td>
-                    <td style="font-weight: 600; color: #dc2626;">${prospect.company || '-'}</td>
+                    <td>${prospect.date || '-'}</td>
+                    <td>${prospect.company || '-'}</td>
                     <td>${prospect.saleCountry || '-'}</td>
-                    <td style="color: #059669;">${prospect.productName || '-'}</td>
-                    <td style="text-align: center;">
-                        <button class="btn" onclick="viewProspect(${prospect.id})" style="background: #059669; padding: 0.5rem 1rem; font-size: 0.9rem; white-space: nowrap;">
-                            📋 ดูรายละเอียด
-                        </button>
+                    <td>${prospect.productName || '-'}</td>
+                    <td>
+                        <button class="btn" onclick="viewProspectDetails(${prospect.id})" style="margin-right: 0.5rem; padding: 0.25rem 0.75rem; font-size: 0.8rem; background: #059669;">ดูรายละเอียด</button>
+                        <button class="btn" onclick="editProspect(${prospect.id})" style="margin-right: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.8rem;">แก้ไข</button>
+                        <button class="btn" onclick="deleteProspect(${prospect.id})" style="background: #ef4444; padding: 0.25rem 0.5rem; font-size: 0.8rem;">ลบ</button>
                     </td>
                 `;
                 tbody.appendChild(row);
@@ -1574,112 +1532,8 @@ function doGet(e) {
             }
         }
 
-        function viewProspect(id) {
-            const prospect = prospects.find(p => p.id === id);
-            if (!prospect) return;
-            
-            const viewContent = document.getElementById('viewContent');
-            
-            viewContent.innerHTML = `
-                <!-- ข้อมูลหลัก -->
-                <div class="view-section">
-                    <div class="view-label">📧 Email</div>
-                    <div class="view-value large">${prospect.email || '-'}</div>
-                    
-                    <div class="view-label">🏢 ชื่อบริษัท</div>
-                    <div class="view-value">${prospect.company || '-'}</div>
-                    
-                    <div class="view-label">👤 ชื่อผู้ติดต่อ</div>
-                    <div class="view-value">${prospect.contact || '-'}</div>
-                </div>
-
-                <!-- ข้อมูลติดต่อ -->
-                <div class="view-section">
-                    <div class="view-label">📱 ช่องทางติดต่อ</div>
-                    <div class="contact-info">
-                        ${prospect.line ? `
-                            <div class="contact-item">
-                                <span>📱</span>
-                                <span><strong>Line:</strong> ${prospect.line}</span>
-                            </div>
-                        ` : ''}
-                        ${prospect.whatsapp ? `
-                            <div class="contact-item">
-                                <span>💬</span>
-                                <span><strong>WhatsApp:</strong> ${prospect.whatsapp}</span>
-                            </div>
-                        ` : ''}
-                        ${!prospect.line && !prospect.whatsapp ? '<div class="view-value">ไม่มีข้อมูล</div>' : ''}
-                    </div>
-                </div>
-
-                <!-- ข้อมูลประเทศ -->
-                <div class="view-section">
-                    <div class="view-label">🌍 ประเทศลูกค้า</div>
-                    <div class="view-value">${prospect.country || '-'}</div>
-                    
-                    <div class="view-label">🌏 ประเทศที่ขายสินค้า</div>
-                    <div class="view-value">${prospect.saleCountry || '-'}</div>
-                </div>
-
-                <!-- ข้อมูลสินค้า -->
-                <div class="view-section">
-                    <div class="view-label">📅 วันที่</div>
-                    <div class="view-value">${prospect.date || '-'}</div>
-                    
-                    <div class="view-label">🏷️ ชื่อสินค้า</div>
-                    <div class="view-value">${prospect.productName || '-'}</div>
-                    
-                    <div class="view-label">📦 กลุ่มสินค้า</div>
-                    <div class="view-value">${prospect.category || '-'}</div>
-                    
-                    <div class="view-label">🥫 กลุ่มวัตถุดิบ</div>
-                    <div class="view-value">${prospect.material || '-'}</div>
-                </div>
-
-                <!-- รายละเอียดการสนทนา -->
-                ${prospect.details ? `
-                    <div class="view-section">
-                        <div class="view-label">💬 รายละเอียดการสนทนา</div>
-                        <div class="view-value" style="white-space: pre-wrap; line-height: 1.6;">${prospect.details}</div>
-                    </div>
-                ` : ''}
-
-                <!-- ข้อมูลระบบ -->
-                <div class="view-section" style="border-left-color: #6b7280;">
-                    <div class="view-label">📅 วันที่สร้างข้อมูล</div>
-                    <div class="view-value">${prospect.createdDate || '-'}</div>
-                    
-                    <div class="view-label">👨‍💼 ผู้สร้างข้อมูล</div>
-                    <div class="view-value">${prospect.createdBy || '-'}</div>
-                </div>
-
-                <!-- ปุ่มแก้ไขและลบ -->
-                <div style="display: flex; gap: 1rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
-                    <button class="btn" onclick="editProspectFromView(${prospect.id})" style="flex: 1;">
-                        ✏️ แก้ไขข้อมูล
-                    </button>
-                    <button class="btn" onclick="deleteProspectFromView(${prospect.id})" style="background: #ef4444; flex: 1;">
-                        🗑️ ลบรายการ
-                    </button>
-                </div>
-            `;
-            
-            document.getElementById('viewModal').classList.add('show');
-        }
-
-        function editProspectFromView(id) {
-            closeViewModal();
-            editProspect(id);
-        }
-
-        async function deleteProspectFromView(id) {
-            closeViewModal();
-            await deleteProspect(id);
-        }
-
-        function closeViewModal() {
-            document.getElementById('viewModal').classList.remove('show');
+        function closeModal() {
+            document.getElementById('editModal').classList.remove('show');
         }
 
         async function saveGoogleSheetsConfig() {
@@ -2033,10 +1887,74 @@ function doGet(e) {
             }
         }
 
-        // ฟังก์ชันสำหรับจัดการข้อมูลแบบเร็ว
-        function closeModal() {
-            document.getElementById('editModal').classList.remove('show');
+        let currentViewProspectId = null;
+
+        function viewProspectDetails(id) {
+            const prospect = prospects.find(p => p.id === id);
+            if (!prospect) return;
+            
+            currentViewProspectId = id;
+            
+            const content = document.getElementById('viewModalContent');
+            content.innerHTML = `
+                <div style="display: grid; gap: 1rem;">
+                    <div style="background: #f9fafb; padding: 1rem; border-radius: 8px;">
+                        <h4 style="color: #dc2626; margin-bottom: 0.5rem;">📅 ข้อมูลพื้นฐาน</h4>
+                        <div><strong>วันที่:</strong> ${prospect.date || '-'}</div>
+                        <div><strong>Email:</strong> ${prospect.email || '-'}</div>
+                    </div>
+                    
+                    <div style="background: #f0f9ff; padding: 1rem; border-radius: 8px;">
+                        <h4 style="color: #0284c7; margin-bottom: 0.5rem;">🏢 ข้อมูลบริษัท</h4>
+                        <div><strong>ชื่อบริษัท:</strong> ${prospect.company || '-'}</div>
+                        <div><strong>ชื่อผู้ติดต่อ:</strong> ${prospect.contact || '-'}</div>
+                        <div><strong>ประเทศลูกค้า:</strong> ${prospect.country || '-'}</div>
+                    </div>
+                    
+                    <div style="background: #f0fdf4; padding: 1rem; border-radius: 8px;">
+                        <h4 style="color: #059669; margin-bottom: 0.5rem;">📦 ข้อมูลสินค้า</h4>
+                        <div><strong>ชื่อสินค้า:</strong> ${prospect.productName || '-'}</div>
+                        <div><strong>ประเทศที่ขายสินค้า:</strong> ${prospect.saleCountry || '-'}</div>
+                        <div><strong>กลุ่มสินค้า:</strong> ${prospect.category || '-'}</div>
+                        <div><strong>กลุ่มวัตถุดิบ:</strong> ${prospect.material || '-'}</div>
+                    </div>
+                    
+                    <div style="background: #fef3c7; padding: 1rem; border-radius: 8px;">
+                        <h4 style="color: #d97706; margin-bottom: 0.5rem;">📱 ข้อมูลติดต่อ</h4>
+                        <div><strong>Line ID:</strong> ${prospect.line || '-'}</div>
+                        <div><strong>WhatsApp:</strong> ${prospect.whatsapp || '-'}</div>
+                    </div>
+                    
+                    ${prospect.details ? `
+                    <div style="background: #fdf2f8; padding: 1rem; border-radius: 8px;">
+                        <h4 style="color: #be185d; margin-bottom: 0.5rem;">💬 รายละเอียดการสนทนา</h4>
+                        <div style="white-space: pre-wrap; background: white; padding: 0.75rem; border-radius: 4px; border: 1px solid #e5e7eb;">${prospect.details}</div>
+                    </div>
+                    ` : ''}
+                    
+                    <div style="background: #f1f5f9; padding: 1rem; border-radius: 8px;">
+                        <h4 style="color: #475569; margin-bottom: 0.5rem;">ℹ️ ข้อมูลระบบ</h4>
+                        <div><strong>วันที่สร้าง:</strong> ${prospect.createdDate || '-'}</div>
+                        <div><strong>สร้างโดย:</strong> ${prospect.createdBy || '-'}</div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('viewModal').classList.add('show');
         }
+
+        function editFromView() {
+            closeViewModal();
+            if (currentViewProspectId) {
+                editProspect(currentViewProspectId);
+            }
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewModal').classList.remove('show');
+            currentViewProspectId = null;
+        }
+        async function addQuickItem(type) {
             const inputIds = {
                 'countries': 'newCountryInput',
                 'categories': 'newCategoryInput', 
