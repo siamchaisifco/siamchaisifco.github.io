@@ -301,7 +301,6 @@
             align-items: center;
             justify-content: center;
             padding: 1rem;
-            overflow-y: auto;
         }
 
         .modal.show {
@@ -339,17 +338,10 @@
             cursor: pointer;
             padding: 0.5rem;
             border-radius: 4px;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
         }
 
         .close-btn:hover {
             background: #f3f4f6;
-            color: #374151;
         }
 
         .form-row {
@@ -988,38 +980,6 @@ function doGet(e) {
             
             // Change password form
             document.getElementById('changePasswordForm').addEventListener('submit', handleChangePassword);
-            
-            // Modal event listeners
-            document.addEventListener('click', function(e) {
-                // ปิด modal เมื่อคลิกนอกพื้นที่ modal
-                if (e.target.classList.contains('modal')) {
-                    if (e.target.id === 'viewModal') {
-                        closeViewModal();
-                    } else if (e.target.id === 'editModal') {
-                        closeModal();
-                    } else if (e.target.id === 'changePasswordModal') {
-                        closeChangePasswordModal();
-                    } else if (e.target.id === 'manageModal') {
-                        closeManageModal();
-                    }
-                }
-            });
-            
-            // ESC key listener
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    // ปิด modal ที่เปิดอยู่เมื่อกด ESC
-                    if (document.getElementById('viewModal').classList.contains('show')) {
-                        closeViewModal();
-                    } else if (document.getElementById('editModal').classList.contains('show')) {
-                        closeModal();
-                    } else if (document.getElementById('changePasswordModal').classList.contains('show')) {
-                        closeChangePasswordModal();
-                    } else if (document.getElementById('manageModal').classList.contains('show')) {
-                        closeManageModal();
-                    }
-                }
-            });
         }
 
         function loadStoredConfig() {
@@ -2071,6 +2031,11 @@ function doGet(e) {
             if (currentViewProspectId) {
                 editProspect(currentViewProspectId);
             }
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewModal').classList.remove('show');
+            currentViewProspectId = null;
         }
 
         function openChangePasswordModal() {
