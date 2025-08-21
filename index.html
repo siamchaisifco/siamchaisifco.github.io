@@ -375,63 +375,6 @@
             color: #92400e;
         }
 
-        .manage-list {
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            background: #f9fafb;
-        }
-
-        .manage-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem;
-            border-bottom: 1px solid #e5e7eb;
-            background: white;
-            margin: 0.25rem;
-            border-radius: 6px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .manage-item:hover {
-            background: #f3f4f6;
-        }
-
-        .manage-item-text {
-            font-weight: 500;
-            color: #374151;
-            flex: 1;
-        }
-
-        .manage-item-user {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-        }
-
-        .manage-item-username {
-            font-weight: 600;
-            color: #dc2626;
-        }
-
-        .manage-item-password {
-            font-size: 0.85rem;
-            color: #6b7280;
-        }
-
-        .quick-delete-btn {
-            background: #ef4444;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
         .hidden {
             display: none !important;
         }
@@ -610,7 +553,6 @@
                 <!-- Navigation Tabs -->
                 <div class="navigation-tabs">
                     <div class="nav-tab active" data-tab="prospects" onclick="switchTab('prospects')">รายการลูกค้า</div>
-                    <div class="nav-tab" data-tab="manage" onclick="switchTab('manage')">จัดการข้อมูล</div>
                     <div class="nav-tab" data-tab="summary" onclick="switchTab('summary')">สรุปข้อมูล</div>
                     <div class="nav-tab" data-tab="settings" onclick="switchTab('settings')" id="settingsNavTab">การตั้งค่า</div>
                 </div>
@@ -658,50 +600,8 @@
                     </div>
                 </div>
 
-                <!-- Manage Data Tab -->
-                <div id="manageTabContent" class="tab-content hidden">
-                    <div class="dashboard-grid">
-                        <!-- ประเทศลูกค้า -->
-                        <div class="config-section">
-                            <h3 class="config-title">ประเทศลูกค้า</h3>
-                            <div class="form-row" style="margin-bottom: 1rem;">
-                                <input type="text" class="form-input" id="newCountryInput" placeholder="เพิ่มประเทศใหม่ เช่น Singapore" style="flex: 1; margin-right: 0.5rem;">
-                                <button class="btn" onclick="quickAddItem('countries', 'newCountryInput')">เพิ่ม</button>
-                            </div>
-                            <div id="countriesList" class="manage-list"></div>
-                        </div>
-
-                        <!-- กลุ่มสินค้า -->
-                        <div class="config-section">
-                            <h3 class="config-title">กลุ่มสินค้า</h3>
-                            <div class="form-row" style="margin-bottom: 1rem;">
-                                <input type="text" class="form-input" id="newCategoryInput" placeholder="เพิ่มกลุ่มสินค้าใหม่ เช่น Frozen Shrimp" style="flex: 1; margin-right: 0.5rem;">
-                                <button class="btn" onclick="quickAddItem('categories', 'newCategoryInput')">เพิ่ม</button>
-                            </div>
-                            <div id="categoriesList" class="manage-list"></div>
-                        </div>
-
-                        <!-- กลุ่มวัตถุดิบ -->
-                        <div class="config-section">
-                            <h3 class="config-title">กลุ่มวัตถุดิบ</h3>
-                            <div class="form-row" style="margin-bottom: 1rem;">
-                                <input type="text" class="form-input" id="newMaterialInput" placeholder="เพิ่มกลุ่มวัตถุดิบใหม่ เช่น Shrimp" style="flex: 1; margin-right: 0.5rem;">
-                                <button class="btn" onclick="quickAddItem('materials', 'newMaterialInput')">เพิ่ม</button>
-                            </div>
-                            <div id="materialsList" class="manage-list"></div>
-                        </div>
-
-                        <!-- จัดการผู้ใช้ (เฉพาะ Admin) -->
-                        <div class="config-section" id="usersManageSection">
-                            <h3 class="config-title">ผู้ใช้ (เฉพาะ Admin)</h3>
-                            <div class="form-row" style="margin-bottom: 1rem;">
-                                <input type="text" class="form-input" id="newUserInput" placeholder="เพิ่มผู้ใช้: username,password" style="flex: 1; margin-right: 0.5rem;">
-                                <button class="btn" onclick="quickAddItem('users', 'newUserInput')">เพิ่ม</button>
-                            </div>
-                            <div id="usersList" class="manage-list"></div>
-                        </div>
-                    </div>
-                </div>
+                <!-- Summary Tab -->
+                <div id="summaryTabContent" class="tab-content hidden">
                     <div class="dashboard-grid">
                         <div class="card">
                             <h3 class="config-title">สรุปตามประเทศ</h3>
@@ -727,6 +627,82 @@
                             <button class="btn" onclick="testConnection()">ทดสอบการเชื่อมต่อ</button>
                         </div>
                         <div id="testResults" class="test-results hidden"></div>
+                    </div>
+
+                    <!-- Apps Script Setup Guide -->
+                    <div class="config-section">
+                        <h3 class="config-title">คำแนะนำการตั้งค่า Apps Script (สำหรับเพิ่ม/ลบข้อมูล)</h3>
+                        <div class="alert alert-warning" style="background: #fef3c7; border-color: #fbbf24; color: #92400e; margin-bottom: 1rem;">
+                            <strong>หมายเหตุ:</strong> การเพิ่ม/ลบข้อมูลต้องตั้งค่า Google Apps Script ก่อน
+                        </div>
+                        <div class="test-results" style="display: block;">
+<strong>✅ อัพเดท Apps Script URL แล้ว!</strong>
+
+<strong>URL ใหม่:</strong> 
+https://script.google.com/macros/s/AKfycbyvNpB54EgdkFsmEJfzItid8t8EC2FmbZI6sP-hWIu218Glx7csd43JOSNgcHd7vOqv/exec
+
+<strong>🧪 ทดสอบ URL ด้วยตนเอง:</strong>
+เปิดลิงค์ข้างต้นในเบราว์เซอร์ ควรเห็น:
+```json
+{
+  "message": "Apps Script is working GET",
+  "timestamp": "2025-08-19T...",
+  "parameters": {}
+}
+```
+
+<strong>📋 Apps Script Code ที่ใช้:</strong>
+```javascript
+function doPost(e) {
+  try {
+    if (!e.postData) {
+      return ContentService.createTextOutput(JSON.stringify({message: 'Apps Script is working POST'}));
+    }
+    
+    const data = JSON.parse(e.postData.contents);
+    const spreadsheetId = '1Zpmtz6vjMRV6meWy8duKKTTj3ptIf00pggiakMa_Plo';
+    const sheet = SpreadsheetApp.openById(spreadsheetId);
+    
+    if (data.action === 'append') {
+      const sheetName = data.range.split('!')[0];
+      const targetSheet = sheet.getSheetByName(sheetName);
+      targetSheet.appendRow(data.values);
+      return ContentService.createTextOutput(JSON.stringify({success: true, action: 'append'}));
+    }
+    
+    if (data.action === 'update') {
+      const parts = data.range.split('!');
+      const sheetName = parts[0];
+      const range = parts[1];
+      const targetSheet = sheet.getSheetByName(sheetName);
+      const rangeObj = targetSheet.getRange(range);
+      rangeObj.setValues([data.values]);
+      return ContentService.createTextOutput(JSON.stringify({success: true, action: 'update'}));
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({message: 'Test successful', data: data}));
+    
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({error: error.toString(), stack: error.stack}));
+  }
+}
+
+function doGet(e) {
+  return ContentService.createTextOutput(JSON.stringify({
+    message: 'Apps Script is working GET',
+    timestamp: new Date().toISOString(),
+    parameters: e.parameter
+  }));
+}
+```
+
+<strong>🚀 ขั้นตอนต่อไป:</strong>
+1. กดปุ่ม "ทดสอบการเชื่อมต่อ" เพื่อทดสอบระบบ
+2. ลองใช้ฟังก์ชัน "จัดการประเทศ" หรือ "จัดการกลุ่มสินค้า"
+3. ทดสอบการเพิ่ม/ลบข้อมูล
+
+<strong>✅ สถานะ:</strong> พร้อมใช้งานเต็มรูปแบบ!
+                        </div>
                     </div>
 
                     <!-- Master Data Management - เฉพาะ Admin -->
@@ -972,18 +948,15 @@
             // Show/hide admin-only features
             const adminSettings = document.getElementById('adminSettings');
             const settingsNavTab = document.getElementById('settingsNavTab');
-            const usersManageSection = document.getElementById('usersManageSection');
             
             if (userRole === 'admin') {
                 // Admin เห็นทุกอย่าง
                 adminSettings.classList.remove('hidden');
                 settingsNavTab.classList.remove('hidden');
-                usersManageSection.classList.remove('hidden');
             } else {
-                // User ไม่เห็นเมนูการตั้งค่าและการจัดการผู้ใช้
+                // User ไม่เห็นเมนูการตั้งค่าและการจัดการข้อมูลหลัก
                 adminSettings.classList.add('hidden');
                 settingsNavTab.classList.add('hidden');
-                usersManageSection.classList.add('hidden');
             }
             
             loadDashboardData();
@@ -1368,186 +1341,6 @@
                 content.classList.add('hidden');
             });
             document.getElementById(`${tabName}TabContent`).classList.remove('hidden');
-            
-            // Load manage data if switching to manage tab
-            if (tabName === 'manage') {
-                loadManageData();
-            }
-        }
-
-        function loadManageData() {
-            updateQuickManageList('countries', 'countriesList');
-            updateQuickManageList('categories', 'categoriesList');
-            updateQuickManageList('materials', 'materialsList');
-            if (userRole === 'admin') {
-                updateQuickManageList('users', 'usersList');
-            }
-        }
-
-        function updateQuickManageList(type, listId) {
-            const list = document.getElementById(listId);
-            const data = masterData[type] || [];
-            
-            if (type === 'users') {
-                let userHtml = '';
-                if (data.length === 0) {
-                    userHtml = '<div style="padding: 1rem; text-align: center; color: #6b7280;">ไม่มีผู้ใช้ในระบบ</div>';
-                } else {
-                    data.forEach((user, index) => {
-                        userHtml += `<div class="manage-item">
-                            <div class="manage-item-user">
-                                <div class="manage-item-username">👤 ${user.username}</div>
-                                <div class="manage-item-password">รหัสผ่าน: ${'*'.repeat(user.password.length)}</div>
-                            </div>
-                            <button class="quick-delete-btn" onclick="quickRemoveItem('${type}', ${index})">ลบ</button>
-                        </div>`;
-                    });
-                }
-                list.innerHTML = userHtml;
-            } else {
-                let itemHtml = '';
-                if (data.length === 0) {
-                    const titles = {
-                        countries: 'ประเทศ',
-                        categories: 'กลุ่มสินค้า',
-                        materials: 'กลุ่มวัตถุดิบ'
-                    };
-                    itemHtml = `<div style="padding: 1rem; text-align: center; color: #6b7280;">ไม่มี${titles[type]}ในระบบ</div>`;
-                } else {
-                    data.forEach((item, index) => {
-                        itemHtml += `<div class="manage-item">
-                            <div class="manage-item-text">${item}</div>
-                            <button class="quick-delete-btn" onclick="quickRemoveItem('${type}', ${index})">ลบ</button>
-                        </div>`;
-                    });
-                }
-                list.innerHTML = itemHtml;
-            }
-        }
-
-        async function quickAddItem(type, inputId) {
-            const input = document.getElementById(inputId);
-            const value = input.value.trim();
-            
-            if (!value) {
-                alert('กรุณากรอกข้อมูล');
-                return;
-            }
-            
-            // ตรวจสอบสิทธิ์ Admin สำหรับการเพิ่มผู้ใช้
-            if (type === 'users' && userRole !== 'admin') {
-                alert('เฉพาะ Admin เท่านั้นที่สามารถเพิ่มผู้ใช้ได้');
-                return;
-            }
-            
-            try {
-                if (type === 'users') {
-                    const parts = value.split(',').map(s => s.trim());
-                    if (parts.length !== 2 || !parts[0] || !parts[1]) {
-                        alert('กรุณากรอกในรูปแบบ: username,password\nตัวอย่าง: john123,pass456');
-                        return;
-                    }
-                    
-                    // ตรวจสอบว่ามี username ซ้ำหรือไม่
-                    const existingUser = masterData.users.find(u => u.username === parts[0]);
-                    if (existingUser) {
-                        alert(`มีผู้ใช้ "${parts[0]}" อยู่ในระบบแล้ว\nกรุณาใช้ชื่อผู้ใช้อื่น`);
-                        return;
-                    }
-                    
-                    await appendToGoogleSheet('Users!A:B', parts);
-                } else {
-                    const sheetNames = {
-                        countries: 'Countries',
-                        categories: 'Categories',
-                        materials: 'Materials'
-                    };
-                    
-                    // ตรวจสอบว่ามีข้อมูลซ้ำหรือไม่
-                    const existingItem = masterData[type].find(item => 
-                        item.toLowerCase() === value.toLowerCase()
-                    );
-                    if (existingItem) {
-                        alert(`มี "${value}" อยู่ในระบบแล้ว`);
-                        return;
-                    }
-                    
-                    const sheetName = sheetNames[type];
-                    await appendToGoogleSheet(`${sheetName}!A:A`, [value]);
-                }
-                
-                // รีเฟรชข้อมูล
-                await loadMasterData();
-                updateFilters();
-                updateQuickManageList(type, inputId.replace('new', '').replace('Input', '') + 'List');
-                input.value = '';
-                
-                const itemNames = {
-                    users: 'ผู้ใช้',
-                    countries: 'ประเทศ',
-                    categories: 'กลุ่มสินค้า',
-                    materials: 'กลุ่มวัตถุดิบ'
-                };
-                
-                alert(`เพิ่ม${itemNames[type]}เรียบร้อยแล้ว`);
-            } catch (error) {
-                console.error('Error adding item:', error);
-            }
-        }
-
-        async function quickRemoveItem(type, index) {
-            // ตรวจสอบสิทธิ์ Admin สำหรับการลบผู้ใช้
-            if (type === 'users' && userRole !== 'admin') {
-                alert('เฉพาะ Admin เท่านั้นที่สามารถลบผู้ใช้ได้');
-                return;
-            }
-            
-            const itemNames = {
-                users: 'ผู้ใช้',
-                countries: 'ประเทศ',
-                categories: 'กลุ่มสินค้า',
-                materials: 'กลุ่มวัตถุดิบ'
-            };
-            
-            const itemName = itemNames[type];
-            const data = masterData[type] || [];
-            const itemToDelete = type === 'users' ? data[index]?.username : data[index];
-            
-            if (!confirm(`คุณต้องการลบ${itemName} "${itemToDelete}" หรือไม่?`)) return;
-            
-            try {
-                const rowIndex = index + 2; // +2 เพราะเริ่มจากแถวที่ 2 และ 0-based index
-                
-                if (type === 'users') {
-                    await updateGoogleSheetRow(`Users!A${rowIndex}:B${rowIndex}`, ['', '']);
-                } else {
-                    const sheetNames = {
-                        countries: 'Countries',
-                        categories: 'Categories',
-                        materials: 'Materials'
-                    };
-                    
-                    const sheetName = sheetNames[type];
-                    await updateGoogleSheetRow(`${sheetName}!A${rowIndex}:A${rowIndex}`, ['']);
-                }
-                
-                // รีเฟรชข้อมูล
-                await loadMasterData();
-                updateFilters();
-                
-                // Update the specific list
-                const listIds = {
-                    countries: 'countriesList',
-                    categories: 'categoriesList',
-                    materials: 'materialsList',
-                    users: 'usersList'
-                };
-                updateQuickManageList(type, listIds[type]);
-                
-                alert(`ลบ${itemName}เรียบร้อยแล้ว`);
-            } catch (error) {
-                console.error('Error removing item:', error);
-            }
         }
 
         function openAddModal() {
