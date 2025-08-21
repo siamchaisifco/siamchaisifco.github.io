@@ -793,7 +793,7 @@ function doGet(e) {
                                 <select class="form-input" id="prospectCountry" required style="flex: 1;">
                                     <option value="">เลือกประเทศลูกค้า</option>
                                 </select>
-                                <button type="button" class="btn" onclick="console.log('Button clicked:', 'countries', 'prospectCountry'); showQuickAddModal('countries', 'prospectCountry')" style="padding: 0.75rem; font-size: 0.9rem; white-space: nowrap;">+ เพิ่ม</button>
+                                <button type="button" class="btn quick-add-btn" data-type="countries" data-target="prospectCountry" style="padding: 0.75rem; font-size: 0.9rem; white-space: nowrap;">+ เพิ่ม</button>
                             </div>
                         </div>
                         <div class="form-group">
@@ -802,7 +802,7 @@ function doGet(e) {
                                 <select class="form-input" id="prospectSaleCountry" style="flex: 1;">
                                     <option value="">เลือกประเทศที่ขาย</option>
                                 </select>
-                                <button type="button" class="btn" onclick="showQuickAddModal('countries', 'prospectSaleCountry')" style="padding: 0.75rem; font-size: 0.9rem; white-space: nowrap;">+ เพิ่ม</button>
+                                <button type="button" class="btn quick-add-btn" data-type="countries" data-target="prospectSaleCountry" style="padding: 0.75rem; font-size: 0.9rem; white-space: nowrap;">+ เพิ่ม</button>
                             </div>
                         </div>
                     </div>
@@ -821,7 +821,7 @@ function doGet(e) {
                                 <select class="form-input" id="prospectCategory" required style="flex: 1;">
                                     <option value="">เลือกกลุ่มสินค้า</option>
                                 </select>
-                                <button type="button" class="btn" onclick="showQuickAddModal('categories', 'prospectCategory')" style="padding: 0.75rem; font-size: 0.9rem; white-space: nowrap;">+ เพิ่ม</button>
+                                <button type="button" class="btn quick-add-btn" data-type="categories" data-target="prospectCategory" style="padding: 0.75rem; font-size: 0.9rem; white-space: nowrap;">+ เพิ่ม</button>
                             </div>
                         </div>
                         <div class="form-group">
@@ -830,7 +830,7 @@ function doGet(e) {
                                 <select class="form-input" id="prospectMaterial" required style="flex: 1;">
                                     <option value="">เลือกกลุ่มวัตถุดิบ</option>
                                 </select>
-                                <button type="button" class="btn" onclick="showQuickAddModal('materials', 'prospectMaterial')" style="padding: 0.75rem; font-size: 0.9rem; white-space: nowrap;">+ เพิ่ม</button>
+                                <button type="button" class="btn quick-add-btn" data-type="materials" data-target="prospectMaterial" style="padding: 0.75rem; font-size: 0.9rem; white-space: nowrap;">+ เพิ่ม</button>
                             </div>
                         </div>
                     </div>
@@ -912,6 +912,17 @@ function doGet(e) {
             
             // Prospect form
             document.getElementById('prospectForm').addEventListener('submit', handleSaveProspect);
+            
+            // Quick Add buttons - ใช้ event delegation
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('quick-add-btn')) {
+                    console.log('Quick add button clicked');
+                    const type = e.target.getAttribute('data-type');
+                    const target = e.target.getAttribute('data-target');
+                    console.log('Type:', type, 'Target:', target);
+                    showQuickAddModal(type, target);
+                }
+            });
         }
 
         function loadStoredConfig() {
